@@ -2,14 +2,14 @@
 LLM-ERP Orchestrator Agent
 
 Receives user natural language → classifies intent → routes to domain agent → returns response.
-Uses Anthropic Claude for function calling.
+Supports multiple LLM providers: Anthropic, OpenAI, DeepSeek, OpenRouter, Ollama.
 """
 
 import json
 from typing import Optional
 from app.config import settings
 
-# Tool definitions that the LLM can call
+# Tool definitions that any LLM can call (OpenAI-compatible function calling format)
 TOOLS = [
     {
         "type": "function",

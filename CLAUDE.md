@@ -5,7 +5,7 @@
 ## Stack
 - Backend: Python FastAPI + SQLAlchemy + PostgreSQL + pgvector
 - Frontend: React + TypeScript + Tailwind CSS + Vite
-- LLM: Claude API via function calling
+- LLM: Multi-provider (Anthropic / OpenAI / DeepSeek / OpenRouter / Ollama) via function calling
 - Auth: Session-based (Phase 1)
 
 ## Architecture
