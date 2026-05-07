@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP 評估結果</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #020617;
+  font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
+  color: #e2e8f0;
+  display: flex;
+  justify-content: center;
+  padding: 40px 24px;
+  min-height: 100vh;
+}
+.container {
+  max-width: 1000px;
+  width: 100%;
+}
+
+/* Card styling */
+.card {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 16px;
+  padding: 36px 40px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+/* Header */
+.header { text-align: center; padding: 48px 40px 40px; }
+.header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #f1f5f9;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.header .subtitle {
+  font-size: 14px;
+  font-weight: 400;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+.header .score-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 100px;
+  padding: 8px 22px;
+}
+.header .score-badge .big {
+  font-size: 32px;
+  font-weight: 700;
+  color: #34d399;
+}
+.header .score-badge .label {
+  font-size: 13px;
+  color: #6ee7b7;
+}
+.header .score-badge .divider {
+  width: 1px;
+  height: 28px;
+  background: #1e293b;
+}
+
+/* Charts */
+.chart-section h2 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 20px;
+}
+.chart-section .sub-hint {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: -16px;
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.chart-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.chart-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 16px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+table thead th {
+  text-align: left;
+  padding: 10px 14px;
+  font-weight: 500;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #64748b;
+  border-bottom: 1px solid #1e293b;
+}
+table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #1e293b;
+  vertical-align: top;
+  line-height: 1.5;
+}
+table tbody tr:last-child td { border-bottom: none; }
+table tbody tr:hover { background: rgba(255,255,255,0.02); }
+table .tag {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 500;
+}
+table .tag-fail {
+  background: rgba(251, 146, 60, 0.12);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.2);
+}
+table .code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: #f59e0b;
+}
+table .reason {
+  color: #94a3b8;
+  font-size: 12px;
+  max-width: 320px;
+}
+table .query-text {
+  color: #cbd5e1;
+  font-size: 12px;
+  max-width: 300px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 20px 40px 28px;
+  font-size: 12px;
+  color: #475569;
+  letter-spacing: 0.5px;
+}
+.footer .sep {
+  display: inline-block;
+  margin: 0 10px;
+  color: #1e293b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  body { padding: 16px 12px; }
+  .card { padding: 24px 18px; }
+  .header { padding: 32px 18px 28px; }
+  .header h1 { font-size: 21px; }
+  .header .score-badge .big { font-size: 26px; }
+  table { font-size: 12px; }
+  table tbody td { padding: 10px 10px; }
+  table .reason { max-width: 180px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="card header">
+    <h1>LLM-ERP 評估結果</h1>
+    <div class="subtitle">30 筆測試案例 &middot; 27 通過 (90.0%)</div>
+    <div class="score-badge">
+      <span class="big">90.0%</span>
+      <span class="divider"></span>
+      <span class="label">27/30 通過 &middot; 平均 7.7s</span>
+    </div>
+  </div>
+
+  <!-- CHART 1: 各類別通過率 -->
+  <div class="card chart-section">
+    <h2>各類別通過率</h2>
+    <div class="chart-container" id="passChart"></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:#34d399;border:1px solid rgba(52,211,153,0.3)"></span> 通過</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#1e293b;border:1px solid #334155"></span> 失敗</div>
+    </div>
+  </div>
+
+  <!-- CHART 2: 平均回應時間 -->
+  <div class="card chart-section">
+    <h2>平均回應時間</h2>
+    <div class="sub-hint">總平均：<span style="color:#fbbf24;font-weight:600;">7.7s</span></div>
+    <div class="chart-container" id="timeChart"></div>
+  </div>
+
+  <!-- TABLE: 失敗案例 -->
+  <div class="card chart-section">
+    <h2>失敗案例</h2>
+    <div style="margin-bottom:14px;font-size:12px;color:#64748b;">3 筆測試案例未通過驗證</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>案例編號</th>
+            <th>查詢內容</th>
+            <th>類別</th>
+            <th>失敗原因</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="code">inv-stock-05</span></td>
+            <td class="query-text">查一下馬達類零件的庫存狀況</td>
+            <td><span class="tag tag-fail">庫存</span></td>
+            <td class="reason">Intent分類錯誤，被分類為一般對話而非庫存查詢</td>
+          </tr>
+          <tr>
+            <td><span class="code">pur-po-stock-01</span></td>
+            <td class="query-text">M6x20螺絲剩200顆庫存, 幫我開採購單補到安全庫存1000</td>
+            <td><span class="tag tag-fail">採購</span></td>
+            <td class="reason">未觸發採購意圖，只回答了庫存查詢</td>
+          </tr>
+          <tr>
+            <td><span class="code">cross-po-inv-01</span></td>
+            <td class="query-text">M6x20螺絲採購單PO-2026-0001的貨到了嗎？到了多少？入庫了？</td>
+            <td><span class="tag tag-fail">跨模組</span></td>
+            <td class="reason">跨模組查詢失敗，無法關聯採購單與入庫紀錄</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="card footer">
+    LLM-ERP 評估結果 &middot; <span class="sep">&bull;</span> DeepSeek Provider &middot; <span class="sep">&bull;</span> 2026-05-06
+  </div>
+
+</div>
+
+<script>
+(function() {
+  const COLORS = {
+    pass: '#34d399',
+    passDim: 'rgba(52,211,153,0.15)',
+    fail: '#1e293b',
+    failBorder: '#334155',
+    timeBar: '#818cf8',
+    timeBarDim: 'rgba(129,140,248,0.15)',
+    avgLine: '#fbbf24',
+    text: '#94a3b8',
+    textBold: '#e2e8f0',
+    grid: '#1e293b'
+  };
+
+  const data = {
+    categories: ['庫存', '採購', 'BOM', '派工', '品質', '會計', '跨模組'],
+    passed: [4, 4, 4, 5, 4, 5, 1],
+    total: [5, 5, 4, 5, 4, 5, 2],
+    times: [7.4, 7.8, 12.3, 5.1, 6.5, 7.2, 8.7],
+    overallAvg: 7.7
+  };
+
+  // ============================================================
+  // CHART 1: 各類別通過率
+  // ============================================================
+  function renderPassChart() {
+    const container = document.getElementById('passChart');
+    const w = 880, h = 340;
+    const pad = { top: 24, right: 40, bottom: 48, left: 8 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+    const n = data.categories.length;
+    const groupW = cw / n;
+    const barW = Math.min(groupW * 0.55, 48);
+    const barGap = groupW - barW;
+
+    let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">`;
+    svg += `<defs>
+      <linearGradient id="passGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#34d399" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#34d399" stop-opacity="0.85"/>
+      </linearGradient>
+      <linearGradient id="failGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#1e293b" stop-opacity="0.6"/>
+        <stop offset="100%" stop-color="#1e293b" stop-opacity="1"/>
+      </linearGradient>
+      <filter id="glowPass">
+        <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="#34d399" flood-opacity="0.3"/>
+      </filter>
+    </defs>`;
+
+    // grid lines
+    for (let p = 0; p <= 100; p += 25) {
+      const y = pad.top + ch * (1 - p / 100);
+      svg += `<line x1="${pad.left}" y1="${y}" x2="${w-pad.right}" y2="${y}" stroke="${COLORS.grid}" stroke-width="1"/>`;
+      svg += `<text x="${pad.left-10}" y="${y+4}" text-anchor="end" fill="#475569" font-size="11">${p}%</text>`;
+    }
+
+    // bars
+    for (let i = 0; i < n; i++) {
+      const cx = pad.left + i * groupW + groupW / 2;
+      const passCount = data.passed[i];
+      const totalCount = data.total[i];
+      const failCount = totalCount - passCount;
+      const passPct = (passCount / totalCount) * 100;
+      const failPct = (failCount / totalCount) * 100;
+      const barX = cx - barW / 2;
+
+      // failed portion (top)
+      if (failCount > 0) {
+        const failH = (failPct / 100) * ch;
+        const failY = pad.top + ch * (1 - passPct / 100) - failH;
+        svg += `<rect x="${barX}" y="${failY}" width="${barW}" height="${Math.max(failH,2)}" fill="url(#failGrad)" rx="3" ry="3"/>`;
+        svg += `<rect x="${barX}" y="${failY}" width="${barW}" height="${Math.max(failH,2)}" fill="none" stroke="#334155" stroke-width="0.5" rx="3" ry="3"/>`;
+      }
+
+      // passed portion (bottom)
+      const passH = (passPct / 100) * ch;
+      const passY = pad.top + ch - passH;
+      svg += `<rect x="${barX}" y="${passY}" width="${barW}" height="${Math.max(passH,2)}" fill="url(#passGrad)" rx="3" ry="3" filter="url(#glowPass)"/>`;
+      svg += `<rect x="${barX}" y="${passY}" width="${barW}" height="${Math.max(passH,2)}" fill="none" stroke="#34d399" stroke-width="0.5" rx="3" ry="3"/>`;
+
+      // label: "4/5"
+      const labelY = pad.top + ch + 18;
+      svg += `<text x="${cx}" y="${labelY}" text-anchor="middle" fill="${COLORS.textBold}" font-size="13" font-weight="600">${passCount}/${totalCount}</text>`;
+
+      // category name
+      const catY = pad.top + ch + 34;
+      const name = data.categories[i];
+      svg += `<text x="${cx}" y="${catY}" text-anchor="middle" fill="${COLORS.text}" font-size="10">${name}</text>`;
+    }
+
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  // ============================================================
+  // CHART 2: 平均回應時間
+  // ============================================================
+  function renderTimeChart() {
+    const container = document.getElementById('timeChart');
+    const w = 880, h = 320;
+    const pad = { top: 28, right: 40, bottom: 52, left: 50 };
+    const cw = w - pad.left - pad.right;
+    const ch = h - pad.top - pad.bottom;
+    const n = data.categories.length;
+    const maxTime = 14;
+    const overallAvg = data.overallAvg;
+
+    let svg = `<svg viewBox="0 0 ${w} ${h}" xmlns="http://www.w3.org/2000/svg" font-family="'JetBrains Mono',monospace">`;
+    svg += `<defs>
+      <linearGradient id="timeGrad" x1="0" y1="1" x2="0" y2="0">
+        <stop offset="0%" stop-color="#818cf8" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#818cf8" stop-opacity="0.85"/>
+      </linearGradient>
+      <filter id="glowTime">
+        <feDropShadow dx="0" dy="0" stdDeviation="2.5" flood-color="#818cf8" flood-opacity="0.25"/>
+      </filter>
+      <filter id="glowAvg">
+        <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#fbbf24" flood-opacity="0.35"/>
+      </filter>
+    </defs>`;
+
+    // Y axis grid
+    for (let t = 0; t <= maxTime; t += 2) {
+      const y = pad.top + ch * (1 - t / maxTime);
+      svg += `<line x1="${pad.left}" y1="${y}" x2="${w-pad.right}" y2="${y}" stroke="${COLORS.grid}" stroke-width="1"/>`;
+      svg += `<text x="${pad.left-8}" y="${y+4}" text-anchor="end" fill="#475569" font-size="11">${t}s</text>`;
+    }
+
+    // overall avg line
+    const avgY = pad.top + ch * (1 - overallAvg / maxTime);
+    svg += `<line x1="${pad.left}" y1="${avgY}" x2="${w-pad.right}" y2="${avgY}" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,4" filter="url(#glowAvg)" opacity="0.8"/>`;
+    svg += `<rect x="${w-pad.right-70}" y="${avgY-13}" width="70" height="18" rx="9" fill="rgba(251,191,36,0.12)" stroke="rgba(251,191,36,0.2)" stroke-width="1"/>`;
+    svg += `<text x="${w-pad.right-35}" y="${avgY}" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="600" dy="4">avg ${overallAvg}s</text>`;
+
+    // bars
+    const groupW = cw / n;
+    const barW = Math.min(groupW * 0.55, 48);
+
+    for (let i = 0; i < n; i++) {
+      const cx = pad.left + i * groupW + groupW / 2;
+      const val = data.times[i];
+      const barH = (val / maxTime) * ch;
+      const barY = pad.top + ch - barH;
+      const barX = cx - barW / 2;
+
+      svg += `<rect x="${barX}" y="${barY}" width="${barW}" height="${Math.max(barH,2)}" fill="url(#timeGrad)" rx="3" ry="3" filter="url(#glowTime)"/>`;
+      svg += `<rect x="${barX}" y="${barY}" width="${barW}" height="${Math.max(barH,2)}" fill="none" stroke="#818cf8" stroke-width="0.5" rx="3" ry="3"/>`;
+
+      // value label
+      svg += `<text x="${cx}" y="${barY-8}" text-anchor="middle" fill="${COLORS.textBold}" font-size="12" font-weight="600">${val}s</text>`;
+
+      // category label
+      const name = data.categories[i];
+      svg += `<text x="${cx}" y="${pad.top+ch+18}" text-anchor="middle" fill="${COLORS.text}" font-size="10">${name}</text>`;
+    }
+
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  renderPassChart();
+  renderTimeChart();
+})();
+</script>
+</body>
+</html>

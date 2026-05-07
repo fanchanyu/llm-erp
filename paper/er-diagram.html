@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP Database Schema — Entity-Relationship Diagram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #020617;
+  font-family: 'JetBrains Mono', monospace;
+  color: #e2e8f0;
+  overflow: auto;
+  min-height: 100vh;
+}
+svg { display: block; margin: 0 auto; }
+.tooltip {
+  position: fixed; background: #1e293b; border: 1px solid #334155;
+  border-radius: 6px; padding: 6px 10px; font-size: 11px;
+  color: #e2e8f0; pointer-events: none; opacity: 0;
+  transition: opacity 0.15s; z-index: 1000; font-family: 'JetBrains Mono', monospace;
+}
+.table-group { cursor: pointer; }
+.table-group:hover rect[fill="#0f172a"] { stroke-width: 1.8 !important; }
+</style>
+</head>
+<body>
+<div class="tooltip" id="tooltip"></div>
+<svg id="schema-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+<script>
+(function() {
+  // ─── Palette ──────────────────────────────────────────────────
+  const C = {
+    Inventory:  { hdr: '#0f766e', acc: '#14b8a6', bg: '#042f2e88', dim: '#134e4a' },
+    Purchase:   { hdr: '#1d4ed8', acc: '#3b82f6', bg: '#17255488', dim: '#1e3a5f' },
+    BOM:        { hdr: '#6d28d9', acc: '#8b5cf6', bg: '#1e1b4b88', dim: '#2e1065' },
+    Dispatch:   { hdr: '#b91c1c', acc: '#ef4444', bg: '#450a0a88', dim: '#7f1d1d' },
+    Quality:    { hdr: '#9d174d', acc: '#ec4899', bg: '#3b076488', dim: '#4a0e2b' },
+    Accounting: { hdr: '#a16207', acc: '#eab308', bg: '#42200688', dim: '#713f12' },
+    Audit:      { hdr: '#374151', acc: '#6b7280', bg: '#11182788', dim: '#1f2937' }
+  };
+
+  // ─── Tables ───────────────────────────────────────────────────
+  const T = [
+    // ── Inventory ──
+    { id:'parts', mod:'Inventory', cols:[
+      { n:'id',         t:'UUID',      pk:1 },
+      { n:'part_no',    t:'string',    u:1, d:'UNIQUE' },
+      { n:'name',       t:'string' },
+      { n:'spec',       t:'string' },
+      { n:'unit',       t:'string' },
+      { n:'category',   t:'string' },
+      { n:'created_at', t:'timestamptz' }
+    ]},
+    { id:'inventory', mod:'Inventory', cols:[
+      { n:'id',         t:'UUID',      pk:1 },
+      { n:'part_id',    t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'location',   t:'string' },
+      { n:'quantity',   t:'int8' },
+      { n:'updated_at', t:'timestamptz' }
+    ]},
+    { id:'inv_txns', mod:'Inventory', cols:[
+      { n:'id',           t:'UUID',      pk:1 },
+      { n:'part_id',      t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'type',         t:'enum',      d:'inbound / outbound / adjustment' },
+      { n:'quantity',     t:'int8' },
+      { n:'reference_no', t:'string' },
+      { n:'notes',        t:'text' },
+      { n:'created_by',   t:'string' },
+      { n:'created_at',   t:'timestamptz' }
+    ]},
+    // ── Purchase ──
+    { id:'suppliers', mod:'Purchase', cols:[
+      { n:'id',         t:'UUID',      pk:1 },
+      { n:'name',       t:'string' },
+      { n:'contact',    t:'string' },
+      { n:'phone',      t:'string' },
+      { n:'email',      t:'string' },
+      { n:'score',      t:'numeric',   d:'0–5' },
+      { n:'created_at', t:'timestamptz' }
+    ]},
+    { id:'po', mod:'Purchase', cols:[
+      { n:'id',          t:'UUID',      pk:1 },
+      { n:'po_no',       t:'string',    u:1, d:'UNIQUE' },
+      { n:'supplier_id', t:'UUID',      fk:'suppliers', d:'→ suppliers' },
+      { n:'status',      t:'enum',      d:'draft / sent / partial / received / cancelled' },
+      { n:'ordered_by',  t:'string' },
+      { n:'notes',       t:'text' },
+      { n:'created_at',  t:'timestamptz' }
+    ]},
+    { id:'po_items', mod:'Purchase', cols:[
+      { n:'id',               t:'UUID',      pk:1 },
+      { n:'po_id',            t:'UUID',      fk:'po', d:'→ purchase_orders' },
+      { n:'part_id',          t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'quantity',         t:'int8' },
+      { n:'unit_price',       t:'numeric' },
+      { n:'expected_delivery',t:'date' },
+      { n:'received_qty',     t:'int8' }
+    ]},
+    // ── BOM ──
+    { id:'products', mod:'BOM', cols:[
+      { n:'id',          t:'UUID',      pk:1 },
+      { n:'product_no',  t:'string',    u:1, d:'UNIQUE' },
+      { n:'name',        t:'string' },
+      { n:'description', t:'text' },
+      { n:'created_at',  t:'timestamptz' }
+    ]},
+    { id:'bom_items', mod:'BOM', cols:[
+      { n:'id',         t:'UUID',      pk:1 },
+      { n:'product_id', t:'UUID',      fk:'products', d:'→ products' },
+      { n:'part_id',    t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'quantity',   t:'int8' },
+      { n:'level',      t:'int2',      d:'0=final / 1=sub / 2=part' },
+      { n:'created_at', t:'timestamptz' }
+    ]},
+    // ── Dispatch ──
+    { id:'work_centers', mod:'Dispatch', name:'work_centers', cols:[
+      { n:'id',             t:'string',    pk:1 },
+      { n:'name',           t:'string',    u:1, d:'UNIQUE' },
+      { n:'description',    t:'text' },
+      { n:'status',         t:'enum',      d:'idle / running / down / maintenance' },
+      { n:'capacity_hours', t:'numeric' },
+      { n:'efficiency',     t:'numeric' },
+      { n:'location',       t:'string' },
+      { n:'alternate_group',t:'string' },
+      { n:'created_at',     t:'timestamptz' }
+    ]},
+    { id:'prod_orders', mod:'Dispatch', name:'production_orders', cols:[
+      { n:'id',           t:'string',    pk:1 },
+      { n:'order_no',     t:'string',    u:1, d:'UNIQUE' },
+      { n:'product_no',   t:'string' },
+      { n:'product_name', t:'string' },
+      { n:'quantity',     t:'int8' },
+      { n:'due_date',     t:'date' },
+      { n:'priority',     t:'int2',      d:'1–5' },
+      { n:'status',       t:'enum',      d:'draft / released / dispatched / in_progress / completed / cancelled' },
+      { n:'notes',        t:'text' },
+      { n:'created_by',   t:'string' },
+      { n:'created_at',   t:'timestamptz' },
+      { n:'updated_at',   t:'timestamptz' }
+    ]},
+    { id:'operations', mod:'Dispatch', cols:[
+      { n:'id',             t:'string',    pk:1 },
+      { n:'order_id',       t:'string',    fk:'prod_orders', d:'→ production_orders' },
+      { n:'work_center_id', t:'string',    fk:'work_centers', d:'→ work_centers' },
+      { n:'sequence_no',    t:'int2' },
+      { n:'name',           t:'string' },
+      { n:'setup_time_min', t:'int4' },
+      { n:'cycle_time_min', t:'int4' },
+      { n:'total_time_min', t:'int4' },
+      { n:'status',         t:'enum',      d:'pending / ready / running / completed / paused / failed' },
+      { n:'scheduled_start',t:'timestamptz' },
+      { n:'scheduled_end',  t:'timestamptz' },
+      { n:'actual_start',   t:'timestamptz' },
+      { n:'actual_end',     t:'timestamptz' },
+      { n:'delay_minutes',  t:'int4' }
+    ]},
+    { id:'dispatch_logs', mod:'Dispatch', cols:[
+      { n:'id',             t:'string',    pk:1 },
+      { n:'order_id',       t:'string',    fk:'prod_orders', d:'→ production_orders' },
+      { n:'operation_id',   t:'string',    fk:'operations', d:'→ operations' },
+      { n:'work_center_id', t:'string',    fk:'work_centers', d:'→ work_centers' },
+      { n:'action',         t:'enum',      d:'dispatch / reschedule / pause / resume' },
+      { n:'dispatched_by',  t:'string' },
+      { n:'notes',          t:'text' },
+      { n:'created_at',     t:'timestamptz' }
+    ]},
+    // ── Quality ──
+    { id:'insp_orders', mod:'Quality', name:'inspection_orders', cols:[
+      { n:'id',             t:'UUID',      pk:1 },
+      { n:'inspection_no',  t:'string',    u:1, d:'UNIQUE' },
+      { n:'po_id',          t:'UUID',      fk:'po', d:'→ purchase_orders' },
+      { n:'part_id',        t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'lot_no',         t:'string' },
+      { n:'quantity',       t:'int8' },
+      { n:'status',         t:'enum',      d:'pending / approved / rejected / conditional' },
+      { n:'inspection_date',t:'date' },
+      { n:'inspected_by',   t:'string' },
+      { n:'created_at',     t:'timestamptz' }
+    ]},
+    { id:'insp_results', mod:'Quality', name:'inspection_results', cols:[
+      { n:'id',             t:'UUID',      pk:1 },
+      { n:'inspection_id',  t:'UUID',      fk:'insp_orders', d:'→ inspection_orders' },
+      { n:'item_no',        t:'int2' },
+      { n:'description',    t:'string' },
+      { n:'spec_value',     t:'string' },
+      { n:'measured_value', t:'string' },
+      { n:'result',         t:'enum',      d:'pass / fail / conditional' },
+      { n:'notes',          t:'text' },
+      { n:'created_at',     t:'timestamptz' }
+    ]},
+    { id:'nc', mod:'Quality', name:'non_conformances', cols:[
+      { n:'id',            t:'UUID',      pk:1 },
+      { n:'nc_no',         t:'string',    u:1, d:'UNIQUE' },
+      { n:'inspection_id', t:'UUID',      fk:'insp_orders', d:'→ inspection_orders' },
+      { n:'part_id',       t:'UUID',      fk:'parts', d:'→ parts' },
+      { n:'defect_code',   t:'string' },
+      { n:'description',   t:'text' },
+      { n:'severity',      t:'enum',      d:'minor / major / critical' },
+      { n:'status',        t:'enum',      d:'open / investigating / closed' },
+      { n:'created_by',    t:'string' },
+      { n:'created_at',    t:'timestamptz' },
+      { n:'resolved_at',   t:'timestamptz' }
+    ]},
+    { id:'capa', mod:'Quality', name:'capa_records', cols:[
+      { n:'id',          t:'UUID',      pk:1 },
+      { n:'nc_id',       t:'UUID',      fk:'nc', d:'→ non_conformances' },
+      { n:'root_cause',  t:'text' },
+      { n:'action',      t:'text' },
+      { n:'responsible', t:'string' },
+      { n:'deadline',    t:'date' },
+      { n:'status',      t:'enum',      d:'planned / in_progress / closed' },
+      { n:'closed_at',   t:'timestamptz' },
+      { n:'created_at',  t:'timestamptz' }
+    ]},
+    // ── Accounting ──
+    { id:'accounts', mod:'Accounting', cols:[
+      { n:'id',             t:'UUID',      pk:1 },
+      { n:'account_no',     t:'string',    u:1, d:'UNIQUE' },
+      { n:'name',           t:'string' },
+      { n:'type',           t:'enum',      d:'asset / liability / equity / revenue / expense' },
+      { n:'normal_balance', t:'enum',      d:'debit / credit' },
+      { n:'is_active',      t:'bool' },
+      { n:'created_at',     t:'timestamptz' }
+    ]},
+    { id:'journal_entries', mod:'Accounting', cols:[
+      { n:'id',          t:'UUID',      pk:1 },
+      { n:'entry_no',    t:'string',    u:1, d:'UNIQUE' },
+      { n:'description', t:'text' },
+      { n:'entry_date',  t:'date' },
+      { n:'period',      t:'string',    d:'YYYY-MM' },
+      { n:'source_type', t:'string' },
+      { n:'source_id',   t:'string' },
+      { n:'created_by',  t:'string' },
+      { n:'created_at',  t:'timestamptz' },
+      { n:'posted',      t:'bool' }
+    ]},
+    { id:'journal_lines', mod:'Accounting', cols:[
+      { n:'id',          t:'UUID',      pk:1 },
+      { n:'entry_id',    t:'UUID',      fk:'journal_entries', d:'→ journal_entries' },
+      { n:'account_id',  t:'UUID',      fk:'accounts', d:'→ accounts' },
+      { n:'debit',       t:'numeric' },
+      { n:'credit',      t:'numeric' },
+      { n:'description', t:'text' }
+    ]},
+    { id:'ar', mod:'Accounting', name:'accounts_receivable', cols:[
+      { n:'id',            t:'UUID',      pk:1 },
+      { n:'customer_name', t:'string' },
+      { n:'invoice_no',    t:'string' },
+      { n:'amount',        t:'numeric' },
+      { n:'due_date',      t:'date' },
+      { n:'paid_amount',   t:'numeric' },
+      { n:'status',        t:'enum',      d:'open / overdue / paid' },
+      { n:'created_at',    t:'timestamptz' }
+    ]},
+    { id:'mec', mod:'Accounting', name:'month_end_closes', cols:[
+      { n:'id',        t:'UUID',      pk:1 },
+      { n:'period',    t:'string',    u:1, d:'UNIQUE YYYY-MM' },
+      { n:'closed_at', t:'timestamptz' },
+      { n:'closed_by', t:'string' },
+      { n:'is_closed', t:'bool' }
+    ]},
+    // ── Audit ──
+    { id:'audit_logs', mod:'Audit', cols:[
+      { n:'id',         t:'UUID',      pk:1 },
+      { n:'session_id', t:'string' },
+      { n:'user_input', t:'text' },
+      { n:'intent',     t:'string' },
+      { n:'action',     t:'string' },
+      { n:'params',     t:'jsonb' },
+      { n:'result',     t:'text' },
+      { n:'success',    t:'bool' },
+      { n:'created_at', t:'timestamptz' }
+    ]}
+  ];
+
+  // ─── Relationships ────────────────────────────────────────────
+  const R = [
+    { f:'parts',        t:'inventory',       l:'1:1' },
+    { f:'parts',        t:'inv_txns',        l:'1:N' },
+    { f:'suppliers',    t:'po',              l:'1:N' },
+    { f:'po',           t:'po_items',        l:'1:N' },
+    { f:'parts',        t:'po_items',        l:'1:N' },
+    { f:'products',     t:'bom_items',       l:'1:N' },
+    { f:'parts',        t:'bom_items',       l:'1:N' },
+    { f:'prod_orders',  t:'operations',      l:'1:N' },
+    { f:'work_centers', t:'operations',      l:'1:N' },
+    { f:'insp_orders',  t:'insp_results',    l:'1:N' },
+    { f:'insp_orders',  t:'nc',              l:'1:N' },
+    { f:'nc',           t:'capa',            l:'1:N' },
+    { f:'journal_entries', t:'journal_lines', l:'1:N' },
+    { f:'accounts',     t:'journal_lines',   l:'1:N' },
+    { f:'parts',        t:'insp_orders',     l:'1:N' },
+    { f:'parts',        t:'nc',              l:'1:N' },
+    { f:'po',           t:'insp_orders',     l:'1:N' }
+  ];
+
+  // ─── Display names ────────────────────────────────────────────
+  const DISPLAY = {
+    parts:'parts', inventory:'inventory', inv_txns:'inventory_transactions',
+    suppliers:'suppliers', po:'purchase_orders', po_items:'purchase_order_items',
+    products:'products', bom_items:'bom_items',
+    work_centers:'work_centers', prod_orders:'production_orders',
+    operations:'operations', dispatch_logs:'dispatch_logs',
+    insp_orders:'inspection_orders', insp_results:'inspection_results',
+    nc:'non_conformances', capa:'capa_records',
+    accounts:'accounts', journal_entries:'journal_entries',
+    journal_lines:'journal_lines', ar:'accounts_receivable',
+    mec:'month_end_closes', audit_logs:'audit_logs'
+  };
+
+  // ─── Layout Positions (x, y) ──────────────────────────────────
+  const TW = 224;  // table width
+  const RH = 20;   // row height
+  const HH = 30;   // header height
+  const PAD = 4;
+
+  function th(t) { return HH + t.cols.length * RH + PAD*2; }
+
+  // Positioned carefully to avoid overlaps — verified manually
+  const POS = {
+    // Row 1: BOM + Dispatch (top)
+    products:       { x: 280,  y: 110 },
+    bom_items:      { x: 550,  y: 110 },
+    work_centers:   { x: 1070, y: 110 },
+    // Row 2: Purchase left, Inventory center, Dispatch right
+    suppliers:      { x: 40,   y: 360 },
+    parts:          { x: 520,  y: 380 },
+    inventory:      { x: 790,  y: 380 },
+    prod_orders:    { x: 1070, y: 390 },
+    // Row 2.5
+    po:             { x: 40,   y: 560 },
+    po_items:       { x: 280,  y: 560 },
+    inv_txns:       { x: 520,  y: 610 },
+    operations:     { x: 1320, y: 390 },
+    // Row 3: Dispatch bottom
+    dispatch_logs:  { x: 1320, y: 720 },
+    // Row 4: Accounting left, Quality right
+    accounts:       { x: 40,   y: 840 },
+    ar:             { x: 280,  y: 840 },
+    mec:            { x: 520,  y: 840 },
+    insp_orders:    { x: 790,  y: 860 },
+    nc:             { x: 1070, y: 860 },
+    // Row 5
+    journal_entries:{ x: 40,   y: 1060 },
+    journal_lines:  { x: 280,  y: 1060 },
+    insp_results:   { x: 790,  y: 1100 },
+    capa:           { x: 1070, y: 1140 },
+    // Audit (far right)
+    audit_logs:     { x: 1320, y: 940 }
+  };
+
+  // ─── Helpers ──────────────────────────────────────────────────
+  function gT(id) { return T.find(t => t.id === id); }
+  function gP(id) { return POS[id]; }
+  function thById(id) { const t = gT(id); return t ? th(t) : 0; }
+  function btm(id) { const p = gP(id); return p ? p.y + thById(id) : 0; }
+  function rgt(id) { const p = gP(id); return p ? p.x + TW : 0; }
+  function cx(id) { const p = gP(id); return p ? p.x + TW/2 : 0; }
+  function cy(id) { const p = gP(id); return p ? p.y + thById(id)/2 : 0; }
+
+  // ─── Render ───────────────────────────────────────────────────
+  const svg = document.getElementById('schema-svg');
+  const MOD_ORDER = ['BOM','Inventory','Purchase','Dispatch','Quality','Accounting','Audit'];
+
+  // Compute modules
+  const mods = {};
+  for (const t of T) {
+    if (!mods[t.mod]) mods[t.mod] = [];
+    mods[t.mod].push(t.id);
+  }
+
+  // Compute module bounding boxes
+  const mBox = {};
+  for (const [mod, ids] of Object.entries(mods)) {
+    let mnX=Infinity, mnY=Infinity, mxX=-Infinity, mxY=-Infinity;
+    for (const id of ids) {
+      const p = POS[id];
+      if (!p) continue;
+      const h = thById(id);
+      if (p.x < mnX) mnX = p.x;
+      if (p.y < mnY) mnY = p.y;
+      if (p.x+TW > mxX) mxX = p.x+TW;
+      if (p.y+h > mxY) mxY = p.y+h;
+    }
+    const M = 20;
+    mBox[mod] = { x: mnX-M, y: mnY-M-20, w: mxX-mnX+M*2, h: mxY-mnY+M*2+20 };
+  }
+
+  // Overall canvas
+  let mnX=Infinity, mnY=Infinity, mxX=-Infinity, mxY=-Infinity;
+  for (const t of T) {
+    const p = POS[t.id];
+    if (!p) continue;
+    const h = th(t);
+    if (p.x < mnX) mnX = p.x;
+    if (p.y < mnY) mnY = p.y;
+    if (p.x+TW > mxX) mxX = p.x+TW;
+    if (p.y+h > mxY) mxY = p.y+h;
+  }
+  const MG = 80;
+  const W = mxX - mnX + MG*2 + 80;
+  const H = mxY - mnY + MG*2 + 120;
+
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.style.background = '#020617';
+
+  const OX = MG - mnX;
+  const OY = MG - mnY;
+
+  // Defs
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+  // Grid
+  const gp = document.createElementNS('http://www.w3.org/2000/svg', 'pattern');
+  gp.setAttribute('id', 'g');
+  gp.setAttribute('width', '28');
+  gp.setAttribute('height', '28');
+  gp.setAttribute('patternUnits', 'userSpaceOnUse');
+  const gpp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  gpp.setAttribute('d', 'M 28 0 L 0 0 0 28');
+  gpp.setAttribute('fill', 'none');
+  gpp.setAttribute('stroke', '#1e293b');
+  gpp.setAttribute('stroke-width', '0.4');
+  gp.appendChild(gpp);
+  defs.appendChild(gp);
+
+  // Arrow markers
+  for (const card of ['11','1N']) {
+    const m = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+    m.setAttribute('id', `a${card}`);
+    m.setAttribute('viewBox', '0 0 10 10');
+    m.setAttribute('refX', '9');
+    m.setAttribute('refY', '5');
+    m.setAttribute('markerWidth', '6');
+    m.setAttribute('markerHeight', '6');
+    m.setAttribute('orient', 'auto');
+    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 Z');
+    p.setAttribute('fill', '#64748b');
+    m.appendChild(p);
+    defs.appendChild(m);
+  }
+
+  // Glow filter
+  const fl = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+  fl.setAttribute('id', 'gl');
+  fl.setAttribute('x', '-30%');
+  fl.setAttribute('y', '-30%');
+  fl.setAttribute('width', '160%');
+  fl.setAttribute('height', '160%');
+  const fb = document.createElementNS('http://www.w3.org/2000/svg', 'feGaussianBlur');
+  fb.setAttribute('stdDeviation', '4');
+  fb.setAttribute('result', 'b');
+  fl.appendChild(fb);
+  const fm = document.createElementNS('http://www.w3.org/2000/svg', 'feMerge');
+  const fn1 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  fn1.setAttribute('in', 'b');
+  fm.appendChild(fn1);
+  const fn2 = document.createElementNS('http://www.w3.org/2000/svg', 'feMergeNode');
+  fn2.setAttribute('in', 'SourceGraphic');
+  fm.appendChild(fn2);
+  fl.appendChild(fm);
+  defs.appendChild(fl);
+
+  svg.appendChild(defs);
+
+  // Background grid
+  const gr = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  gr.setAttribute('width', '100%');
+  gr.setAttribute('height', '100%');
+  gr.setAttribute('fill', 'url(#g)');
+  svg.appendChild(gr);
+
+  // ── Module boxes ──
+  for (const mod of MOD_ORDER) {
+    const box = mBox[mod];
+    if (!box) continue;
+    const cc = C[mod];
+    const rx = box.x + OX;
+    const ry = box.y + OY;
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+    const bg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    bg.setAttribute('x', rx);
+    bg.setAttribute('y', ry);
+    bg.setAttribute('width', box.w);
+    bg.setAttribute('height', box.h);
+    bg.setAttribute('rx', '8');
+    bg.setAttribute('fill', cc.bg);
+    bg.setAttribute('stroke', cc.acc);
+    bg.setAttribute('stroke-width', '1.2');
+    bg.setAttribute('stroke-dasharray', '5,3');
+    bg.setAttribute('opacity', '0.7');
+    g.appendChild(bg);
+
+    const lb = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lb.setAttribute('x', rx + 12);
+    lb.setAttribute('y', ry + 20);
+    lb.setAttribute('fill', cc.acc);
+    lb.setAttribute('font-size', '11');
+    lb.setAttribute('font-weight', '600');
+    lb.setAttribute('font-family', "'JetBrains Mono', monospace");
+    lb.setAttribute('letter-spacing', '0.8');
+    lb.textContent = `▣  ${mod}`;
+    g.appendChild(lb);
+
+    svg.appendChild(g);
+  }
+
+  // ── Arrows (rendered before tables) ──
+  for (const rel of R) {
+    const fPos = POS[rel.f];
+    const tPos = POS[rel.t];
+    if (!fPos || !tPos) continue;
+
+    const fh = thById(rel.f);
+    const th2 = thById(rel.t);
+
+    // Find best edge connection (avoid going through tables)
+    const fx = fPos.x + TW/2;
+    const fy = fPos.y + fh/2;
+    const tx = tPos.x + TW/2;
+    const ty = tPos.y + th2/2;
+    const dx = tx - fx;
+    const dy = ty - fy;
+
+    let x1, y1, x2, y2;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+
+    if (absDx > absDy * 0.8) {
+      // Horizontal-ish connection
+      if (dx > 0) {
+        x1 = fPos.x + TW; y1 = fy;
+        x2 = tPos.x;      y2 = ty;
+      } else {
+        x1 = fPos.x;      y1 = fy;
+        x2 = tPos.x + TW; y2 = ty;
+      }
+    } else {
+      // Vertical-ish connection
+      if (dy > 0) {
+        x1 = fx; y1 = fPos.y + fh;
+        x2 = tx; y2 = tPos.y;
+      } else {
+        x1 = fx; y1 = fPos.y;
+        x2 = tx; y2 = tPos.y + th2;
+      }
+    }
+
+    // Offset
+    const ox1 = x1 + OX, oy1 = y1 + OY;
+    const ox2 = x2 + OX, oy2 = y2 + OY;
+
+    // Bezier control points
+    const midX = (ox1 + ox2) / 2;
+    const midY = (oy1 + oy2) / 2;
+    const dist = Math.sqrt((ox2-ox1)**2 + (oy2-oy1)**2);
+    const curvature = Math.min(40, dist * 0.15);
+
+    let cx1, cy1, cx2, cy2;
+    if (absDx > absDy * 0.8) {
+      // Horizontal curve: control points slightly offset vertically
+      const offset = dy > 0 ? curvature : -curvature;
+      cx1 = ox1; cy1 = oy1 + offset;
+      cx2 = ox2; cy2 = oy2 - offset;
+    } else {
+      const offset = dx > 0 ? curvature : -curvature;
+      cx1 = ox1 + offset; cy1 = oy1;
+      cx2 = ox2 - offset; cy2 = oy2;
+    }
+
+    // Arrowhead: shorten path by 7px at target end
+    const tAngle = Math.atan2(oy2 - cy2, ox2 - cx2);
+    const endX = ox2 - 7 * Math.cos(tAngle);
+    const endY = oy2 - 7 * Math.sin(tAngle);
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    const d = `M ${ox1} ${oy1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${endX} ${endY}`;
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#64748b');
+    path.setAttribute('stroke-width', '1.3');
+    path.setAttribute('stroke-dasharray', '4,3');
+    path.setAttribute('marker-end', `url(#a${rel.l.replace(':', '')})`);
+    path.setAttribute('opacity', '0.6');
+    svg.appendChild(path);
+
+    // Relationship label at midpoint
+    const lp = 0.5;
+    const lx = (1-lp)*(1-lp)*(1-lp)*ox1 + 3*(1-lp)*(1-lp)*lp*cx1 + 3*(1-lp)*lp*lp*cx2 + lp*lp*lp*endX;
+    const ly2 = (1-lp)*(1-lp)*(1-lp)*oy1 + 3*(1-lp)*(1-lp)*lp*cy1 + 3*(1-lp)*lp*lp*cy2 + lp*lp*lp*endY;
+
+    const lbBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    lbBg.setAttribute('x', lx - 12);
+    lbBg.setAttribute('y', ly2 - 9);
+    lbBg.setAttribute('width', '24');
+    lbBg.setAttribute('height', '14');
+    lbBg.setAttribute('rx', '3');
+    lbBg.setAttribute('fill', '#020617');
+    lbBg.setAttribute('opacity', '0.85');
+    svg.appendChild(lbBg);
+
+    const lb = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lb.setAttribute('x', lx);
+    lb.setAttribute('y', ly2 + 1);
+    lb.setAttribute('fill', '#94a3b8');
+    lb.setAttribute('font-size', '8');
+    lb.setAttribute('font-family', "'JetBrains Mono', monospace");
+    lb.setAttribute('text-anchor', 'middle');
+    lb.setAttribute('font-weight', '500');
+    lb.textContent = rel.l;
+    svg.appendChild(lb);
+  }
+
+  // ── Tables ──
+  for (const t of T) {
+    const p = POS[t.id];
+    if (!p) continue;
+    const h = th(t);
+    const cc = C[t.mod];
+    const rx = p.x + OX;
+    const ry = p.y + OY;
+    const displayName = DISPLAY[t.id] || t.id;
+
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'table-group');
+
+    // Shadow glow
+    const sh = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    sh.setAttribute('x', rx + 2);
+    sh.setAttribute('y', ry + 2);
+    sh.setAttribute('width', TW);
+    sh.setAttribute('height', h);
+    sh.setAttribute('rx', '6');
+    sh.setAttribute('fill', cc.acc);
+    sh.setAttribute('opacity', '0.06');
+    sh.setAttribute('filter', 'url(#gl)');
+    g.appendChild(sh);
+
+    // Body
+    const body = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    body.setAttribute('x', rx);
+    body.setAttribute('y', ry);
+    body.setAttribute('width', TW);
+    body.setAttribute('height', h);
+    body.setAttribute('rx', '6');
+    body.setAttribute('fill', '#0f172a');
+    body.setAttribute('stroke', cc.acc);
+    body.setAttribute('stroke-width', '1.1');
+    body.setAttribute('opacity', '0.95');
+    g.appendChild(body);
+
+    // Header
+    const hBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    hBg.setAttribute('x', rx);
+    hBg.setAttribute('y', ry);
+    hBg.setAttribute('width', TW);
+    hBg.setAttribute('height', HH);
+    hBg.setAttribute('rx', '6');
+    hBg.setAttribute('fill', cc.hdr);
+    hBg.setAttribute('opacity', '0.35');
+    g.appendChild(hBg);
+
+    // Mask bottom corners of header
+    const hm = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    hm.setAttribute('x', rx);
+    hm.setAttribute('y', ry + HH - 4);
+    hm.setAttribute('width', TW);
+    hm.setAttribute('height', '4');
+    hm.setAttribute('fill', '#0f172a');
+    g.appendChild(hm);
+
+    // Accent line under header
+    const al = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    al.setAttribute('x1', rx);
+    al.setAttribute('y1', ry + HH);
+    al.setAttribute('x2', rx + TW);
+    al.setAttribute('y2', ry + HH);
+    al.setAttribute('stroke', cc.acc);
+    al.setAttribute('stroke-width', '1.5');
+    al.setAttribute('opacity', '0.5');
+    g.appendChild(al);
+
+    // Title
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    title.setAttribute('x', rx + 10);
+    title.setAttribute('y', ry + HH/2 + 5);
+    title.setAttribute('fill', '#f1f5f9');
+    title.setAttribute('font-size', '11');
+    title.setAttribute('font-weight', '600');
+    title.setAttribute('font-family', "'JetBrains Mono', monospace");
+    title.setAttribute('letter-spacing', '0.2');
+    title.textContent = displayName;
+    g.appendChild(title);
+
+    // Columns
+    for (let i = 0; i < t.cols.length; i++) {
+      const c = t.cols[i];
+      const cy = ry + HH + i * RH + PAD;
+
+      // Row separator
+      if (i > 0) {
+        const sep = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        sep.setAttribute('x1', rx + 8);
+        sep.setAttribute('y1', cy - 1);
+        sep.setAttribute('x2', rx + TW - 8);
+        sep.setAttribute('y2', cy - 1);
+        sep.setAttribute('stroke', '#1e293b');
+        sep.setAttribute('stroke-width', '0.4');
+        g.appendChild(sep);
+      }
+
+      // Name with indicators
+      let prefix = '  ';
+      if (c.pk) prefix = '◈ ';
+      else if (c.fk) prefix = '◇ ';
+
+      const nt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      nt.setAttribute('x', rx + 8);
+      nt.setAttribute('y', cy + 13);
+      nt.setAttribute('fill', c.pk ? '#f8fafc' : c.fk ? '#93c5fd' : '#e2e8f0');
+      nt.setAttribute('font-size', '10');
+      nt.setAttribute('font-family', "'JetBrains Mono', monospace");
+      nt.setAttribute('font-weight', c.pk ? '600' : '400');
+      nt.textContent = prefix + c.n;
+      g.appendChild(nt);
+
+      // Type (right aligned, smaller)
+      const tt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      tt.setAttribute('x', rx + TW - 8);
+      tt.setAttribute('y', cy + 13);
+      tt.setAttribute('fill', '#64748b');
+      tt.setAttribute('font-size', '8');
+      tt.setAttribute('font-family', "'JetBrains Mono', monospace");
+      tt.setAttribute('text-anchor', 'end');
+      tt.setAttribute('font-style', 'italic');
+      tt.textContent = c.t;
+      g.appendChild(tt);
+    }
+
+    svg.appendChild(g);
+  }
+
+  // ── Title ──
+  const ti = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  ti.setAttribute('x', W/2);
+  ti.setAttribute('y', 36);
+  ti.setAttribute('fill', '#f1f5f9');
+  ti.setAttribute('font-size', '17');
+  ti.setAttribute('font-weight', '700');
+  ti.setAttribute('font-family', "'JetBrains Mono', monospace");
+  ti.setAttribute('text-anchor', 'middle');
+  ti.setAttribute('letter-spacing', '0.8');
+  ti.textContent = 'LLM-ERP Database Schema  ·  Entity-Relationship Diagram';
+  svg.appendChild(ti);
+
+  const su = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  su.setAttribute('x', W/2);
+  su.setAttribute('y', 56);
+  su.setAttribute('fill', '#64748b');
+  su.setAttribute('font-size', '10');
+  su.setAttribute('font-family', "'JetBrains Mono', monospace");
+  su.setAttribute('text-anchor', 'middle');
+  su.textContent = '22 tables  ·  7 modules  ·  Inventory  ·  Purchase  ·  BOM  ·  Dispatch  ·  Quality  ·  Accounting  ·  Audit';
+  svg.appendChild(su);
+
+  // ── Legends (bottom-right area) ──
+  const lx = W - 210;
+  const ly = H - 150;
+
+  // Module color legend
+  const mcY = ly - (MOD_ORDER.length + 1) * 20 - 20;
+  const mcBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  mcBg.setAttribute('x', lx);
+  mcBg.setAttribute('y', mcY);
+  mcBg.setAttribute('width', '190');
+  mcBg.setAttribute('height', MOD_ORDER.length * 20 + 34);
+  mcBg.setAttribute('rx', '6');
+  mcBg.setAttribute('fill', '#0f172a');
+  mcBg.setAttribute('stroke', '#1e293b');
+  mcBg.setAttribute('stroke-width', '1');
+  svg.appendChild(mcBg);
+
+  const mcT = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  mcT.setAttribute('x', lx + 10);
+  mcT.setAttribute('y', mcY + 18);
+  mcT.setAttribute('fill', '#94a3b8');
+  mcT.setAttribute('font-size', '9');
+  mcT.setAttribute('font-weight', '600');
+  mcT.setAttribute('font-family', "'JetBrains Mono', monospace");
+  mcT.textContent = 'MODULES';
+  svg.appendChild(mcT);
+
+  for (let i = 0; i < MOD_ORDER.length; i++) {
+    const mod = MOD_ORDER[i];
+    const cc = C[mod];
+    const iy = mcY + 32 + i * 20;
+
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', lx + 14);
+    dot.setAttribute('cy', iy + 5);
+    dot.setAttribute('r', '4');
+    dot.setAttribute('fill', cc.acc);
+    svg.appendChild(dot);
+
+    const lb = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lb.setAttribute('x', lx + 26);
+    lb.setAttribute('y', iy + 9);
+    lb.setAttribute('fill', '#cbd5e1');
+    lb.setAttribute('font-size', '9');
+    lb.setAttribute('font-family', "'JetBrains Mono', monospace");
+    lb.textContent = mod;
+    svg.appendChild(lb);
+  }
+
+  // Key legend
+  const kBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+  kBg.setAttribute('x', lx);
+  kBg.setAttribute('y', ly);
+  kBg.setAttribute('width', '190');
+  kBg.setAttribute('height', '110');
+  kBg.setAttribute('rx', '6');
+  kBg.setAttribute('fill', '#0f172a');
+  kBg.setAttribute('stroke', '#1e293b');
+  kBg.setAttribute('stroke-width', '1');
+  svg.appendChild(kBg);
+
+  const kT = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  kT.setAttribute('x', lx + 10);
+  kT.setAttribute('y', ly + 18);
+  kT.setAttribute('fill', '#94a3b8');
+  kT.setAttribute('font-size', '9');
+  kT.setAttribute('font-weight', '600');
+  kT.setAttribute('font-family', "'JetBrains Mono', monospace");
+  kT.textContent = 'LEGEND';
+  svg.appendChild(kT);
+
+  const items = [
+    { sym:'◈ PK',   txt:'Primary Key',   col:'#f8fafc' },
+    { sym:'◇ FK',   txt:'Foreign Key',   col:'#93c5fd' },
+    { sym:'─ ─ ▶',  txt:'1:1 relation',  col:'#94a3b8' },
+    { sym:'─ ─ ▶',  txt:'1:N relation',  col:'#94a3b8' },
+    { sym:'▣',      txt:'Module group',  col:'#94a3b8' }
+  ];
+
+  for (let i = 0; i < items.length; i++) {
+    const it = items[i];
+    const iy = ly + 34 + i * 18;
+    const st = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    st.setAttribute('x', lx + 10);
+    st.setAttribute('y', iy + 7);
+    st.setAttribute('fill', it.col);
+    st.setAttribute('font-size', '9');
+    st.setAttribute('font-family', "'JetBrains Mono', monospace");
+    st.textContent = it.sym;
+    svg.appendChild(st);
+
+    const dt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    dt.setAttribute('x', lx + 50);
+    dt.setAttribute('y', iy + 7);
+    dt.setAttribute('fill', '#94a3b8');
+    dt.setAttribute('font-size', '8');
+    dt.setAttribute('font-family', "'JetBrains Mono', monospace");
+    dt.textContent = it.txt;
+    svg.appendChild(dt);
+  }
+
+  // Footer
+  const ft = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  ft.setAttribute('x', W/2);
+  ft.setAttribute('y', H - 16);
+  ft.setAttribute('fill', '#1e293b');
+  ft.setAttribute('font-size', '9');
+  ft.setAttribute('font-family', "'JetBrains Mono', monospace");
+  ft.setAttribute('text-anchor', 'middle');
+  ft.textContent = 'LLM-ERP  ·  Schema v1.0  ·  Generated  ·  2026';
+  svg.appendChild(ft);
+})();
+</script>
+</body>
+</html>
