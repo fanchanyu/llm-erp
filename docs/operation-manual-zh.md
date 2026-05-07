@@ -45,7 +45,7 @@ LLM-ERP 是一套開源的智慧 ERP 系統，讓使用者透過**自然語言**
 ### 3.1 下載專案
 
 ```bash
-git clone https://github.com/pujy1978/llm-erp.git
+git clone https://github.com/fanchanyu/llm-erp.git
 cd llm-erp
 ```
 
@@ -66,27 +66,75 @@ cp .env.example .env
 | `MAX_TOOL_ROUNDS` | 工具調用輪數 | 5（雲端）/ 8-10（本地） |
 | `DEEPSEEK_API_KEY` | DeepSeek API Key | sk-xxxx |
 
-### 3.3 啟動後端
+### 3.3 申請 API Key（選擇一個 Provider）
+
+LLM-ERP 需要一個 LLM（大型語言模型）來驅動自然語言功能。以下是各家 Provider 的申請方式：
+
+#### 🔹 DeepSeek（推薦，最便宜）
 
 ```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+1. 前往 https://platform.deepseek.com/sign_up 註冊帳號
+2. Email 驗證 → 登入
+3. 點選左側「API Keys」→「創建 API Key」
+4. 複製 key（格式：sk-xxxxxxxxxxxxxxxx）
+5. 填入 .env：DEEPSEEK_API_KEY=sk-xxxx
 ```
 
-後端會在 `http://localhost:8000` 啟動。
+- **費用**：約 ¥1 元人民幣可處理 200~500 次查詢
+- **模型**：`deepseek-chat`
+- **適合**：剛開始試用、開發階段
 
-### 3.4 啟動前端
+#### 🔹 Anthropic Claude（最聰明）
 
 ```bash
-cd frontend
-npm install
-npm run dev
+1. 前往 https://console.anthropic.com/ 註冊
+2. 登入後點選「API Keys」→「Create Key」
+3. 複製 key（格式：sk-ant-xxxxxxxxxxxx）
+4. 填入 .env：
+   LLM_PROVIDER=anthropic
+   LLM_MODEL=claude-sonnet-4
+   ANTHROPIC_API_KEY=sk-ant-xxxx
 ```
 
-前端會在 `http://localhost:5173` 啟動。
+- **費用**：$3/M 輸入 + $15/M 輸出 tokens
+- **模型**：`claude-sonnet-4` / `claude-haiku-3-5`（便宜快速）
+- **適合**：正式生產環境、需要高準確率
 
-### 3.5 啟動本地 LLM（選用）
+#### 🔹 OpenAI GPT（最普及）
+
+```bash
+1. 前往 https://platform.openai.com/signup 註冊
+2. 登入 → 左上角「API Keys」→「Create new secret key」
+3. 複製 key（格式：sk-proj-xxxxxxxxxxx）
+4. 填入 .env：
+   LLM_PROVIDER=openai
+   LLM_MODEL=gpt-4o
+   OPENAI_API_KEY=sk-proj-xxxx
+```
+
+- **費用**：$2.50/M 輸入 + $10/M 輸出（gpt-4o）
+- **模型**：`gpt-4o` / `gpt-4o-mini`（省錢）
+- **適合**：已有 OpenAI 帳號者、通用場景
+
+#### 🔹 OpenRouter（一站多用，可選多種模型）
+
+```bash
+1. 前往 https://openrouter.ai/keys 註冊
+2. 登入 →「Create Key」
+3. 複製 key（格式：sk-or-v1-xxxxxxxxx）
+4. 填入 .env：
+   LLM_PROVIDER=openrouter
+   LLM_MODEL=deepseek/deepseek-chat
+   OPENROUTER_API_KEY=sk-or-v1-xxxx
+```
+
+- **費用**：依模型不同（可用最便宜的）
+- **模型清單**：https://openrouter.ai/models
+- **適合**：想比較多家模型、切換方便
+
+#### 🔹 Ollama（本地模型，完全免費，不需 API Key）
+
+如果你的電腦有 16GB+ RAM，可以在本地跑模型，完全不需要 API Key：
 
 ```bash
 # 安裝 Ollama
@@ -98,15 +146,55 @@ ollama pull gemma4:e4b
 # 確認 Ollama 正在執行
 curl http://localhost:11434/api/tags
 
-# 將 .env 設為：
+# 設定 .env：
 # LLM_PROVIDER=ollama
 # LLM_MODEL=gemma4:e4b
 # MAX_TOOL_ROUNDS=8
 ```
 
+- **費用**：完全免費，只需要硬體
+- **硬體需求**：16GB RAM（8B 模型）/ 32GB（12B 模型）
+- **適合**：資料不外洩、不想付 API 費用
+
 ---
 
-## 3.6 資料管理（Import / Export / Reset）
+⚠️ **API Key 安全提醒：Key 只能放在 `.env`，絕對不能放到 CSV 資料檔、Git 提交、或貼到 GitHub 上。**
+
+---
+
+### 3.8 啟動後端
+
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+後端會在 `http://localhost:8000` 啟動。
+
+### 3.9 啟動前端
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+前端會在 `http://localhost:5173` 啟動。
+
+### 3.10 啟動本地 LLM（選用）
+
+如果你選擇使用本地模型（Ollama），請先參考 [3.3 節 — Ollama 申請方式](#33-申請-api-key選擇一個-provider) 安裝 Ollama 並下載模型，然後確認 Ollama 正在執行：
+
+```bash
+curl http://localhost:11434/api/tags
+```
+
+之後回到 [3.8 節](#38-啟動後端) 啟動後端即可。
+
+---
+
+## 3.11 資料管理（Import / Export / Reset）
 
 LLM-ERP 提供標準化的資料匯入匯出工具，所有資料使用**自然鍵**（料號、供應商名稱、產品編號等）—— 不是 UUID，所以人類可以直接編輯 CSV。
 
