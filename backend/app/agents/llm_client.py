@@ -158,7 +158,8 @@ async def chat_completion(
     else:
         payload = _build_chat_payload(messages, tools or [], system_prompt)
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    timeout = 120.0 if settings.llm_provider == "ollama" else 60.0
+    async with httpx.AsyncClient(timeout=timeout) as client:
         resp = await client.post(cfg["chat_url"], json=payload, headers=headers)
 
     if resp.status_code != 200:
