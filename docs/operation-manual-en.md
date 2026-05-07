@@ -19,7 +19,8 @@ LLM-ERP is an open-source intelligent ERP system that lets you manage your entir
 | ✅ Quality | QM | Inspection orders, non-conformance tracking, CAPA |
 | 💰 Accounting | FI | Chart of accounts, journal entries, AR aging, month-end close |
 | 📄 Reports | — | Generate PDF reports via natural language (inventory, AR, purchase, production, P&L) |
-| 🏭 War Room | — | SVG value-stream dashboard, real-time event animations, multi-screen display |
+|| 🏭 War Room | — | SVG value-stream dashboard, real-time event animations, multi-screen display |
+|| 🤝 **CRM** | **SD** | **Customer master with A/B/C grading, sales orders (SO), interaction events, sales role dashboard** |
 
 ---
 
@@ -322,7 +323,20 @@ Ask anything about stock:
 | "List chart of accounts" | Query accounts |
 | "Create journal entry: debit Inventory 1000 credit Bank 1000" | Create journal entry |
 
-### 4.7 Cross-Module Queries
+### 4.7 CRM (Sales)
+
+| English Query | Description |
+|---------------|-------------|
+| "Show all customers, search YongYu" | List/search customers |
+| "Add customer: HongDa Electronics, contact Mr. Zhang" | Create new customer |
+| "Create SO for YongYu: CNC-001 x 10 units" | Create sales order |
+| "List current sales orders" | Query SO list |
+| "Confirm SO-20260507-001" | Confirm SO → auto-create production order |
+| "Ship SO-20260507-001" | Ship SO → auto-deduct inventory |
+| "Log: YongYu called about delivery date" | Create customer interaction event |
+| "Show conversation history for YongYu" | Query customer chat history |
+
+### 4.8 Cross-Module Queries
 
 | English Query | Description |
 |---------------|-------------|
