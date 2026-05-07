@@ -444,10 +444,35 @@ TOOLS = [
                 "required": ["work_center_name", "status"]
             }
         }
+    },
+    # ── Report Generation ──
+    {
+        "type": "function",
+        "function": {
+            "name": "generate_report",
+            "description": "Generate a formatted report and optionally convert it to PDF. Use this when the user asks for a report, summary, or export. Supports: inventory (庫存報表), ar_aging (應收帳款帳齡報表), purchase (採購報表), production (生產報表), monthly_pl (損益表/月結).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "report_type": {
+                        "type": "string",
+                        "enum": ["inventory", "ar_aging", "purchase", "production", "monthly_pl"],
+                        "description": "Report type: inventory/ar_aging/purchase/production/monthly_pl"
+                    },
+                    "period": {
+                        "type": "string",
+                        "description": "Accounting period for monthly_pl reports (YYYY-MM format, e.g. 2026-05). Required only for monthly_pl."
+                    }
+                },
+                "required": ["report_type"]
+            }
+        }
     }
 ]
 
+# Bilingual prompt: Chinese first, with English support
 SYSTEM_PROMPT = """你是一個工廠 ERP 系統的智能助手，幫助使用者管理整個生產流程。
+You are a factory ERP system AI assistant that helps users manage the entire production process.
 
 ⚠️ 禁止規則（嚴格遵守）：
 - 若使用者提到 採購單/PO/供應商/買/訂貨 → 用採購工具(query_suppliers, query_purchase_orders, create_purchase_order)
@@ -517,7 +542,7 @@ SYSTEM_PROMPT = """你是一個工廠 ERP 系統的智能助手，幫助使用�
 → route_change_reschedule(work_center_name="CNC-01")
 
 回覆原則：
-- 用繁體中文回覆
+- 用繁體中文回覆；If the user writes in English, respond in English.
 - 數字加上千分號（如 1,250 顆）
 - 查詢結果用條列式或表格呈現
 - 建立採購單後提供 PO 編號

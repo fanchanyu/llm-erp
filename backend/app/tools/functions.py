@@ -3,8 +3,14 @@ LLM Tool Functions -- Real DB implementation for all modules.
 Each function creates its own DB session for LLM function calling.
 """
 
+import asyncio
+import os
+import subprocess
+from pathlib import Path
+
 from app.database import async_session
 from app.services import inventory_service, purchase_service, bom_service, dispatch_service, quality_service, accounting_service
+from app.services import report_service
 from app.models.purchase import Supplier
 
 
@@ -393,6 +399,80 @@ async def create_journal_entry(description: str, lines: list) -> dict:
     }
 
 
+# ═══════════════════════════════════════════════════
+# Report Generation Tool
+# ═══════════════════════════════════════════════════
+
+async def generate_report(report_type: str, period: str = "") -> dict:
+    """Generate a report and convert it to PDF.
+
+    report_type: "inventory", "ar_aging", "purchase", "production", "monthly_pl"
+    period: "YYYY-MM" (for monthly P&L reports)
+    Returns: {"title": "...", "content_md": "...", "content_html": "...", "pdf_path": "..."}
+    """
+    async with async_session() as db:
+        generators = {
+            "inventory": report_service.generate_inventory_report,
+            "ar_aging": report_service.generate_ar_aging_report,
+            "purchase": report_service.generate_purchase_report,
+            "production": report_service.generate_production_report,
+            "monthly_pl": report_service.generate_monthly_pl_report,
+        }
+
+        gen = generators.get(report_type)
+        if not gen:
+            return {"error": f"Unknown report type: {report_type}"}
+
+        if report_type == "monthly_pl":
+            if not period:
+                return {"error": "period is required (YYYY-MM) for monthly_pl reports"}
+            report = await gen(db, period)
+        else:
+            report = await gen(db)
+
+    # Convert markdown to PDF
+    reports_dir = Path(__file__).parent.parent.parent / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+
+    md_path = reports_dir / report["filename"]
+    md_path.write_text(report["markdown"], encoding="utf-8")
+
+    pdf_filename = report["filename"].replace(".md", ".pdf")
+    pdf_path = reports_dir / pdf_filename
+
+    try:
+        subprocess.run(
+            [
+                "npx", "md-to-pdf",
+                str(md_path),
+                "--pdf-options", '{"format":"A4","margin":"20mm"}',
+            ],
+            cwd=str(reports_dir),
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+    except Exception as e:
+        # If md-to-pdf fails, still return the markdown content
+        pass
+
+    # Wait a moment for the file to be written
+    await asyncio.sleep(0.5)
+
+    # Check if PDF was generated
+    if pdf_path.exists():
+        pdf_rel = str(pdf_path)
+    else:
+        pdf_rel = ""
+
+    return {
+        "title": report["title"],
+        "content_md": report["markdown"],
+        "content_html": report["markdown"],  # Simple fallback — same as markdown
+        "pdf_path": pdf_rel,
+    }
+
+
 # Tool name -> function mapping
 TOOL_FUNCTIONS = {
     "query_inventory": query_inventory,
@@ -427,4 +507,6 @@ TOOL_FUNCTIONS = {
     "query_ar": query_ar,
     "check_ar_overdue": check_ar_overdue,
     "create_journal_entry": create_journal_entry,
+    # Report Generation
+    "generate_report": generate_report,
 }

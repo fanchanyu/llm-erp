@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends
-from app.api import chat, inventory, purchase, bom, dispatch
+from app.api import chat, inventory, purchase, bom, dispatch, reports
 
 router = APIRouter()
 
@@ -11,3 +11,6 @@ router.include_router(bom.router, prefix="/api", tags=["bom"])
 
 # NEW: Dispatch
 router.include_router(dispatch.router, prefix="/api", tags=["dispatch"])
+
+# NEW: Reports
+router.include_router(reports.router, prefix="/api", tags=["reports"])
