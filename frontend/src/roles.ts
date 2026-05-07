@@ -1,7 +1,7 @@
 /* Role configuration for LLM-ERP dashboard.
    Mirrors backend: backend/app/event_engine/role_config.py */
 
-export type RoleId = 'director' | 'production' | 'warehouse' | 'purchasing' | 'quality' | 'accounting'
+export type RoleId = 'director' | 'production' | 'warehouse' | 'purchasing' | 'quality' | 'accounting' | 'sales'
 
 export interface RoleConfig {
   id: RoleId
@@ -43,6 +43,10 @@ export type WidgetId =
   | 'production-insights'
   | 'shortage-table'
   | 'capacity-adjust'
+  | 'customer-list'
+  | 'so-table'
+  | 'crm-events'
+  | 'history-panel'
 
 export const ROLES: Record<RoleId, RoleConfig> = {
   director: {
@@ -99,6 +103,15 @@ export const ROLES: Record<RoleId, RoleConfig> = {
     widgets: ['cash-flow', 'ar-aging', 'ap-aging', 'cost-variance', 'gl-journal', 'month-close', 'kpi-grid', 'event-flow'],
     hints: ['現金水位', '應收帳款', '應付到期', '成本差異'],
   },
+  sales: {
+    id: 'sales',
+    label: '業務',
+    labelEn: 'Sales',
+    icon: '🤝',
+    level: '戰術級',
+    widgets: ['alert-bar', 'kpi-grid', 'customer-list', 'so-table', 'crm-events', 'history-panel', 'event-flow'],
+    hints: ['客戶查詢', '新增訂單', 'CRM記錄', '訂單進度'],
+  },
 }
 
 export const ROLE_LIST: RoleConfig[] = [
@@ -108,4 +121,5 @@ export const ROLE_LIST: RoleConfig[] = [
   ROLES.purchasing,
   ROLES.quality,
   ROLES.accounting,
+  ROLES.sales,
 ]

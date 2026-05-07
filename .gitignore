@@ -53,3 +53,5 @@ frontend/dist/
 Thumbs.db
 .DS_Store
 paper/
+backend/reports/
+backend/app/data_import.py

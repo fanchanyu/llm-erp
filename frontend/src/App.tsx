@@ -8,6 +8,9 @@ import {
   listInspections, listNCs, listCAPAs,
   listAR, listJournalEntries,
   listWorkCenters, listDispatchOrders,
+  listCustomers, listSalesOrders,
+  getCRMEvents, createCRMEvent,
+  listConversationSessions, getConversation,
 } from './api/client'
 
 // ─── Main App ────────────────────────────────────────────────────
@@ -227,8 +230,8 @@ function AppInner() {
 // ─── Helpers ─────────────────────────────────────────────────────
 
 function getWidgetSpan(w: string): string {
-  if (['inventory-chart', 'dispatch-gantt', 'po-table', 'cash-flow', 'nc-list'].includes(w)) return 'col-span-12 md:col-span-7'
-  if (['ai-insights', 'production-insights', 'quality-panel', 'overdue-orders', 'pick-list', 'putaway-queue', 'inspection-queue', 'defect-pareto', 'supplier-list', 'shortage-forecast', 'price-trend', 'ar-aging', 'ap-aging', 'cost-variance', 'gl-journal', 'month-close', 'capa-tracker', 'stock-alerts', 'inventory-search', 'shortage-table', 'capacity-adjust'].includes(w)) return 'col-span-12 md:col-span-5'
+  if (['inventory-chart', 'dispatch-gantt', 'po-table', 'cash-flow', 'nc-list', 'customer-list', 'so-table'].includes(w)) return 'col-span-12 md:col-span-7'
+  if (['ai-insights', 'production-insights', 'quality-panel', 'overdue-orders', 'pick-list', 'putaway-queue', 'inspection-queue', 'defect-pareto', 'supplier-list', 'shortage-forecast', 'price-trend', 'ar-aging', 'ap-aging', 'cost-variance', 'gl-journal', 'month-close', 'capa-tracker', 'stock-alerts', 'inventory-search', 'shortage-table', 'capacity-adjust', 'crm-events', 'history-panel'].includes(w)) return 'col-span-12 md:col-span-5'
   return 'col-span-12 md:col-span-6'
 }
 
@@ -260,6 +263,10 @@ function WidgetSlot({ widgetId, role: _role, events: _events }: { widgetId: Widg
     case 'month-close': return <MonthClose />
     case 'shortage-table': return <ShortageTable />
     case 'capacity-adjust': return <CapacityAdjust />
+    case 'customer-list': return <CustomerList />
+    case 'so-table': return <SalesOrderTable />
+    case 'crm-events': return <CRMEvents />
+    case 'history-panel': return <HistoryPanel />
     default: return <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4 text-xs text-gray-500">Widget: {widgetId}</div>
   }
 }
@@ -674,6 +681,287 @@ function CapacityAdjust() {
   </div>
 }
 
+// ─── Customer List (業務) ────────────────────────────────────────
+function CustomerList() {
+  const [customers, setCustomers] = useState<any[]>([])
+  const [search, setSearch] = useState('')
+  useEffect(() => {
+    listCustomers(search || undefined).then(d => {
+      if (d?.customers) setCustomers(d.customers)
+    }).catch(() => {})
+  }, [search])
+  const levelColor = (lvl: string) => {
+    if (lvl === 'A') return 'green'
+    if (lvl === 'B') return 'yellow'
+    return 'gray'
+  }
+  const rows = customers.slice(0, 6).map((c: any) => [
+    c.customer_no,
+    c.name,
+    c.contact_person || '-',
+    c.phone || '-',
+    <Tag color={levelColor(c.level)}>{c.level || 'C'}</Tag>,
+  ])
+  return (
+    <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] text-gray-500 uppercase tracking-wider">👥 客戶列表</span>
+        <span className="text-[10px] text-cyan-400 cursor-pointer">全部→</span>
+      </div>
+      <div className="flex gap-2 mb-3">
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="搜尋客戶…"
+          className="flex-1 bg-[#0f1525] border border-gray-800 rounded px-2.5 py-1.5 text-xs text-gray-200 outline-none focus:border-cyan-500/50"
+        />
+      </div>
+      <table className="w-full text-xs">
+        <thead>
+          <tr className="text-[9px] text-gray-500 uppercase tracking-wider">
+            <th className="text-left pb-2 pr-2 font-medium">客戶編號</th>
+            <th className="text-left pb-2 pr-2 font-medium">名稱</th>
+            <th className="text-left pb-2 pr-2 font-medium">聯絡人</th>
+            <th className="text-left pb-2 pr-2 font-medium">電話</th>
+            <th className="text-left pb-2 pr-2 font-medium">等級</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i} className="border-t border-gray-800/50 hover:bg-cyan-500/5">
+              {row.map((cell, j) => <td key={j} className="py-2 pr-2 text-gray-300">{cell}</td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ─── Sales Order Table (業務) ───────────────────────────────────
+function SalesOrderTable() {
+  const [orders, setOrders] = useState<any[]>([])
+  useEffect(() => {
+    listSalesOrders().then(d => {
+      if (d?.orders) setOrders(d.orders)
+    }).catch(() => {})
+  }, [])
+  const statusColor = (s: string) => {
+    if (s === 'draft') return 'gray'
+    if (s === 'confirmed') return 'cyan'
+    if (s === 'production') return 'yellow'
+    if (s === 'shipped') return 'green'
+    if (s === 'delivered') return 'gray'
+    return 'gray'
+  }
+  const rows = orders.slice(0, 6).map((so: any) => [
+    so.so_no,
+    so.customer_name,
+    <Tag color={statusColor(so.status)}>{so.status}</Tag>,
+    so.total_amount ? `NT${Intl.NumberFormat('zh-TW').format(so.total_amount)}` : '-',
+    so.created_at ? so.created_at.slice(0, 10) : '-',
+  ])
+  return <SimpleTable title="📋 銷售訂單" headers={['SO#', '客戶', '狀態', '金額', '建立日期']} rows={rows} action="全部→" />
+}
+
+// ─── CRM Events (業務) ──────────────────────────────────────────
+function CRMEvents() {
+  const [customers, setCustomers] = useState<any[]>([])
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null)
+  const [events, setEvents] = useState<any[]>([])
+  const [eventType, setEventType] = useState('note')
+  const [eventDesc, setEventDesc] = useState('')
+  const [showForm, setShowForm] = useState(false)
+
+  useEffect(() => {
+    listCustomers().then(d => {
+      if (d?.customers) setCustomers(d.customers)
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    if (selectedCustomerId) {
+      getCRMEvents(selectedCustomerId).then(d => {
+        if (Array.isArray(d)) setEvents(d)
+        else if (d?.events) setEvents(d.events)
+      }).catch(() => {})
+    } else {
+      setEvents([])
+    }
+  }, [selectedCustomerId])
+
+  const handleCreateEvent = async () => {
+    if (!selectedCustomerId || !eventDesc.trim()) return
+    try {
+      await createCRMEvent({ customer_id: selectedCustomerId, event_type: eventType, description: eventDesc, created_by: 'user' })
+      setEventDesc('')
+      setShowForm(false)
+      // Refresh
+      const d = await getCRMEvents(selectedCustomerId)
+      if (Array.isArray(d)) setEvents(d)
+      else if (d?.events) setEvents(d.events)
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const eventIcons: Record<string, string> = {
+    call: '📞', visit: '🤝', note: '📝', email: '📧', meeting: '👥',
+  }
+
+  return (
+    <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] text-gray-500 uppercase tracking-wider">📋 CRM 記錄</span>
+        {selectedCustomerId && (
+          <button onClick={() => setShowForm(!showForm)} className="text-[10px] text-cyan-400 cursor-pointer">
+            {showForm ? '取消' : '+ 新增'}
+          </button>
+        )}
+      </div>
+      <select
+        value={selectedCustomerId ?? ''}
+        onChange={e => { setSelectedCustomerId(e.target.value ? Number(e.target.value) : null); setShowForm(false) }}
+        className="w-full bg-[#0f1525] border border-gray-800 rounded px-2.5 py-1.5 text-xs text-gray-200 outline-none focus:border-cyan-500/50 mb-3"
+      >
+        <option value="">選擇客戶…</option>
+        {customers.map((c: any) => (
+          <option key={c.id} value={c.id}>{c.name} ({c.customer_no})</option>
+        ))}
+      </select>
+
+      {showForm && (
+        <div className="bg-[#0f1525] border border-gray-800 rounded-lg p-3 mb-3">
+          <div className="flex gap-2 mb-2">
+            {['call', 'visit', 'note', 'email', 'meeting'].map(t => (
+              <button
+                key={t}
+                onClick={() => setEventType(t)}
+                className={`text-sm px-2 py-1 rounded ${eventType === t ? 'bg-cyan-500/20 text-cyan-300' : 'bg-gray-800 text-gray-500'}`}
+              >
+                {eventIcons[t] || '📝'}
+              </button>
+            ))}
+          </div>
+          <textarea
+            value={eventDesc}
+            onChange={e => setEventDesc(e.target.value)}
+            placeholder="輸入事件描述…"
+            className="w-full bg-[#0d111c] border border-gray-800 rounded px-2 py-1.5 text-xs text-gray-200 outline-none focus:border-cyan-500/50 mb-2 resize-none"
+            rows={2}
+          />
+          <button
+            onClick={handleCreateEvent}
+            className="bg-cyan-500 text-[#0a0e17] text-[10px] font-semibold px-3 py-1 rounded"
+          >
+            送出
+          </button>
+        </div>
+      )}
+
+      <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto">
+        {events.length === 0 && (
+          <div className="text-[10px] text-gray-500 text-center py-4">無記錄</div>
+        )}
+        {events.slice(0, 10).map((ev: any, i: number) => (
+          <div key={i} className="flex gap-2 px-2 py-1.5 rounded-md text-xs hover:bg-gray-800/20 border-l-2 border-gray-700">
+            <span className="text-sm shrink-0">{eventIcons[ev.event_type] || '📝'}</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-gray-200">{ev.description || ev.event_type}</div>
+              <div className="text-[9px] text-gray-500 mt-0.5">
+                {ev.created_by ? `${ev.created_by} · ` : ''}
+                {ev.created_at ? new Date(ev.created_at).toLocaleString('zh-TW') : ''}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── History Panel (業務) ───────────────────────────────────────
+function HistoryPanel() {
+  const [sessions, setSessions] = useState<any[]>([])
+  const [selectedSession, setSelectedSession] = useState<any | null>(null)
+  const [sessionMessages, setSessionMessages] = useState<any[]>([])
+
+  useEffect(() => {
+    listConversationSessions().then(d => {
+      if (Array.isArray(d)) setSessions(d)
+      else if (d?.sessions) setSessions(d.sessions)
+    }).catch(() => {})
+  }, [])
+
+  const openSession = async (session: any) => {
+    setSelectedSession(session)
+    try {
+      const d = await getConversation(session.session_id || session.id)
+      if (d?.messages) setSessionMessages(d.messages)
+      else if (Array.isArray(d)) setSessionMessages(d)
+      else setSessionMessages([])
+    } catch (e) {
+      setSessionMessages([])
+    }
+  }
+
+  return (
+    <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] text-gray-500 uppercase tracking-wider">💬 對話歷史</span>
+        {selectedSession && (
+          <button onClick={() => { setSelectedSession(null); setSessionMessages([]) }} className="text-[10px] text-cyan-400 cursor-pointer">
+            返回列表
+          </button>
+        )}
+      </div>
+
+      {!selectedSession ? (
+        <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
+          {sessions.length === 0 && (
+            <div className="text-[10px] text-gray-500 text-center py-4">尚無對話</div>
+          )}
+          {sessions.slice(0, 10).map((s: any, i: number) => (
+            <div
+              key={s.session_id || s.id || i}
+              onClick={() => openSession(s)}
+              className="flex items-center gap-2 px-2 py-2 rounded-md text-xs hover:bg-gray-800/30 cursor-pointer border-l-2 border-gray-700"
+            >
+              <span className="text-sm">💬</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-200 truncate">{s.title || `Session ${s.session_id?.slice(0, 8) || ''}`}</div>
+                <div className="text-[9px] text-gray-500">
+                  {s.message_count !== undefined ? `${s.message_count} 則訊息` : ''}
+                  {s.last_message_at ? ` · ${new Date(s.last_message_at).toLocaleDateString('zh-TW')}` : ''}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col gap-1.5 max-h-60 overflow-y-auto">
+          {sessionMessages.length === 0 && (
+            <div className="text-[10px] text-gray-500 text-center py-4">無訊息</div>
+          )}
+          {sessionMessages.map((msg: any, i: number) => (
+            <div key={i} className={`flex gap-2 px-2 py-1.5 rounded-md text-xs ${
+              msg.role === 'user' ? 'bg-cyan-500/5 border-l-2 border-cyan-500' : 'bg-[#0f1525] border-l-2 border-gray-700'
+            }`}>
+              <span className="text-sm shrink-0 mt-0.5">{msg.role === 'user' ? '👤' : '🤖'}</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-gray-200">{msg.content}</div>
+                {msg.created_at && (
+                  <div className="text-[9px] text-gray-500 mt-0.5">{new Date(msg.created_at).toLocaleString('zh-TW')}</div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Price Trend ─────────────────────────────────────────────────
 function PriceTrend() {
   return <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4">
@@ -926,6 +1214,7 @@ function EventFlowWidget({ events }: { events: any[] }) {
     quality: 'bg-orange-500/10 text-orange-300',
     accounting: 'bg-purple-500/10 text-purple-300',
     director: 'bg-pink-500/10 text-pink-300',
+    sales: 'bg-blue-500/10 text-blue-300',
   }
 
   return (

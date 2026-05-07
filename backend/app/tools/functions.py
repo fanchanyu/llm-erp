@@ -473,6 +473,72 @@ async def generate_report(report_type: str, period: str = "") -> dict:
     }
 
 
+# ── CRM Functions ──────────────────────────────────────────────────
+
+async def query_customers(name: str = "") -> list:
+    """查詢客戶列表。輸入名稱關鍵字查詢，留空查全部。"""
+    from app.services import customer_service
+    async with async_session() as db:
+        customers, total = await customer_service.list_customers(db, name or None, 0, 100)
+    return [
+        {
+            "id": c.id, "customer_no": c.customer_no, "name": c.name,
+            "contact_person": c.contact_person, "phone": c.phone,
+            "level": c.level, "credit_limit": float(c.credit_limit or 0),
+            "is_active": c.is_active,
+        }
+        for c in customers
+    ]
+
+
+async def query_sales_orders(status: str = "") -> list:
+    """查詢銷售訂單列表。可過濾狀態：draft/confirmed/production/shipped/delivered。"""
+    from app.services import sales_order_service, customer_service
+    async with async_session() as db:
+        orders, total = await sales_order_service.list_orders(db, status or None, 0, 100)
+    result = []
+    for o in orders:
+        customer_name = ""
+        if o.customer_id:
+            c = await customer_service.get_customer(db, o.customer_id)
+            if c:
+                customer_name = c.name
+        result.append({
+            "id": o.id, "so_no": o.so_no, "customer_name": customer_name,
+            "status": o.status, "total_amount": float(o.total_amount or 0),
+            "created_at": str(o.created_at),
+            "items": [
+                {"part_no": i.part_no, "quantity": float(i.quantity),
+                 "unit_price": float(i.unit_price or 0), "line_total": float(i.line_total or 0)}
+                for i in (o.items or [])
+            ],
+        })
+    return result
+
+
+async def create_customer_event(customer_no: str, event_type: str, description: str) -> dict:
+    """建立客戶互動事件（call/visit/note/email/meeting）。需客戶編號、事件類型、描述。"""
+    from app.services import customer_service
+    from app.models.crm_event import CrmEvent
+    async with async_session() as db:
+        customer = await customer_service.get_customer_by_no(db, customer_no)
+        if not customer:
+            return {"error": f"找不到客戶 {customer_no}"}
+        from datetime import datetime
+        event = CrmEvent(
+            customer_id=customer.id, event_type=event_type,
+            description=description.strip(), created_at=datetime.utcnow(),
+        )
+        db.add(event)
+        await db.commit()
+        await db.refresh(event)
+    return {
+        "id": event.id, "customer_no": customer_no,
+        "customer_name": customer.name, "event_type": event_type,
+        "description": event.description, "created_at": str(event.created_at),
+    }
+
+
 # Tool name -> function mapping
 TOOL_FUNCTIONS = {
     "query_inventory": query_inventory,
@@ -507,6 +573,10 @@ TOOL_FUNCTIONS = {
     "query_ar": query_ar,
     "check_ar_overdue": check_ar_overdue,
     "create_journal_entry": create_journal_entry,
-    # Report Generation
+    # ── Report Generation ──
     "generate_report": generate_report,
+    # ── CRM ──
+    "query_customers": query_customers,
+    "query_sales_orders": query_sales_orders,
+    "create_customer_event": create_customer_event,
 }

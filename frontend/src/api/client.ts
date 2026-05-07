@@ -136,3 +136,72 @@ export async function listSuppliers(search?: string) {
   const res = await fetch(`${API_BASE}/purchase/suppliers${q}`)
   return res.json()
 }
+
+// ─── Sales / CRM (業務) ──────────────────────────────────────────
+
+export async function listCustomers(search?: string) {
+  const q = search ? `?search=${encodeURIComponent(search)}` : ''
+  const res = await fetch(`${API_BASE}/customers${q}`)
+  return res.json()
+}
+
+export async function createCustomer(data: any) {
+  const res = await fetch(`${API_BASE}/customers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function getCustomer(id: number) {
+  const res = await fetch(`${API_BASE}/customers/${id}`)
+  return res.json()
+}
+
+export async function listSalesOrders(status?: string) {
+  const q = status ? `?status=${status}` : ''
+  const res = await fetch(`${API_BASE}/so${q}`)
+  return res.json()
+}
+
+export async function createSalesOrder(data: any) {
+  const res = await fetch(`${API_BASE}/so`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function getCRMEvents(customerId: number) {
+  const res = await fetch(`${API_BASE}/crm/events/${customerId}`)
+  return res.json()
+}
+
+export async function createCRMEvent(data: any) {
+  const res = await fetch(`${API_BASE}/crm/events`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function listConversationSessions() {
+  const res = await fetch(`${API_BASE}/conversations/sessions`)
+  return res.json()
+}
+
+export async function getConversation(sessionId: string) {
+  const res = await fetch(`${API_BASE}/conversations/${sessionId}`)
+  return res.json()
+}
+
+export async function getConversationsByCustomer(customerId: number) {
+  const res = await fetch(`${API_BASE}/conversations/by-customer/${customerId}`)
+  return res.json()
+}

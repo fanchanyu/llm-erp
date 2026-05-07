@@ -467,7 +467,54 @@ TOOLS = [
                 "required": ["report_type"]
             }
         }
-    }
+    },
+    # ── CRM ──
+    {
+        "type": "function",
+        "function": {
+            "name": "query_customers",
+            "description": "查詢客戶列表。輸入名稱關鍵字查詢，留空查全部。業務/銷售用。使用者說「客戶有哪些/查客戶/客戶資料」時調用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "客戶名稱關鍵字 (留空查全部)"}
+                }
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "query_sales_orders",
+            "description": "查詢銷售訂單列表。可過濾狀態：draft/confirmed/production/shipped/delivered。使用者說「訂單有哪些/查訂單/SO/銷售單/出貨單」時調用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string", "description": "狀態過濾: draft/confirmed/production/shipped/delivered (留空查全部)"}
+                }
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "create_customer_event",
+            "description": "建立客戶互動事件（來電/拜訪/備註/郵件/會議）。使用者說「記錄一下/備註客戶/來電紀錄」時調用。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "customer_no": {"type": "string", "description": "客戶編號 (e.g. C001)"},
+                    "event_type": {
+                        "type": "string",
+                        "enum": ["call", "visit", "note", "email", "meeting"],
+                        "description": "事件類型: call(來電)/visit(拜訪)/note(備註)/email(郵件)/meeting(會議)"
+                    },
+                    "description": {"type": "string", "description": "事件描述"}
+                },
+                "required": ["customer_no", "event_type", "description"]
+            }
+        }
+    },
 ]
 
 # Bilingual prompt: Chinese first, with English support
@@ -481,11 +528,14 @@ You are a factory ERP system AI assistant that helps users manage the entire pro
 - 若使用者提到 入庫/收貨/發料/出庫/領料 → 用庫存異動工具(inbound_material, outbound_material)
 - 若使用者提到 工單/派工/機台故障/急單/插隊 → 用生產工具(release_order, dispatch_order, right_shift_reschedule, route_change_reschedule, expedite_order)
 - 若使用者提到 BOM/展開/缺料/料夠不夠 → 用BOM工具(query_bom, bom_explode, check_stock_shortage)
+- 若使用者提到 客戶/訂單/SO/CRM/業務/銷售 → 用CRM工具(query_customers, query_sales_orders, create_customer_event)
 - ❌ 查採購單絕對不能用 query_inventory
 - ❌ 查供應商絕對不能用 query_inventory
 - ❌ 查品檢單絕對不能用 query_inventory
 - ❌ 查AR/會計資料絕對不能用 query_inventory
 - ❌ 入庫/出庫是 inbound_material/outbound_material，不能用 query_inventory
+- ❌ 查客戶絕對不能用 query_inventory
+- ❌ 查銷售訂單絕對不能用 query_inventory
 
 你可以執行的操作：
 
@@ -529,6 +579,11 @@ You are a factory ERP system AI assistant that helps users manage the entire pro
 25. 查詢應收帳款 — 使用者問「AR/應收帳款/客戶欠款」時調用 query_ar
 26. 查詢逾期帳款 — 使用者問「逾期帳款/過期沒收的錢」時調用 check_ar_overdue
 27. 建立傳票 — 使用者說「開傳票/做分錄/記帳」時調用 create_journal_entry
+
+【CRM 客戶管理】
+28. 查詢客戶 — 使用者問「客戶有哪些/查客戶資料/客戶資訊」時調用 query_customers
+29. 查詢銷售訂單 — 使用者問「銷售訂單有哪些/查訂單/SO/客戶訂單/出貨單」時調用 query_sales_orders
+30. 記錄客戶互動 — 使用者說「記錄一下/備註客戶/來電紀錄/拜訪紀錄」時調用 create_customer_event
 
 【典型流程】
 使用者說：「開工單做 5 台 CNC-001，交期 5/15」
