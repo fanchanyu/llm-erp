@@ -11,12 +11,14 @@ LLM-ERP is an open-source intelligent ERP system that lets you manage your entir
 
 | Module | Code | Core Function |
 |--------|:----:|---------------|
+| 🗣️ Bilingual NL | — | Chinese OR English. System auto-detects your language. |
 | 📦 Inventory | MM | Part management, stock query, inbound/outbound transactions, location tracking |
 | 📋 Purchasing | PP | Supplier management, PO lifecycle, supplier scoring |
 | 📐 BOM Engineering | ENG | Product structure, multi-level explosion, shortage checking |
 | ⚙️ Dispatch | MFG | Work order management, machine scheduling, dynamic rescheduling (3 strategies) |
 | ✅ Quality | QM | Inspection orders, non-conformance tracking, CAPA |
 | 💰 Accounting | FI | Chart of accounts, journal entries, AR aging, month-end close |
+| 📄 Reports | — | Generate PDF reports via natural language (inventory, AR, purchase, production, P&L) |
 | 🏭 War Room | — | SVG value-stream dashboard, real-time event animations, multi-screen display |
 
 ---
@@ -363,6 +365,7 @@ MAX_TOOL_ROUNDS=5            # cloud=5, local=8-10
 **Switching principles:**
 - **Cloud API** (DeepSeek / Claude / GPT): MAX_TOOL_ROUNDS=5, needs API Key
 - **Local model** (Ollama / Gemma4): MAX_TOOL_ROUNDS=8-10, no API Key needed
+- **Bilingual**: All providers support Chinese AND English. Use the language you prefer.
 - Backend auto-reloads on `.env` change (`uvicorn --reload`)
 
 ### Provider Benchmark (30-test)
