@@ -4,6 +4,8 @@
 
 An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. Manage your factory floor and customer relationships through **natural language** — no menu clicking, no T-codes to memorize.
 
+**English** | [中文](./README-zh.md)
+
 ## Features
 
 | | Feature | Description |
