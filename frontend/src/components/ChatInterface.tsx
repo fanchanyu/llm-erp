@@ -1,50 +1,70 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../hooks/useChat'
+import { useTranslation } from '../i18n'
 
-export function ChatInterface() {
+interface Props {
+  initialPrompt?: string
+}
+
+export function ChatInterface({ initialPrompt }: Props) {
   const { messages, loading, sendMessage, clearMessages } = useChat()
   const [input, setInput] = useState('')
+  const [lastPrompt, setLastPrompt] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
+  const { t } = useTranslation()
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
+  useEffect(() => {
+    if (initialPrompt && initialPrompt !== lastPrompt) {
+      setLastPrompt(initialPrompt)
+      setInput(initialPrompt)
+      const timer = setTimeout(() => {
+        sendMessage(initialPrompt)
+        setInput('')
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [initialPrompt, lastPrompt, sendMessage])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    sendMessage(input)
-    setInput('')
+    if (input.trim() && !loading) {
+      sendMessage(input)
+      setInput('')
+    }
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-12rem)] bg-white rounded-xl shadow-sm border border-gray-200">
-      {/* Chat header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-green-400" />
-          <span className="text-sm font-medium text-gray-700">
-            {loading ? 'AI 思考中...' : '已連線'}
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-gray-900 rounded-2xl shadow-xl border border-gray-800 overflow-hidden">
+      <div className="flex items-center justify-between px-5 py-3 border-b border-gray-800 bg-gray-900/50">
+        <div className="flex items-center gap-3">
+          <div className={`w-2.5 h-2.5 rounded-full ${loading ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`} />
+          <span className="text-sm font-medium text-gray-300">
+            {loading ? t('chat.thinking') : t('chat.connected')}
           </span>
         </div>
         <button
           onClick={clearMessages}
-          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+          className="text-xs text-gray-500 hover:text-gray-300 transition-colors px-3 py-1 rounded-lg hover:bg-gray-800"
         >
-          ✕ 清除對話
+          {t('chat.clear')}
         </button>
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+      <div className="flex-1 overflow-y-auto px-5 py-5 space-y-4 bg-gray-900/30">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div
-              className={`max-w-[80%] rounded-xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap ${
+              className={`max-w-[85%] rounded-2xl px-5 py-3.5 text-sm leading-relaxed whitespace-pre-wrap ${
                 msg.role === 'user'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-800'
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-600/20'
+                  : 'bg-gray-800 text-gray-200 border border-gray-700/50'
               }`}
             >
+              {msg.intent === 'no_api_key' && <div className="text-yellow-400 mb-2">⚠️</div>}
               {msg.content}
             </div>
           </div>
@@ -52,11 +72,11 @@ export function ChatInterface() {
 
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-xl px-4 py-3">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+            <div className="bg-gray-800 rounded-2xl px-5 py-4 border border-gray-700/50">
+              <div className="flex gap-1.5">
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>
@@ -64,23 +84,22 @@ export function ChatInterface() {
         <div ref={endRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSubmit} className="border-t border-gray-100 px-4 py-3">
-        <div className="flex gap-2">
+      <form onSubmit={handleSubmit} className="border-t border-gray-800 px-5 py-4 bg-gray-900/50">
+        <div className="flex gap-3">
           <input
             type="text"
             value={input}
             onChange={e => setInput(e.target.value)}
-            placeholder="輸入你的需求，例如：庫存還有多少 M6 螺絲？"
-            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder={t('chat.placeholder')}
+            className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !input.trim()}
-            className="px-5 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl text-sm font-medium hover:from-blue-500 hover:to-blue-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-600/20"
           >
-            送出
+            {loading ? '...' : t('chat.send')}
           </button>
         </div>
       </form>

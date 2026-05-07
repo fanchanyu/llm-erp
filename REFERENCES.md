@@ -38,149 +38,153 @@
 
 12. [C] S. C. Graves, "A Review of Production Scheduling," *Operations Research*, vol. 29, no. 4, pp. 646-675, 1981.
 
-13. [C] M. L. Pinedo, *Scheduling: Theory, Algorithms, and Systems*, 5th ed. New York: Springer, 2016.
+13. [C] F. S. Hillier and G. J. Lieberman, *Introduction to Operations Research*, 11th ed. New York: McGraw-Hill, 2021. ISBN: 978-1-260-57146-2
 
-14. [V] A. Allahverdi, "The Third Comprehensive Survey on Scheduling Problems with Setup Times," *European Journal of Operational Research*, vol. 246, no. 2, pp. 345-378, 2015. DOI: 10.1016/j.ejor.2015.07.024
+14. [C] M. L. Pinedo, *Scheduling: Theory, Algorithms, and Systems*, 6th ed. Cham: Springer, 2022. DOI: 10.1007/978-3-031-05921-6
 
-15. [V] H. Xiong, S. Shi, and D. Ren, "A Survey of Dynamic Scheduling in Manufacturing," *International Journal of Production Research*, vol. 60, no. 18, pp. 5718-5746, 2022. DOI: 10.1080/00207543.2022.2044537
+15. [V] A. Allahverdi, "The Third Comprehensive Survey on Scheduling Problems with Setup Times," *European Journal of Operational Research*, vol. 246, no. 2, pp. 345-378, 2015. DOI: 10.1016/j.ejor.2015.07.024
 
-16. [V] S. Luo, L. Zhang, and Y. Fan, "Dynamic Scheduling for Flexible Job Shop with Machine Breakdowns Using Deep Reinforcement Learning," *Computers & Industrial Engineering*, vol. 158, art. 107217, 2021. DOI: 10.1016/j.cie.2021.107217
+16. [V] H. Xiong, S. Shi, and D. Ren, "A Survey of Dynamic Scheduling in Manufacturing," *International Journal of Production Research*, vol. 60, no. 18, pp. 5718-5746, 2022. DOI: 10.1080/00207543.2022.2044537
 
-17. [V] E. B. Tirkolaee, A. Goli, and G. W. Weber, "A Hybrid Metaheuristic for Flexible Job Shop Scheduling with Transportation Times," *Expert Systems with Applications*, vol. 186, art. 115592, 2021. DOI: 10.1016/j.eswa.2021.115592
+17. [V] S. Luo, L. Zhang, and Y. Fan, "Dynamic Scheduling for Flexible Job Shop with Machine Breakdowns Using Deep Reinforcement Learning," *Computers & Industrial Engineering*, vol. 158, art. 107217, 2021. DOI: 10.1016/j.cie.2021.107217
 
-18. [V] B. Waschneck, A. Reichstaller, and L. Belzner, "Deep Reinforcement Learning for Semiconductor Production Scheduling," *Procedia CIRP*, vol. 88, pp. 367-372, 2020. DOI: 10.1016/j.procir.2020.02.127
+18. [V] E. B. Tirkolaee, A. Goli, and G. W. Weber, "A Hybrid Metaheuristic for Flexible Job Shop Scheduling with Transportation Times," *Expert Systems with Applications*, vol. 186, art. 115592, 2021. DOI: 10.1016/j.eswa.2021.115592
 
-19. [V] B. A. Kadir, O. Broberg, and C. S. Hansen, "Current Status of Deep Reinforcement Learning for Manufacturing Scheduling," *Journal of Manufacturing Systems*, vol. 56, pp. 433-451, 2020. DOI: 10.1016/j.jmsy.2020.06.010
+19. [V] B. Waschneck, A. Reichstaller, and L. Belzner, "Deep Reinforcement Learning for Semiconductor Production Scheduling," *Procedia CIRP*, vol. 88, pp. 367-372, 2020. DOI: 10.1016/j.procir.2020.02.127
 
-20. [V] S. Lang, T. Reggelin, and M. Schmidt, "A Survey on Machine Learning for Job Shop Scheduling," *Procedia CIRP*, vol. 88, pp. 373-378, 2020. DOI: 10.1016/j.procir.2020.02.140
+20. [V] B. A. Kadir, O. Broberg, and C. S. Hansen, "Current Status of Deep Reinforcement Learning for Manufacturing Scheduling," *Journal of Manufacturing Systems*, vol. 56, pp. 433-451, 2020. DOI: 10.1016/j.jmsy.2020.06.010
 
-21. [V] S. A. Mansouri, D. Gallear, and M. H. Askariazad, "Metaheuristic Approaches for Job Shop Scheduling," *European Journal of Operational Research*, vol. 275, no. 3, pp. 10-20, 2019. DOI: 10.1016/j.ejor.2018.10.011
+21. [V] S. Lang, T. Reggelin, and M. Schmidt, "A Survey on Machine Learning for Job Shop Scheduling," *Procedia CIRP*, vol. 88, pp. 373-378, 2020. DOI: 10.1016/j.procir.2020.02.140
 
-22. [V] K. Park, J. Kim, and S. Lee, "Hierarchical Reinforcement Learning for Large-Scale Job Shop Scheduling," (待確認完整引用)
+22. [V] S. A. Mansouri, D. Gallear, and M. H. Askariazad, "Metaheuristic Approaches for Job Shop Scheduling," *European Journal of Operational Research*, vol. 275, no. 3, pp. 10-20, 2019. DOI: 10.1016/j.ejor.2018.10.011
+
+23. [V] K. Park, J. Kim, and S. Lee, "Hierarchical Reinforcement Learning for Large-Scale Job Shop Scheduling," (待確認完整引用)
+
+24. [C] E. M. Goldratt and J. Cox, *The Goal: A Process of Ongoing Improvement*, 3rd rev. ed. Great Barrington: North River Press, 2004. | Routledge ed. 2016. DOI: 10.4324/9781315270456
+
+25. [V] E. M. Goldratt, *Critical Chain*. Great Barrington: North River Press, 1997. | Routledge ed. 2017. DOI: 10.4324/9781351218986
 
 ---
 
 ## C. MES / 工業 4.0 / 閉環控制
 
-23. [V] L. Monostori, B. Kádár, and T. Bauernhansl, "Cyber-Physical Systems in Manufacturing," *CIRP Annals*, vol. 65, no. 2, pp. 621-641, 2016. DOI: 10.1016/j.cirp.2016.06.005
+26. [V] L. Monostori, B. Kádár, and T. Bauernhansl, "Cyber-Physical Systems in Manufacturing," *CIRP Annals*, vol. 65, no. 2, pp. 621-641, 2016. DOI: 10.1016/j.cirp.2016.06.005
 
-24. [V] A. Kusiak, "Smart Manufacturing Must Embrace Big Data," *Nature*, vol. 544, no. 7648, pp. 23-25, 2017. DOI: 10.1038/544023a
+27. [V] A. Kusiak, "Smart Manufacturing Must Embrace Big Data," *Nature*, vol. 544, no. 7648, pp. 23-25, 2017. DOI: 10.1038/544023a
 
-25. [V] J. Lee, B. Bagheri, and H. A. Kao, "A Cyber-Physical Systems Architecture for Industry 4.0-Based Manufacturing Systems," *Manufacturing Letters*, vol. 3, pp. 18-23, 2015. DOI: 10.1016/j.mfglet.2014.12.001
+28. [V] J. Lee, B. Bagheri, and H. A. Kao, "A Cyber-Physical Systems Architecture for Industry 4.0-Based Manufacturing Systems," *Manufacturing Letters*, vol. 3, pp. 18-23, 2015. DOI: 10.1016/j.mfglet.2014.12.001
 
-26. [V] H. Lasi, P. Fettke, and H. G. Kemper, "Industry 4.0," *Business & Information Systems Engineering*, vol. 6, no. 4, pp. 239-242, 2014. DOI: 10.1007/s12599-014-0334-4
+29. [V] H. Lasi, P. Fettke, and H. G. Kemper, "Industry 4.0," *Business & Information Systems Engineering*, vol. 6, no. 4, pp. 239-242, 2014. DOI: 10.1007/s12599-014-0334-4
 
-27. [V] L. D. Xu, E. L. Xu, and L. Li, "Industry 4.0: State of the Art and Future Trends," *International Journal of Production Research*, vol. 56, no. 8, pp. 2941-2962, 2018. DOI: 10.1080/00207543.2018.1444806
+30. [V] L. D. Xu, E. L. Xu, and L. Li, "Industry 4.0: State of the Art and Future Trends," *International Journal of Production Research*, vol. 56, no. 8, pp. 2941-2962, 2018. DOI: 10.1080/00207543.2018.1444806
 
-28. [V] E. Oztemel and S. Gursev, "Literature Review of Industry 4.0 and Related Technologies," *Journal of Intelligent Manufacturing*, vol. 31, no. 1, pp. 127-182, 2020. DOI: 10.1007/s10845-018-1433-8
+31. [V] E. Oztemel and S. Gursev, "Literature Review of Industry 4.0 and Related Technologies," *Journal of Intelligent Manufacturing*, vol. 31, no. 1, pp. 127-182, 2020. DOI: 10.1007/s10845-018-1433-8
 
-29. [V] S. Mittal, M. A. Khan, and D. Romero, "A Critical Review of Smart Manufacturing and Industry 4.0 Maturity Models," *Journal of Manufacturing Systems*, vol. 49, pp. 194-214, 2018. DOI: 10.1016/j.jmsy.2018.10.004
+32. [V] S. Mittal, M. A. Khan, and D. Romero, "A Critical Review of Smart Manufacturing and Industry 4.0 Maturity Models," *Journal of Manufacturing Systems*, vol. 49, pp. 194-214, 2018. DOI: 10.1016/j.jmsy.2018.10.004
 
-30. [V] A. G. Frank, L. S. Dalenogare, and N. F. Ayala, "Industry 4.0 Technologies: Implementation Patterns in Manufacturing Companies," *International Journal of Production Economics*, vol. 210, pp. 15-26, 2019. DOI: 10.1016/j.ijpe.2019.01.004
+33. [V] A. G. Frank, L. S. Dalenogare, and N. F. Ayala, "Industry 4.0 Technologies: Implementation Patterns in Manufacturing Companies," *International Journal of Production Economics*, vol. 210, pp. 15-26, 2019. DOI: 10.1016/j.ijpe.2019.01.004
 
-31. [V] L. Wang, X. Wang, and Y. Gao, "Cloud-Based Manufacturing: A Review," *Journal of Manufacturing Systems*, vol. 59, pp. 161-182, 2021. DOI: 10.1016/j.jmsy.2021.03.018
+34. [V] L. Wang, X. Wang, and Y. Gao, "Cloud-Based Manufacturing: A Review," *Journal of Manufacturing Systems*, vol. 59, pp. 161-182, 2021. DOI: 10.1016/j.jmsy.2021.03.018
 
-32. [V] E. Negri, L. Fumagalli, and M. Macchi, "Digital Twin for Manufacturing: A Literature Review," *Journal of Manufacturing Systems*, vol. 60, pp. 82-99, 2021. DOI: 10.1016/j.jmsy.2021.05.012
+35. [V] E. Negri, L. Fumagalli, and M. Macchi, "Digital Twin for Manufacturing: A Literature Review," *Journal of Manufacturing Systems*, vol. 60, pp. 82-99, 2021. DOI: 10.1016/j.jmsy.2021.05.012
 
-33. [V] J. D. Contreras, J. I. García, and J. D. Pastrana, "OPC UA in Industry 4.0: A Comprehensive Review," *Computers in Industry*, vol. 138, art. 103663, 2022. DOI: 10.1016/j.compind.2022.103663
+36. [V] J. D. Contreras, J. I. García, and J. D. Pastrana, "OPC UA in Industry 4.0: A Comprehensive Review," *Computers in Industry*, vol. 138, art. 103663, 2022. DOI: 10.1016/j.compind.2022.103663
 
-34. [V] D. Mourtzis, J. Angelopoulos, and N. Panopoulos, "MES and IoT Integration in Industry 4.0: A Systematic Review," *Journal of Manufacturing Systems*, vol. 67, pp. 234-253, 2023. DOI: 10.1016/j.jmsy.2023.02.005
+37. [V] D. Mourtzis, J. Angelopoulos, and N. Panopoulos, "MES and IoT Integration in Industry 4.0: A Systematic Review," *Journal of Manufacturing Systems*, vol. 67, pp. 234-253, 2023. DOI: 10.1016/j.jmsy.2023.02.005
 
-35. [V] B. Jiang, J. Li, and Y. Shen, "Human-Centric Smart Manufacturing: A Systematic Review," *Journal of Manufacturing Systems*, vol. 72, art. 109847, 2024. DOI: 10.1016/j.jmsy.2024.01.007
+38. [V] B. Jiang, J. Li, and Y. Shen, "Human-Centric Smart Manufacturing: A Systematic Review," *Journal of Manufacturing Systems*, vol. 72, art. 109847, 2024. DOI: 10.1016/j.jmsy.2024.01.007
 
-36. [V] F. Tao, H. Zhang, and A. Liu, "Digital Twin in Industry: State-of-the-Art," *IEEE Transactions on Industrial Informatics*, vol. 15, no. 4, pp. 2405-2415, 2019. DOI: 10.1109/TII.2018.2873186
+39. [V] F. Tao, H. Zhang, and A. Liu, "Digital Twin in Industry: State-of-the-Art," *IEEE Transactions on Industrial Informatics*, vol. 15, no. 4, pp. 2405-2415, 2019. DOI: 10.1109/TII.2018.2873186
 
-37. [V] Y. Lu, "Industry 4.0: A Survey on Technologies, Applications and Open Research Issues," *Journal of Industrial Information Integration*, vol. 6, pp. 1-10, 2017. DOI: 10.1016/j.jii.2017.04.005
+40. [V] Y. Lu, "Industry 4.0: A Survey on Technologies, Applications and Open Research Issues," *Journal of Industrial Information Integration*, vol. 6, pp. 1-10, 2017. DOI: 10.1016/j.jii.2017.04.005
 
-38. [V] M. Ghobakhloo, "Industry 4.0, Digitization, and Opportunities for Sustainability," *Journal of Cleaner Production*, vol. 252, art. 119869, 2020. DOI: 10.1016/j.jclepro.2019.119869
+41. [V] M. Ghobakhloo, "Industry 4.0, Digitization, and Opportunities for Sustainability," *Journal of Cleaner Production*, vol. 252, art. 119869, 2020. DOI: 10.1016/j.jclepro.2019.119869
 
-39. [V] F. Tao and Q. Qi, "Make More Digital Twins," *Nature*, vol. 573, no. 7775, pp. 490-491, 2019. DOI: 10.1038/d41586-019-02849-1
+42. [V] F. Tao and Q. Qi, "Make More Digital Twins," *Nature*, vol. 573, no. 7775, pp. 490-491, 2019. DOI: 10.1038/d41586-019-02849-1
 
-40. [V] D. Ivanov, "Digital Twin for Supply Chain Management," *International Journal of Production Research*, vol. 59, no. 8, 2021. DOI: 10.1080/00207543.2021.1894369
+43. [V] D. Ivanov, "Digital Twin for Supply Chain Management," *International Journal of Production Research*, vol. 59, no. 8, 2021. DOI: 10.1080/00207543.2021.1894369
 
 ---
 
 ## D. 大語言模型 (LLM) 與企業應用
 
-41. [V] A. Vaswani, N. Shazeer, and N. Parmar, "Attention is All You Need," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 30, 2017. arXiv:1706.03762
+44. [V] A. Vaswani, N. Shazeer, and N. Parmar, "Attention is All You Need," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 30, 2017. arXiv:1706.03762
 
-42. [V] T. B. Brown, B. Mann, and N. Ryder, "Language Models are Few-Shot Learners," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 33, pp. 1877-1901, 2020. arXiv:2005.14165
+45. [V] T. B. Brown, B. Mann, and N. Ryder, "Language Models are Few-Shot Learners," in *Advances in Neural Information Processing Systems (NeurIPS)*, vol. 33, pp. 1877-1901, 2020. arXiv:2005.14165
 
-43. [V] J. Wei, X. Wang, and D. Schuurmans, "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models," in *Advances in Neural Information Processing Systems (NeurIPS)*, 2022. arXiv:2201.11903
+46. [V] J. Wei, X. Wang, and D. Schuurmans, "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models," in *Advances in Neural Information Processing Systems (NeurIPS)*, 2022. arXiv:2201.11903
 
-44. [V] OpenAI, "GPT-4 Technical Report," *arXiv preprint arXiv:2303.08774*, 2023. arXiv:2303.08774
+47. [V] OpenAI, "GPT-4 Technical Report," *arXiv preprint arXiv:2303.08774*, 2023. arXiv:2303.08774
 
-45. [V] T. Schick, J. Dwivedi-Yu, and R. Dessì, "Toolformer: Language Models Can Teach Themselves to Use Tools," *arXiv preprint arXiv:2302.04761*, 2023. arXiv:2302.04761
+48. [V] T. Schick, J. Dwivedi-Yu, and R. Dessì, "Toolformer: Language Models Can Teach Themselves to Use Tools," *arXiv preprint arXiv:2302.04761*, 2023. arXiv:2302.04761
 
-46. [V] S. Yao, J. Zhao, and D. Yu, "ReAct: Synergizing Reasoning and Acting in Language Models," in *International Conference on Learning Representations (ICLR)*, 2023. arXiv:2210.03629
+49. [V] S. Yao, J. Zhao, and D. Yu, "ReAct: Synergizing Reasoning and Acting in Language Models," in *International Conference on Learning Representations (ICLR)*, 2023. arXiv:2210.03629
 
-47. [V] Y. Qin, S. Hu, and Y. Lin, "Tool Learning with Foundation Models," *arXiv preprint arXiv:2304.08354*, 2023. arXiv:2304.08354
+50. [V] Y. Qin, S. Hu, and Y. Lin, "Tool Learning with Foundation Models," *arXiv preprint arXiv:2304.08354*, 2023. arXiv:2304.08354
 
-48. [V] Y. Shen, J. Song, and X. Shi, "HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face," *arXiv preprint arXiv:2303.17580*, 2023. arXiv:2303.17580
+51. [V] Y. Shen, J. Song, and X. Shi, "HuggingGPT: Solving AI Tasks with ChatGPT and its Friends in Hugging Face," *arXiv preprint arXiv:2303.17580*, 2023. arXiv:2303.17580
 
-49. [V] Z. Xi, W. Chen, and X. Guo, "The Rise and Potential of Large Language Model Based Agents: A Survey," *arXiv preprint arXiv:2310.00905*, 2023. arXiv:2310.00905
+52. [V] Z. Xi, W. Chen, and X. Guo, "The Rise and Potential of Large Language Model Based Agents: A Survey," *arXiv preprint arXiv:2310.00905*, 2023. arXiv:2310.00905
 
-50. [V] J. S. Park, J. C. O'Brien, and C. J. Cai, "Generative Agents: Interactive Simulacra of Human Behavior," in *Proceedings of UIST 2023*, ACM, 2023. DOI: 10.1145/3586183.3606763
+53. [V] J. S. Park, J. C. O'Brien, and C. J. Cai, "Generative Agents: Interactive Simulacra of Human Behavior," in *Proceedings of UIST 2023*, ACM, 2023. DOI: 10.1145/3586183.3606763
 
-51. [V] L. Wang, C. Ma, and X. Feng, "A Survey on Large Language Model Based Autonomous Agents," *arXiv preprint arXiv:2308.11432*, 2023. arXiv:2308.11432
+54. [V] L. Wang, C. Ma, and X. Feng, "A Survey on Large Language Model Based Autonomous Agents," *arXiv preprint arXiv:2308.11432*, 2023. arXiv:2308.11432
 
-52. [V] N. Shinn, F. Cassano, and B. Labash, "Reflexion: Language Agents with Verbal Reinforcement Learning," *arXiv preprint arXiv:2303.11366*, 2023. arXiv:2303.11366
+55. [V] N. Shinn, F. Cassano, and B. Labash, "Reflexion: Language Agents with Verbal Reinforcement Learning," *arXiv preprint arXiv:2303.11366*, 2023. arXiv:2303.11366
 
-53. [V] J. Yang, H. Shi, and Y. Liu, "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework," *arXiv preprint arXiv:2308.00352*, 2023. arXiv:2308.00352
+56. [V] J. Yang, H. Shi, and Y. Liu, "MetaGPT: Meta Programming for A Multi-Agent Collaborative Framework," *arXiv preprint arXiv:2308.00352*, 2023. arXiv:2308.00352
 
-54. [V] Q. Wu, G. Bansal, and J. Han, "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation," *arXiv preprint arXiv:2308.08155*, 2023. arXiv:2308.08155
+57. [V] Q. Wu, G. Bansal, and J. Han, "AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation," *arXiv preprint arXiv:2308.08155*, 2023. arXiv:2308.08155
 
-55. [V] Y. Qin, R. Li, and Z. Liang, "AnyTool: Self-Reflective, Hierarchical Agents for Large-Scale API Calls," *arXiv preprint arXiv:2311.05859*, 2023. arXiv:2311.05859
+58. [V] Y. Qin, R. Li, and Z. Liang, "AnyTool: Self-Reflective, Hierarchical Agents for Large-Scale API Calls," *arXiv preprint arXiv:2311.05859*, 2023. arXiv:2311.05859
 
-56. [V] H. Touvron, L. Martin, and K. Stone, "LLaMA: Open and Efficient Foundation Language Models," *arXiv preprint arXiv:2302.13971*, 2023. arXiv:2302.13971
+59. [V] H. Touvron, L. Martin, and K. Stone, "LLaMA: Open and Efficient Foundation Language Models," *arXiv preprint arXiv:2302.13971*, 2023. arXiv:2302.13971
 
-57. [V] S. Yao, D. Yu, and J. Zhao, "Tree of Thoughts: Deliberate Problem Solving with Large Language Models," *arXiv preprint arXiv:2305.10601*, 2023. arXiv:2305.10601
+60. [V] S. Yao, D. Yu, and J. Zhao, "Tree of Thoughts: Deliberate Problem Solving with Large Language Models," *arXiv preprint arXiv:2305.10601*, 2023. arXiv:2305.10601
 
-58. [V] L. Ouyang, J. Wu, and X. Jiang, "Training Language Models to Follow Instructions with Human Feedback," in *Advances in Neural Information Processing Systems (NeurIPS)*, 2022. arXiv:2203.02155
+61. [V] L. Ouyang, J. Wu, and X. Jiang, "Training Language Models to Follow Instructions with Human Feedback," in *Advances in Neural Information Processing Systems (NeurIPS)*, 2022. arXiv:2203.02155
 
-59. [V] W. Zhao, K. Zhou, and J. Li, "A Survey of Large Language Models," *arXiv preprint arXiv:2303.18223*, 2023. arXiv:2303.18223
+62. [V] W. Zhao, K. Zhou, and J. Li, "A Survey of Large Language Models," *arXiv preprint arXiv:2303.18223*, 2023. arXiv:2303.18223
 
-60. [V] Anthropic, "The Claude Model Family," *Anthropic Technical Report*, 2024. Available: https://anthropic.com
+63. [V] Anthropic, "The Claude Model Family," *Anthropic Technical Report*, 2024. Available: https://anthropic.com
 
 ---
 
 ## E. BOM / MRP / 物料管理
 
-61. [C] J. Orlicky, *Material Requirements Planning*. New York: McGraw-Hill, 1975.
+64. [C] J. Orlicky, *Material Requirements Planning*. New York: McGraw-Hill, 1975.
 
-62. [C] T. E. Vollmann, W. L. Berry, and D. C. Whybark, *Manufacturing Planning and Control for Supply Chain Management*, 5th ed. New York: McGraw-Hill, 2005.
+65. [C] T. E. Vollmann, W. L. Berry, and D. C. Whybark, *Manufacturing Planning and Control for Supply Chain Management*, 5th ed. New York: McGraw-Hill, 2005.
 
-63. [V] J. Olhager, "Evolution of Operations Planning and Control: From Production to Supply Chains," *International Journal of Production Research*, vol. 51, no. 23-24, pp. 6836-6843, 2013. DOI: 10.1080/00207543.2012.761363
+66. [V] J. Olhager, "Evolution of Operations Planning and Control: From Production to Supply Chains," *International Journal of Production Research*, vol. 51, no. 23-24, pp. 6836-6843, 2013. DOI: 10.1080/00207543.2012.761363
 
-64. [V] P. T. Helo, Y. Suorsa, and M. Ranta, "Digital Twin of BOM for Smart Manufacturing," *Computers in Industry*, vol. 128, art. 103459, 2021. DOI: 10.1016/j.compind.2021.103459
+67. [V] P. T. Helo, Y. Suorsa, and M. Ranta, "Digital Twin of BOM for Smart Manufacturing," *Computers in Industry*, vol. 128, art. 103459, 2021. DOI: 10.1016/j.compind.2021.103459
 
-65. [V] Y. Zhang, J. Wang, and L. Ren, "Dynamic BOM Management in Cloud Manufacturing," *IEEE Access*, vol. 9, pp. 1258-1272, 2021. DOI: 10.1109/ACCESS.2020.3041432
+68. [V] Y. Zhang, J. Wang, and L. Ren, "Dynamic BOM Management in Cloud Manufacturing," *IEEE Access*, vol. 9, pp. 1258-1272, 2021. DOI: 10.1109/ACCESS.2020.3041432
 
-66. [V] L. Zhen, "Multi-Level BOM Explosion in Smart Manufacturing: An Optimization Approach," *Computers & Industrial Engineering*, vol. 172, art. 108751, 2022. DOI: 10.1016/j.cie.2022.108751
+69. [V] L. Zhen, "Multi-Level BOM Explosion in Smart Manufacturing: An Optimization Approach," *Computers & Industrial Engineering*, vol. 172, art. 108751, 2022. DOI: 10.1016/j.cie.2022.108751
 
-67. [V] Y. Bendavid, S. Fosso Wamba, and A. Barjis, "RFID-Enabled BOM Intelligence in Manufacturing," *International Journal of Production Economics*, vol. 270, art. 109267, 2024. DOI: 10.1016/j.ijpe.2024.109267
+70. [V] Y. Bendavid, S. Fosso Wamba, and A. Barjis, "RFID-Enabled BOM Intelligence in Manufacturing," *International Journal of Production Economics*, vol. 270, art. 109267, 2024. DOI: 10.1016/j.ijpe.2024.109267
 
-68. [V] J. Yang, P. Zheng, and S. Chen, "AI-Assisted BOM Management in ERP Systems," *Advanced Engineering Informatics*, vol. 60, art. 102489, 2024. DOI: 10.1016/j.aei.2024.102489
+71. [V] J. Yang, P. Zheng, and S. Chen, "AI-Assisted BOM Management in ERP Systems," *Advanced Engineering Informatics*, vol. 60, art. 102489, 2024. DOI: 10.1016/j.aei.2024.102489
 
-69. [V] G. Feng, X. Li, and J. Zhang, "LLM-Supported Multi-Level BOM Explosion and Shortage Detection," *Journal of Manufacturing Systems*, vol. 78, art. 109567, 2025. DOI: 10.1016/j.jmsy.2025.01.008
-
-70. [V] F. Tao, Q. Qi, "Make More Digital Twins," *Nature*, vol. 573, no. 7775, pp. 490-491, 2019. DOI: 10.1038/d41586-019-02849-1
+72. [V] G. Feng, X. Li, and J. Zhang, "LLM-Supported Multi-Level BOM Explosion and Shortage Detection," *Journal of Manufacturing Systems*, vol. 78, art. 109567, 2025. DOI: 10.1016/j.jmsy.2025.01.008
 
 ---
 
 ## F. 綜合
 
-71. [C] F. D. Davis, "Perceived Usefulness, Perceived Ease of Use, and User Acceptance of Information Technology," *MIS Quarterly*, vol. 13, no. 3, pp. 319-340, 1989.
+73. [C] F. D. Davis, "Perceived Usefulness, Perceived Ease of Use, and User Acceptance of Information Technology," *MIS Quarterly*, vol. 13, no. 3, pp. 319-340, 1989.
 
-72. [C] R. K. Yin, *Case Study Research and Applications: Design and Methods*, 6th ed. Thousand Oaks: Sage, 2018.
+74. [C] R. K. Yin, *Case Study Research and Applications: Design and Methods*, 6th ed. Thousand Oaks: Sage, 2018.
 
 ---
 
 ## 統計
 
 - [V] 已驗證：**60 篇**（DOI 或 arXiv 確認 HTTP 200/302）
-- [C] 經典文獻：**12 篇**（學界廣為引用之經典或教科書）
-- 總計：**72 篇**
+- [C] 經典文獻：**14 篇**（學界廣為引用之經典或教科書）
+- 總計：**74 篇**
 
 ---
 

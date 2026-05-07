@@ -1,5 +1,5 @@
 """Purchase service — suppliers and purchase orders CRUD."""
-
+from __future__ import annotations
 import uuid
 from datetime import datetime, date
 from typing import Optional
@@ -7,6 +7,7 @@ from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.models.purchase import Supplier, PurchaseOrder, PurchaseOrderItem
+from app.event_engine.service_enforcer import enforce
 
 
 # ─── Suppliers ────────────────────────────────────────────────────
@@ -27,9 +28,20 @@ async def get_supplier(db: AsyncSession, supplier_id: uuid.UUID) -> Optional[Sup
 
 
 async def create_supplier(db: AsyncSession, name: str, contact: Optional[str] = None,
-                          phone: Optional[str] = None, email: Optional[str] = None) -> Supplier:
-    s = Supplier(name=name, contact=contact, phone=phone, email=email)
+                          phone: Optional[str] = None, email: Optional[str] = None,
+                          score: float = 5.0) -> Supplier:
+    s = Supplier(name=name, contact=contact, phone=phone, email=email, score=score)
     db.add(s)
+    await db.flush()
+    return s
+
+
+async def update_supplier_score(db: AsyncSession, supplier_id: uuid.UUID,
+                                score: float) -> Optional[Supplier]:
+    s = await db.get(Supplier, supplier_id)
+    if not s:
+        return None
+    s.score = score
     await db.flush()
     return s
 
@@ -38,7 +50,10 @@ async def create_supplier(db: AsyncSession, name: str, contact: Optional[str] = 
 
 async def list_purchase_orders(db: AsyncSession, status: Optional[str] = None,
                                skip: int = 0, limit: int = 50) -> tuple[list[PurchaseOrder], int]:
-    q = select(PurchaseOrder).options(selectinload(PurchaseOrder.supplier))
+    q = select(PurchaseOrder).options(
+        selectinload(PurchaseOrder.supplier),
+        selectinload(PurchaseOrder.items).selectinload(PurchaseOrderItem.part),
+    )
     if status:
         q = q.where(PurchaseOrder.status == status)
     count_q = select(func.count()).select_from(q.subquery())
@@ -66,8 +81,30 @@ async def _next_po_no(db: AsyncSession) -> str:
 async def create_purchase_order(
     db: AsyncSession, supplier_id: uuid.UUID, items: list[dict],
     ordered_by: Optional[str] = None, notes: Optional[str] = None,
+    actor_role: str = "",
 ) -> PurchaseOrder:
-    """Create PO with items. items = [{part_id, quantity, unit_price?, expected_delivery?}]"""
+    """Create PO with items. Runs constraint checks before execution.
+
+    items = [{part_id, quantity, unit_price?, expected_delivery?}]
+    Raises ConstraintBlocked if business rules are violated.
+    """
+    # Calculate total amount for constraint check
+    total_amount = sum(
+        (i.get("unit_price") or 0) * i["quantity"]
+        for i in items
+    )
+
+    # Get supplier for score check
+    supplier = await db.get(Supplier, supplier_id)
+    supplier_score = getattr(supplier, 'score', 5.0) if supplier else 5.0
+
+    # Run constraint enforcement
+    enforce("create_po", {
+        "amount": total_amount,
+        "supplier_score": supplier_score,
+    }, actor_role=actor_role)
+
+    # If we get here, all checks passed
     po_no = await _next_po_no(db)
     po = PurchaseOrder(
         po_no=po_no, supplier_id=supplier_id,
@@ -101,10 +138,20 @@ async def update_po_status(db: AsyncSession, po_id: uuid.UUID,
 
 
 async def update_po_item_received(db: AsyncSession, item_id: uuid.UUID,
-                                  quantity: float) -> Optional[PurchaseOrderItem]:
+                                  quantity: float,
+                                  actor_role: str = "") -> Optional[PurchaseOrderItem]:
     item = await db.get(PurchaseOrderItem, item_id)
     if not item:
         return None
-    item.received_qty = (item.received_qty or 0) + quantity
+
+    # Check over-receipt constraint
+    already_received = float(item.received_qty or 0)
+    total_received = already_received + quantity
+    enforce("receive_po", {
+        "po_qty": float(item.quantity),
+        "receipt_qty": total_received,
+    }, actor_role=actor_role)
+
+    item.received_qty = total_received
     await db.flush()
     return item

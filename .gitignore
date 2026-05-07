@@ -30,3 +30,13 @@ frontend/dist/
 
 # Logs
 *.log
+
+# Python venv
+.venv/
+
+# Backup files
+*.bak
+
+# OS files
+Thumbs.db
+.DS_Store

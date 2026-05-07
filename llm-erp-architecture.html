@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP System Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #020617; font-family: 'JetBrains Mono', monospace; color: #e2e8f0; padding: 40px; display: flex; flex-direction: column; align-items: center; }
+.container { max-width: 1100px; width: 100%; }
+.header { display: flex; align-items: center; gap: 14px; margin-bottom: 24px; }
+.pulse { width: 10px; height: 10px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 10px rgba(34,211,238,0); } 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0); } }
+h1 { font-size: 20px; font-weight: 700; color: #f1f5f9; letter-spacing: -0.5px; }
+.subtitle { color: #64748b; font-size: 11px; margin-top: -8px; margin-bottom: 20px; display: flex; gap: 16px; }
+.subtitle span { color: #475569; }
+.diagram-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 32px; position: relative; overflow: hidden; }
+svg { width: 100%; height: auto; display: block; }
+.grid { background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M 40 0 L 0 0 0 40' fill='none' stroke='%231e293b' stroke-width='0.5'/%3E%3C/svg%3E"); }
+.layers { display: flex; gap: 16px; margin-top: 24px; flex-wrap: wrap; }
+.card { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; flex: 1; min-width: 240px; }
+.card-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.card-dot { width: 8px; height: 8px; border-radius: 50%; }
+.card h3 { font-size: 12px; font-weight: 600; color: #e2e8f0; }
+.card ul { list-style: none; font-size: 10px; color: #94a3b8; line-height: 2; }
+.card li { display: flex; align-items: center; gap: 6px; }
+.card li::before { content: '▹'; color: #475569; }
+.footer { text-align: center; color: #334155; font-size: 9px; margin-top: 24px; padding: 16px; border-top: 1px solid #1e293b; }
+.cyan { color: #22d3ee; background: #22d3ee; }
+.emerald { color: #34d399; background: #34d399; }
+.violet { color: #a78bfa; background: #a78bfa; }
+.amber { color: #fbbf24; background: #fbbf24; }
+.rose { color: #fb7185; background: #fb7185; }
+.orange { color: #fb923c; background: #fb923c; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <div class="pulse"></div>
+    <h1>LLM-ERP · 系統架構圖</h1>
+  </div>
+  <div class="subtitle">
+    <span>v0.1.0</span>
+    <span>22 資料表 · 17 Widgets · 6 角色 · 20 條約束</span>
+    <span>Python FastAPI + React TypeScript</span>
+  </div>
+
+  <div class="diagram-card">
+    <svg viewBox="0 0 1040 780" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+        </pattern>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#475569"/>
+        </marker>
+        <marker id="arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#22d3ee"/>
+        </marker>
+        <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb923c"/>
+        </marker>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="blur"/>
+          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
+        <linearGradient id="bg-frontend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="bg-backend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="bg-event" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity="0.08"/></linearGradient>
+        <linearGradient id="bg-data" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.08"/></linearGradient>
+      </defs>
+
+      <rect width="1040" height="780" fill="url(#g)"/>
+
+      <!-- ═══ LAYER BOUNDARIES ═══ -->
+      <!-- Layer 1: Frontend -->
+      <rect x="20" y="10" width="1000" height="160" rx="10" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+      <text x="30" y="30" fill="#22d3ee" font-size="9" font-weight="600" opacity="0.7">FRONTEND LAYER (React + TypeScript + Vite)</text>
+
+      <!-- Layer 2: API / Backend -->
+      <rect x="20" y="180" width="1000" height="240" rx="10" fill="none" stroke="#34d399" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+      <text x="30" y="198" fill="#34d399" font-size="9" font-weight="600" opacity="0.7">BACKEND LAYER (FastAPI + Python)</text>
+
+      <!-- Layer 3: Event Engine -->
+      <rect x="20" y="430" width="1000" height="130" rx="10" fill="none" stroke="#fb923c" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+      <text x="30" y="448" fill="#fb923c" font-size="9" font-weight="600" opacity="0.7">EVENT ENGINE &amp; CONSTRAINT LAYER</text>
+
+      <!-- Layer 4: Data -->
+      <rect x="20" y="570" width="1000" height="195" rx="10" fill="none" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+      <text x="30" y="588" fill="#a78bfa" font-size="9" font-weight="600" opacity="0.7">DATA LAYER (SQLAlchemy ORM)</text>
+
+      <!-- ═══ ARROWS (drawn early for z-order) ═══ -->
+      <!-- Frontend → Backend -->
+      <line x1="180" y1="170" x2="180" y2="220" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <line x1="340" y1="170" x2="340" y2="220" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+      <!-- Backend → Event Engine -->
+      <line x1="180" y1="420" x2="180" y2="450" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+      <line x1="340" y1="420" x2="340" y2="450" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+      <!-- Event Engine → Data -->
+      <line x1="100" y1="560" x2="100" y2="600" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+      <line x1="400" y1="560" x2="400" y2="600" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+      <!-- Backend → Data (direct) -->
+      <line x1="550" y1="420" x2="550" y2="600" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+      <line x1="720" y1="420" x2="720" y2="600" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+
+      <!-- ═══ FRONTEND COMPONENTS ═══ -->
+      <!-- Role Dashboard -->
+      <rect x="40" y="50" width="200" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+      <rect x="40" y="50" width="200" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+      <text x="140" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">角色儀表板</text>
+      <text x="140" y="84" text-anchor="middle" fill="#64748b" font-size="7">6 Roles · 17 Widgets</text>
+
+      <!-- Chat Interface -->
+      <rect x="270" y="50" width="200" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+      <rect x="270" y="50" width="200" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+      <text x="370" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">LLM Chat 介面</text>
+      <text x="370" y="84" text-anchor="middle" fill="#64748b" font-size="7">DeepSeek Provider</text>
+
+      <!-- Interactive Diagram -->
+      <rect x="500" y="50" width="200" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+      <rect x="500" y="50" width="200" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+      <text x="600" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">關聯架構圖</text>
+      <text x="600" y="84" text-anchor="middle" fill="#64748b" font-size="7">8 Nodes · Clickable</text>
+
+      <!-- i18n -->
+      <rect x="730" y="50" width="120" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.9"/>
+      <rect x="730" y="50" width="120" height="44" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+      <text x="790" y="68" text-anchor="middle" fill="#94a3b8" font-size="9">中 / EN</text>
+      <text x="790" y="84" text-anchor="middle" fill="#64748b" font-size="7">i18n 雙語</text>
+
+      <!-- KPI / Alert -->
+      <rect x="40" y="108" width="130" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+      <rect x="40" y="108" width="130" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+      <text x="105" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">KPI 聚合</text>
+      <text x="105" y="142" text-anchor="middle" fill="#64748b" font-size="7">36 指標</text>
+
+      <rect x="190" y="108" width="130" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+      <rect x="190" y="108" width="130" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+      <text x="255" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">Alert Bar</text>
+      <text x="255" y="142" text-anchor="middle" fill="#64748b" font-size="7">DB 掃描</text>
+
+      <rect x="340" y="108" width="130" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+      <rect x="340" y="108" width="130" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+      <text x="405" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">事件流</text>
+      <text x="405" y="142" text-anchor="middle" fill="#64748b" font-size="7">即時活動</text>
+
+      <!-- ═══ BACKEND: SERVICE MODULES ═══ -->
+      <!-- Row 1: Core modules -->
+      <rect x="40" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="40" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="110" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📦 庫存</text>
+      <text x="110" y="254" text-anchor="middle" fill="#64748b" font-size="7">Parts · Stock · Txns</text>
+      <text x="110" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+
+      <rect x="200" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="200" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="270" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📋 採購</text>
+      <text x="270" y="254" text-anchor="middle" fill="#64748b" font-size="7">Suppliers · POs</text>
+      <text x="270" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+
+      <rect x="360" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="360" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="430" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📐 BOM</text>
+      <text x="430" y="254" text-anchor="middle" fill="#64748b" font-size="7">Products · BOM Tree</text>
+      <text x="430" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">2 constraints</text>
+
+      <rect x="520" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="520" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="590" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">⚙️ 派工</text>
+      <text x="590" y="254" text-anchor="middle" fill="#64748b" font-size="7">WOs · WorkCenters</text>
+      <text x="590" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">3 constraints</text>
+
+      <rect x="680" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="680" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="750" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">✅ 品質</text>
+      <text x="750" y="254" text-anchor="middle" fill="#64748b" font-size="7">Insp · NC · CAPA</text>
+      <text x="750" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">3 constraints</text>
+
+      <rect x="840" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+      <rect x="840" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+      <text x="910" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">💰 會計</text>
+      <text x="910" y="254" text-anchor="middle" fill="#64748b" font-size="7">Journals · AR/AP</text>
+      <text x="910" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+
+      <!-- Dashboard API -->
+      <rect x="300" y="290" width="300" height="42" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+      <rect x="300" y="290" width="300" height="42" rx="6" fill="rgba(120,53,15,0.3)" stroke="none"/>
+      <text x="450" y="310" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">📊 Dashboard KPI / Alert 聚合 API</text>
+      <text x="450" y="325" text-anchor="middle" fill="#64748b" font-size="7">跨 7 模組 · 即時 DB 查詢</text>
+
+      <!-- Constraint Checker (prominent) -->
+      <rect x="40" y="290" width="230" height="42" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+      <rect x="40" y="290" width="230" height="42" rx="6" fill="rgba(136,19,55,0.4)" stroke="none"/>
+      <text x="155" y="310" text-anchor="middle" fill="#fb7185" font-size="10" font-weight="600">🔒 約束檢查器</text>
+      <text x="155" y="325" text-anchor="middle" fill="#64748b" font-size="7">20 Business Rules · 6 Domains</text>
+
+      <!-- LLM Chat API -->
+      <rect x="720" y="290" width="200" height="42" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1" opacity="0.8"/>
+      <rect x="720" y="290" width="200" height="42" rx="6" fill="rgba(6,78,59,0.3)" stroke="none"/>
+      <text x="820" y="310" text-anchor="middle" fill="#94a3b8" font-size="9">💬 LLM Chat API</text>
+      <text x="820" y="325" text-anchor="middle" fill="#64748b" font-size="7">Intent → Domain Agent</text>
+
+      <!-- ═══ EVENT ENGINE ═══ -->
+      <rect x="40" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+      <rect x="40" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+      <text x="180" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">⚡ Event Bus</text>
+      <text x="180" y="496" text-anchor="middle" fill="#64748b" font-size="7">6 Domain Events · Pub/Sub</text>
+
+      <rect x="350" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+      <rect x="350" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+      <text x="490" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">🔔 通知引擎</text>
+      <text x="490" y="496" text-anchor="middle" fill="#64748b" font-size="7">Role-based Notifications</text>
+
+      <rect x="660" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+      <rect x="660" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+      <text x="800" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">👤 角色配置</text>
+      <text x="800" y="496" text-anchor="middle" fill="#64748b" font-size="7">6 Roles · Widget Config</text>
+
+      <!-- ═══ DATA LAYER ═══ -->
+      <!-- Database clusters by module -->
+      <rect x="50" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="50" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="115" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📦 Inventory</text>
+      <text x="115" y="643" text-anchor="middle" fill="#64748b" font-size="6">parts / inventory</text>
+      <text x="115" y="655" text-anchor="middle" fill="#64748b" font-size="6">inv_transactions</text>
+      <text x="115" y="667" text-anchor="middle" fill="#64748b" font-size="6">audit_logs</text>
+
+      <rect x="195" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="195" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="260" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📋 Purchase</text>
+      <text x="260" y="643" text-anchor="middle" fill="#64748b" font-size="6">suppliers</text>
+      <text x="260" y="655" text-anchor="middle" fill="#64748b" font-size="6">purchase_orders</text>
+      <text x="260" y="667" text-anchor="middle" fill="#64748b" font-size="6">po_items</text>
+
+      <rect x="340" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="340" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="405" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📐 BOM</text>
+      <text x="405" y="643" text-anchor="middle" fill="#64748b" font-size="6">products</text>
+      <text x="405" y="655" text-anchor="middle" fill="#64748b" font-size="6">bom_items</text>
+
+      <rect x="485" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="485" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="550" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">⚙️ Dispatch</text>
+      <text x="550" y="643" text-anchor="middle" fill="#64748b" font-size="6">work_centers</text>
+      <text x="550" y="655" text-anchor="middle" fill="#64748b" font-size="6">prod_orders / ops</text>
+      <text x="550" y="667" text-anchor="middle" fill="#64748b" font-size="6">dispatch_logs</text>
+
+      <rect x="630" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="630" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="695" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">✅ Quality</text>
+      <text x="695" y="643" text-anchor="middle" fill="#64748b" font-size="6">inspection_orders</text>
+      <text x="695" y="655" text-anchor="middle" fill="#64748b" font-size="6">non_conformances</text>
+      <text x="695" y="667" text-anchor="middle" fill="#64748b" font-size="6">capa_records</text>
+
+      <rect x="775" y="610" width="200" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+      <rect x="775" y="610" width="200" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+      <text x="875" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">💰 Accounting</text>
+      <text x="875" y="643" text-anchor="middle" fill="#64748b" font-size="6">accounts / journal_entries</text>
+      <text x="875" y="655" text-anchor="middle" fill="#64748b" font-size="6">journal_lines / ar</text>
+      <text x="875" y="667" text-anchor="middle" fill="#64748b" font-size="6">month_end_closes</text>
+
+      <!-- Database bottom bar -->
+      <rect x="50" y="695" width="925" height="28" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="0.5" opacity="0.6"/>
+      <text x="512" y="713" text-anchor="middle" fill="#64748b" font-size="8">SQLAlchemy ORM · SQLite (dev) / PostgreSQL (prod) · 22 Tables</text>
+
+      <!-- ═══ LEGEND ═══ -->
+      <rect x="827" y="12" width="180" height="140" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="842" y="30" fill="#94a3b8" font-size="8" font-weight="600">圖例</text>
+      <rect x="842" y="38" width="10" height="10" rx="2" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1"/>
+      <text x="860" y="47" fill="#64748b" font-size="7">Frontend</text>
+      <rect x="842" y="53" width="10" height="10" rx="2" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1"/>
+      <text x="860" y="62" fill="#64748b" font-size="7">Backend / Service</text>
+      <rect x="842" y="68" width="10" height="10" rx="2" fill="rgba(251,146,60,0.3)" stroke="#fb923c" stroke-width="1"/>
+      <text x="860" y="77" fill="#64748b" font-size="7">Event Engine</text>
+      <rect x="842" y="83" width="10" height="10" rx="2" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+      <text x="860" y="92" fill="#64748b" font-size="7">Database</text>
+      <rect x="842" y="98" width="10" height="10" rx="2" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+      <text x="860" y="107" fill="#64748b" font-size="7">Constraint / Security</text>
+      <line x1="842" y1="120" x2="860" y2="120" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="865" y="123" fill="#64748b" font-size="7">Dashboard API</text>
+      <line x1="842" y1="133" x2="860" y2="133" stroke="#475569" stroke-width="1" stroke-dasharray="3,2"/>
+      <text x="865" y="136" fill="#64748b" font-size="7">Direct DB Access</text>
+    </svg>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="layers">
+    <div class="card">
+      <div class="card-header"><div class="card-dot cyan"></div><h3>Frontend</h3></div>
+      <ul>
+        <li>6 角色儀表板 (director/production/warehouse/purchasing/quality/accounting)</li>
+        <li>17 即時 Widget · KPI 聚合 · Alert 掃描</li>
+        <li>LLM Chat 介面 + 互動式關聯架構圖</li>
+        <li>中英雙語 (i18n) · TypeScript 零錯誤</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-dot emerald"></div><h3>Backend</h3></div>
+      <ul>
+        <li>7 領域模組 (庫存/採購/BOM/派工/品質/會計/儀表板)</li>
+        <li>20 條業務約束規則 · 6 Domain Events</li>
+        <li>FastAPI + SQLAlchemy Async · ~60 REST endpoints</li>
+        <li>Service-Enforcer Pattern (ConstraintBlocked → 422)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-dot violet"></div><h3>Data</h3></div>
+      <ul>
+        <li>22 資料表 · 7 領域</li>
+        <li>SQLite (dev) / PostgreSQL (prod)</li>
+        <li>async session per request · commit/rollback pattern</li>
+        <li>種子資料: 12 料號, 3 PO, 3 WO, 2 檢驗單, 2 NC, 2 AR</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer">
+    LLM-ERP v0.1.0 · 2026-05-06 · Built with FastAPI + React + TypeScript · Hermes Agent managed
+  </div>
+</div>
+</body>
+</html>

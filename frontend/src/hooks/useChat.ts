@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { chat } from '../api/client'
+import { useTranslation } from '../i18n'
 
 interface Message {
   role: 'user' | 'assistant'
@@ -8,10 +9,13 @@ interface Message {
 }
 
 export function useChat() {
+  const { t, lang } = useTranslation()
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
-      content: '👋 你好！我是 LLM-ERP 助手。你可以問我：\n\n• 「庫存還有多少 M6 螺絲？」\n• 「幫我向大明螺絲買 500 顆 M6」\n• 「A 產品用哪些料？」\n• 「A 產品要做 100 台，料夠不夠？」',
+      content: lang === 'zh'
+        ? '👋 你好！我是 LLM-ERP 助手。你可以問我：\n\n• 「庫存還有多少 M6 螺絲？」\n• 「幫我向大明螺絲買 500 顆 M6」\n• 「ASM-001 用哪些料？」\n• 「做 5 台 CNC-001，料夠不夠？」'
+        : '👋 Hello! I am your LLM-ERP assistant. Try asking:\n\n• "How many M6 screws in stock?"\n• "Create PO for 500 M6 from DaMing"\n• "Show BOM for ASM-001"\n• "Check material for 5x CNC-001"',
     },
   ])
   const [loading, setLoading] = useState(false)
@@ -28,7 +32,7 @@ export function useChat() {
       const result = await chat(content, sessionId)
       const assistantMsg: Message = {
         role: 'assistant',
-        content: result.reply || '處理完成',
+        content: result.reply || t('chat.processed'),
         intent: result.intent,
       }
       setMessages(prev => [...prev, assistantMsg])
@@ -38,22 +42,22 @@ export function useChat() {
     } catch (err: any) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: `❌ 錯誤：${err.message || '連線失敗'}`,
+        content: `${t('chat.error')}${err.message || t('chat.fail')}`,
       }])
     } finally {
       setLoading(false)
     }
-  }, [loading, sessionId])
+  }, [loading, sessionId, t])
 
   const clearMessages = useCallback(() => {
     setMessages([
       {
         role: 'assistant',
-        content: '👋 對話已重置。有什麼我可以幫你的？',
+        content: t('chat.reset'),
       },
     ])
     setSessionId(undefined)
-  }, [])
+  }, [t])
 
-  return { messages, loading, sendMessage, clearMessages }
+  return { messages, loading, sendMessage, clearMessages, sessionId }
 }

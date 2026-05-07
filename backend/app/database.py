@@ -3,11 +3,23 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from app.config import settings
 
-engine = create_async_engine(settings.database_url, echo=settings.debug, pool_size=10, max_overflow=20)
+# SQLite: no pool needed; PostgreSQL: pool params set via env
+engine = create_async_engine(settings.database_url, echo=settings.debug)
+
+if "postgresql" in settings.database_url:
+    engine = create_async_engine(
+        settings.database_url,
+        echo=settings.debug,
+        pool_size=10,
+        max_overflow=20,
+    )
+
 async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
+from typing import AsyncGenerator
 
-async def get_db() -> AsyncSession:
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """FastAPI dependency — yields an async DB session."""
     async with async_session() as session:
         try:
@@ -26,6 +38,10 @@ async def init_db():
     from app.models.purchase import Base as PurchaseBase
     from app.models.bom import Base as BomBase
     from app.models.audit_log import Base as AuditBase
+    from app.models.dispatch import Base as DispatchBase
+    from app.models.accounting import Base as AccountingBase
+    from app.models.quality import Base as QualityBase
 
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        for base in [Base, PurchaseBase, BomBase, AuditBase, DispatchBase, AccountingBase, QualityBase]:
+            await conn.run_sync(base.metadata.create_all)

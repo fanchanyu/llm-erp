@@ -1,11 +1,12 @@
 """Inventory service — parts, stock, transactions CRUD."""
-
+from __future__ import annotations
 import uuid
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import select, or_, and_, func
+from sqlalchemy import select, or_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.inventory import Part, Inventory, InventoryTransaction
+from app.event_engine.service_enforcer import enforce
 
 
 # ─── Parts ────────────────────────────────────────────────────────
@@ -116,15 +117,34 @@ async def inbound(db: AsyncSession, part_id: uuid.UUID, quantity: float,
 
 async def outbound(db: AsyncSession, part_id: uuid.UUID, quantity: float,
                    location: Optional[str] = None, reference_no: Optional[str] = None,
-                   notes: Optional[str] = None, created_by: Optional[str] = None) -> Inventory:
-    """Issue stock from inventory. Raises ValueError if insufficient stock."""
+                   notes: Optional[str] = None, created_by: Optional[str] = None,
+                   actor_role: str = "") -> Inventory:
+    """Issue stock from inventory. Runs constraint checks before executing.
+
+    Raises ConstraintBlocked if business rules are violated.
+    """
+    # Get current stock level
     result = await db.execute(
         select(Inventory).where(Inventory.part_id == part_id, Inventory.location == location)
     )
     inv = result.scalar_one_or_none()
+    current_qty = float(inv.quantity) if inv else 0
+
+    # Get part info for context
+    part = await db.get(Part, part_id)
+    item_name = part.name if part else "unknown"
+
+    # Run constraint enforcement BEFORE execution
+    enforce("issue_material", {
+        "item": item_name,
+        "quantity": quantity,
+        "on_hand": current_qty,
+        "location": location or "",
+    }, actor_role=actor_role)
+
+    # If we get here, all checks passed — execute
     if not inv or inv.quantity < quantity:
-        actual = float(inv.quantity) if inv else 0
-        raise ValueError(f"Insufficient stock: have {actual}, need {quantity}")
+        raise ValueError(f"Insufficient stock: have {current_qty}, need {quantity}")
     inv.quantity -= quantity
     inv.updated_at = datetime.utcnow()
 

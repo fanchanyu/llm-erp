@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.models.bom import Product, BOMItem
 from app.services.inventory_service import get_stock_by_part
+from app.event_engine.service_enforcer import enforce
 
 
 # ─── Products ─────────────────────────────────────────────────────
@@ -67,7 +68,16 @@ async def get_bom_tree(db: AsyncSession, product_id: uuid.UUID) -> list[dict]:
 
 async def add_bom_item(db: AsyncSession, product_id: uuid.UUID, part_id: uuid.UUID,
                        quantity: float, level: int,
-                       sequence_no: Optional[int] = None) -> BOMItem:
+                       sequence_no: Optional[int] = None,
+                       actor_role: str = "") -> BOMItem:
+    # Check BOM edit constraints
+    enforce("edit_bom", {
+        "bom_status": "active",  # conservative: check circular ref
+        "bom_tree": {},
+        "parent_id": str(product_id),
+        "child_id": str(part_id),
+    }, actor_role=actor_role)
+
     item = BOMItem(
         product_id=product_id, part_id=part_id,
         quantity=quantity, level=level, sequence_no=sequence_no,

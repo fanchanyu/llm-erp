@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     app_name: str = "LLM-ERP"
     debug: bool = True
 
-    # Database
-    database_url: str = "postgresql+asyncpg://erp_user:erp_pass_dev@localhost:5432/llm_erp"
+    # Database (dev: SQLite; prod: 設 DATABASE_URL 環境變數)
+    database_url: str = "sqlite+aiosqlite:///./llm_erp.db"
 
     # LLM Provider — 支援多家 LLM，使用者自己選
     # provider: anthropic, openai, deepseek, openrouter, ollama
@@ -22,6 +22,9 @@ class Settings(BaseSettings):
 
     # Ollama (本地 LLM，不需要 API Key)
     ollama_base_url: str = "http://localhost:11434"
+
+    # Max tool-call rounds per request (increase for local/smaller models)
+    max_tool_rounds: int = 5
 
     # Server
     host: str = "0.0.0.0"

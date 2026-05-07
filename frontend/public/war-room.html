@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP 戰情室 · 價值流</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #020617; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #e2e8f0; }
+
+/* Grid background */
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(30,41,59,0.3) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(30,41,59,0.3) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+/* Header */
+.header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  padding: 16px 40px; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(180deg, #020617 0%, transparent 100%);
+}
+.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+.header h1 span { color: #22d3ee; }
+.dot-live { width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
+.header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
+.header .meta strong { color: #94a3b8; }
+
+/* Flow container */
+.flow { position: fixed; inset: 75px 40px 100px; z-index: 1; display: flex; align-items: center; justify-content: center; }
+svg { width: 100%; height: 100%; }
+
+/* Stage node */
+.stage-box { transition: all 0.3s; cursor: pointer; }
+.stage-box:hover { filter: brightness(1.3); }
+.stage-box.glow-suppliers > rect:first-of-type { filter: url(#glow-orange); }
+.stage-box.glow-purchase > rect:first-of-type { filter: url(#glow-blue); }
+.stage-box.glow-inventory > rect:first-of-type { filter: url(#glow-green); }
+.stage-box.glow-dispatch > rect:first-of-type { filter: url(#glow-red); }
+.stage-box.glow-quality > rect:first-of-type { filter: url(#glow-pink); }
+.stage-box.glow-accounting > rect:first-of-type { filter: url(#glow-yellow); }
+
+.count-label { font-size: 20px; font-weight: 700; }
+.sub-label { font-size: 9px; opacity: 0.6; }
+
+/* Animated data dot */
+.data-dot { animation: flowParticle 2.5s ease-in-out infinite; }
+
+/* Floating event card */
+.event-card {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition: none;
+  box-shadow: 0 0 12px rgba(0,0,0,0.5);
+}
+.event-card.mat { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); color: #34d399; }
+.event-card.pur { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #60a5fa; }
+.event-card.prod { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); color: #f87171; }
+.event-card.qual { background: rgba(244,63,94,0.2); border: 1px solid rgba(244,63,94,0.5); color: #fb7185; }
+.event-card.fin { background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; }
+.event-card.crit { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; color: #fca5a5; }
+
+/* Event stream (bottom) */
+.event-stream {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  height: 92px;
+  background: linear-gradient(0deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.6) 100%);
+  padding: 10px 40px;
+  overflow: hidden;
+}
+.event-stream .label {
+  font-size: 9px; color: #64748b; margin-bottom: 6px; letter-spacing: 1px;
+}
+.event-items {
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 60px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: #1e293b transparent;
+}
+.event-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; padding: 2px 8px;
+  border-radius: 4px;
+  animation: slideIn 0.3s ease-out;
+  background: rgba(15,23,42,0.6);
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.event-item .sev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.event-item .sev-info { background: #22d3ee; }
+.event-item .sev-warning { background: #fbbf24; }
+.event-item .sev-critical { background: #ef4444; }
+.event-item .ev-time { color: #475569; font-size: 8px; }
+.event-item .ev-type { color: #64748b; font-size: 8px; }
+.event-item .ev-summary { color: #cbd5e1; }
+
+/* Sim button */
+.sim-btn {
+  position: fixed; right: 40px; bottom: 102px;
+  z-index: 20;
+  background: rgba(34,211,238,0.1);
+  border: 1px solid rgba(34,211,238,0.3);
+  color: #22d3ee;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sim-btn:hover { background: rgba(34,211,238,0.2); }
+
+/* Loading */
+.loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: #020617; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
+.loading.hide { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="loading" id="loading">載入即時數據中⋯</div>
+<div class="bg-grid"></div>
+
+<div class="header">
+  <h1><span class="dot-live"></span> LLM-ERP <span>戰情室</span></h1>
+  <div class="meta">
+    <span>🔄 <strong id="live-orders">—</strong> 在線工單</span>
+    <span>📦 <strong id="live-stock">—</strong> 庫存品項</span>
+    <span>💰 <strong id="live-ar">—</strong> 應收帳款</span>
+    <span id="live-clock" style="color:#475569">—</span>
+    <span id="event-count" style="color:#475569">📡 — 事件</span>
+  </div>
+</div>
+
+<div class="flow">
+  <svg viewBox="0 0 1200 520" id="flow-svg">
+    <defs>
+      <filter id="glow-g"><feGaussianBlur stdDeviation="4"/></filter>
+      <filter id="glow-orange"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-blue"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-green"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-red"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-pink"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-yellow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="arr-mat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#34d399"/>
+      </marker>
+      <marker id="arr-fin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fbbf24"/>
+      </marker>
+      <marker id="arr-nc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb7185"/>
+      </marker>
+    </defs>
+
+    <text x="130" y="68" text-anchor="middle" fill="#f59e0b" font-size="10" opacity="0.3" font-weight="600">採購段</text>
+    <text x="370" y="68" text-anchor="middle" fill="#3b82f6" font-size="10" opacity="0.3" font-weight="600">計劃段</text>
+    <text x="610" y="68" text-anchor="middle" fill="#10b981" font-size="10" opacity="0.3" font-weight="600">倉儲段</text>
+    <text x="850" y="68" text-anchor="middle" fill="#ef4444" font-size="10" opacity="0.3" font-weight="600">製造段</text>
+    <text x="1050" y="68" text-anchor="middle" fill="#f43f5e" font-size="10" opacity="0.3" font-weight="600">檢驗段</text>
+
+    <!-- Material flow arrows -->
+    <line x1="230" y1="140" x2="310" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="470" y1="140" x2="550" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="710" y1="140" x2="790" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="950" y1="140" x2="990" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+
+    <!-- Finance flow arrow -->
+    <line x1="1100" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-fin)" opacity="0.5"/>
+    <!-- NC flow arrow (dispatch -> quality) -->
+    <line x1="950" y1="170" x2="990" y2="170" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-nc)" opacity="0.4"/>
+
+    <!-- Finance cross-cut lines -->
+    <line x1="280" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
+    <line x1="520" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
+
+    <!-- ═══ STAGE 1: SUPPLIERS ═══ -->
+    <g class="stage-box" id="node-suppliers">
+      <rect x="60" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+      <rect x="60" y="100" width="170" height="80" rx="12" fill="rgba(245,158,11,0.08)"/>
+      <text x="145" y="128" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">採購段</text>
+      <text x="70" y="150" font-size="24">🏭</text>
+      <text x="100" y="150" fill="#f1f5f9" font-size="16" font-weight="700">供應商</text>
+      <text x="145" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers">—</tspan> 家</text>
+    </g>
+
+    <!-- ═══ STAGE 2: PURCHASE ═══ -->
+    <g class="stage-box" id="node-purchase">
+      <rect x="310" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
+      <rect x="310" y="100" width="160" height="80" rx="12" fill="rgba(59,130,246,0.08)"/>
+      <text x="390" y="128" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">計劃段</text>
+      <text x="320" y="150" font-size="24">📋</text>
+      <text x="350" y="150" fill="#f1f5f9" font-size="16" font-weight="700">採購</text>
+      <text x="390" y="170" text-anchor="middle" fill="#64748b" font-size="10">PO <tspan id="count-pos" fill="#3b82f6" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 3: INVENTORY ═══ -->
+    <g class="stage-box" id="node-inventory">
+      <rect x="550" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+      <rect x="550" y="100" width="160" height="80" rx="12" fill="rgba(16,185,129,0.08)"/>
+      <text x="630" y="128" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">倉儲段</text>
+      <text x="560" y="150" font-size="24">📦</text>
+      <text x="590" y="150" fill="#f1f5f9" font-size="16" font-weight="700">庫存</text>
+      <text x="630" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
+    </g>
+
+    <!-- ═══ STAGE 4: DISPATCH ═══ -->
+    <g class="stage-box" id="node-dispatch">
+      <rect x="790" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#ef4444" stroke-width="2"/>
+      <rect x="790" y="100" width="160" height="80" rx="12" fill="rgba(239,68,68,0.08)"/>
+      <text x="870" y="128" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">製造段</text>
+      <text x="800" y="150" font-size="24">⚙️</text>
+      <text x="830" y="150" fill="#f1f5f9" font-size="16" font-weight="700">派工</text>
+      <text x="870" y="170" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 5: QUALITY ═══ -->
+    <g class="stage-box" id="node-quality">
+      <rect x="990" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+      <rect x="990" y="100" width="170" height="80" rx="12" fill="rgba(244,63,94,0.08)"/>
+      <text x="1075" y="128" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600">檢驗段</text>
+      <text x="1000" y="150" font-size="24">✅</text>
+      <text x="1030" y="150" fill="#f1f5f9" font-size="16" font-weight="700">品檢</text>
+      <text x="1075" y="170" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 6: ACCOUNTING ═══ -->
+    <g class="stage-box" id="node-accounting">
+      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+      <rect x="1000" y="290" width="170" height="80" rx="12" fill="rgba(251,191,36,0.08)"/>
+      <text x="1085" y="318" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">財務段</text>
+      <text x="1010" y="340" font-size="24">💰</text>
+      <text x="1040" y="340" fill="#f1f5f9" font-size="16" font-weight="700">會計</text>
+      <text x="1085" y="360" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
+    </g>
+
+    <text x="960" y="240" fill="#fbbf24" font-size="8" opacity="0.4" font-weight="600">💰 金流橫切</text>
+
+    <!-- Background decorative particles -->
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" path="M230,140 L310,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s" path="M470,140 L550,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="0.8s" path="M710,140 L790,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="2s" path="M950,140 L990,140"/>
+    </circle>
+    <circle r="3" fill="#fbbf24" opacity="0.6" class="data-dot">
+      <animateMotion dur="4s" repeatCount="indefinite" path="M1100,170 L1100,310"/>
+    </circle>
+  </svg>
+
+  <!-- Floating event cards container -->
+  <div id="event-layer" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
+</div>
+
+<!-- Event stream at bottom -->
+<div class="event-stream">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="label">📡 事件流 (即時)</div>
+    <div style="display:flex;gap:8px;">
+      <span style="font-size:9px;color:#475569;">🟢<span style="color:#64748b;margin-left:3px;">料物流</span></span>
+      <span style="font-size:9px;color:#475569;">🔵<span style="color:#64748b;margin-left:3px;">採購流</span></span>
+      <span style="font-size:9px;color:#475569;">🔴<span style="color:#64748b;margin-left:3px;">生產流</span></span>
+      <span style="font-size:9px;color:#475569;">🟡<span style="color:#64748b;margin-left:3px;">金流</span></span>
+      <span style="font-size:9px;color:#475569;">🩷<span style="color:#64748b;margin-left:3px;">品質流</span></span>
+    </div>
+    <button class="sim-btn" onclick="simulateRandomEvent()">▶ 模擬事件</button>
+  </div>
+  <div class="event-items" id="event-items"></div>
+</div>
+
+<script>
+// ─── SVG Flow Paths (from SVG coordinates) ───
+const FLOW_PATHS = {
+  'supplier-to-purchase':    { from: [230,140], to: [310,140], cls:'pur' },
+  'purchase-to-inventory':   { from: [470,140], to: [550,140], cls:'mat' },
+  'inventory-to-dispatch':   { from: [710,140], to: [790,140], cls:'mat' },
+  'dispatch-to-quality':     { from: [950,140], to: [990,140], cls:'qual' },
+  'dispatch-to-accounting':  { from: [1100,170], to:[1100,310], cls:'fin' },
+};
+
+// Map event types to flow paths
+const EVENT_FLOW_MAP = {
+  'purchase_order.created':       { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
+  'purchase_order.approved':      { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
+  'material.received':            { path:'purchase-to-inventory', stage:'inventory',   icon:'📦' },
+  'material.issued':              { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
+  'work_order.released':          { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
+  'work_order.completed':         { path:'dispatch-to-quality',   stage:'quality',     icon:'✅' },
+  'non_conformance.created':      { path:'dispatch-to-quality',   stage:'quality',     icon:'⚠️' },
+  'payment.due':                  { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+  'receivable.overdue':           { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+  'payment.received':             { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+};
+
+// ─── Event Flow Animation ───
+function animateEventFlow(ev) {
+  const flow = EVENT_FLOW_MAP[ev.event_type] || EVENT_FLOW_MAP['purchase_order.created'];
+  const pathData = FLOW_PATHS[flow.path];
+  if (!pathData) return;
+
+  const layer = document.getElementById('event-layer');
+
+  // Create floating card
+  const card = document.createElement('div');
+  card.className = `event-card ${pathData.cls}`;
+  const label = ev.summary || `${flow.icon} ${ev.event_type.split('.').pop()}`;
+  card.textContent = label.length > 40 ? label.slice(0, 40) + '…' : label;
+  layer.appendChild(card);
+
+  // Position at start
+  const flowEl = document.querySelector('.flow');
+  const flowRect = flowEl.getBoundingClientRect();
+  const svgW = 1200, svgH = 520;
+
+  const startX = flowRect.left + (pathData.from[0] / svgW) * flowRect.width;
+  const startY = flowRect.top + 75 + (pathData.from[1] / svgH) * (flowRect.height - 120);
+  const endX = flowRect.left + (pathData.to[0] / svgW) * flowRect.width;
+  const endY = flowRect.top + 75 + (pathData.to[1] / svgH) * (flowRect.height - 120);
+
+  card.style.left = startX + 'px';
+  card.style.top = startY + 'px';
+  card.style.opacity = '0';
+
+  // Fade in, move, fade out
+  requestAnimationFrame(() => {
+    card.style.transition = 'opacity 0.3s';
+    card.style.opacity = '1';
+  });
+
+  // Glow target stage
+  const stageId = 'node-' + flow.stage;
+  const stageEl = document.getElementById(stageId);
+  if (stageEl) stageEl.classList.add('glow-' + flow.stage);
+
+  setTimeout(() => {
+    card.style.transition = `left 2.5s ease-in-out, top 2.5s ease-in-out`;
+    card.style.left = endX + 'px';
+    card.style.top = endY + 'px';
+  }, 400);
+
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.5s';
+    card.style.opacity = '0';
+  }, 2600);
+
+  setTimeout(() => {
+    if (stageEl) stageEl.classList.remove('glow-' + flow.stage);
+    card.remove();
+  }, 3200);
+}
+
+// ─── Add event to stream ───
+function addEventToStream(ev) {
+  const container = document.getElementById('event-items');
+  const sevClass = ev.severity === 'critical' ? 'sev-critical' : ev.severity === 'warning' ? 'sev-warning' : 'sev-info';
+  const time = ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString('zh-TW', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : new Date().toLocaleTimeString('zh-TW', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  const item = document.createElement('div');
+  item.className = 'event-item';
+  item.innerHTML = `
+    <span class="sev-dot ${sevClass}"></span>
+    <span class="ev-time">${time}</span>
+    <span class="ev-type">${ev.event_type}</span>
+    <span class="ev-summary">${ev.summary || ''}</span>
+  `;
+  container.prepend(item);
+
+  // Keep max 30 items
+  while (container.children.length > 30) container.removeChild(container.lastChild);
+}
+
+// ─── Simulate a random event ───
+async function simulateRandomEvent() {
+  const types = ['material.received','material.issued','purchase_order.created','work_order.released','non_conformance.created'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  try {
+    const res = await fetch('/api/events/simulate/' + type, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Simulated:', data);
+      refreshEvents();
+    }
+  } catch(e) { console.error('Sim error:', e); }
+}
+
+// ─── Fetch events from activity API ───
+let lastEventCount = 0;
+async function refreshEvents() {
+  try {
+    const res = await fetch('/api/events/activity?limit=20');
+    if (!res.ok) return;
+    const data = await res.json();
+    const events = data.events || [];
+    document.getElementById('event-count').textContent = `📡 ${events.length} 事件`;
+
+    // Animate new events
+    if (events.length > lastEventCount) {
+      const newEvents = events.slice(0, events.length - lastEventCount);
+      newEvents.forEach(ev => {
+        addEventToStream(ev);
+        animateEventFlow(ev);
+      });
+    } else if (events.length > 0) {
+      // First load: show latest 3 events as flow animation
+      const recent = events.slice(0, 3);
+      recent.forEach(ev => {
+        addEventToStream(ev);
+        animateEventFlow(ev);
+      });
+    }
+    lastEventCount = events.length;
+
+    // If no events exist, simulate some demo events
+    if (events.length === 0) {
+      setTimeout(() => {
+        simulateRandomEvent();
+      }, 2000);
+    }
+  } catch(e) { console.error('Events fetch error:', e); }
+}
+
+// ─── Fetch dashboard data (existing) ───
+async function fetchData() {
+  try {
+    const [health, stockRes, poRes, woRes, ncRes, arRes, supRes] = await Promise.allSettled([
+      fetch('/health').then(r => r.json()),
+      fetch('/api/inventory/stock').then(r => r.json()),
+      fetch('/api/purchase/orders').then(r => r.json()),
+      fetch('/api/dispatch/orders').then(r => r.json()),
+      fetch('/api/quality/ncs').then(r => r.json()),
+      fetch('/api/accounting/ar').then(r => r.json()),
+      fetch('/api/purchase/suppliers').then(r => r.json()),
+    ])
+
+    if (stockRes.status === 'fulfilled') {
+      const d = stockRes.value
+      const count = d?.total ?? (Array.isArray(d) ? d.length : 0)
+      document.getElementById('count-stock').textContent = count
+      document.getElementById('live-stock').textContent = count
+    }
+
+    if (poRes.status === 'fulfilled') {
+      document.getElementById('count-pos').textContent = poRes.value?.total ?? 0
+    }
+
+    if (woRes.status === 'fulfilled') {
+      const d = woRes.value
+      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0
+      document.getElementById('count-orders').textContent = active
+      document.getElementById('live-orders').textContent = active
+    }
+
+    if (ncRes.status === 'fulfilled') {
+      const d = ncRes.value
+      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0
+      document.getElementById('count-ncs').textContent = count
+    }
+
+    if (arRes.status === 'fulfilled') {
+      const d = arRes.value
+      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0
+      document.getElementById('live-ar').textContent = `NT$${Intl.NumberFormat('zh-TW').format(d?.items?.[0]?.amount || 0)}`
+    }
+
+    if (supRes.status === 'fulfilled') {
+      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0
+    }
+
+    if (health.status === 'fulfilled' && health.value?.status === 'ok') {
+      document.querySelector('.dot-live').style.background = '#22d3ee'
+    }
+
+    document.getElementById('last-refresh').textContent = `更新 ${new Date().toLocaleTimeString('zh-TW')}`
+  } catch(e) { console.error('Fetch error:', e) }
+  document.getElementById('loading').classList.add('hide')
+}
+
+// ─── Clock ───
+function updateClock() {
+  document.getElementById('live-clock').textContent = new Date().toLocaleString('zh-TW', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+}
+
+// ─── Init ───
+fetchData()
+refreshEvents()
+updateClock()
+setInterval(fetchData, 15000)
+setInterval(refreshEvents, 10000)
+setInterval(updateClock, 1000)
+// Auto-simulate every 25 seconds
+setInterval(simulateRandomEvent, 25000)
+
+// Expose for button
+window.simulateRandomEvent = simulateRandomEvent
+</script>
+</body>
+</html>

@@ -18,6 +18,7 @@ class SupplierResponse(BaseModel):
     contact: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
+    score: float = 5.0
 
 
 class POItemInput(BaseModel):

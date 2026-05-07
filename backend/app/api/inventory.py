@@ -10,6 +10,7 @@ from app.schemas.inventory import (
     PartCreate, PartResponse, StockItem,
     InboundRequest, OutboundRequest, TransactionResponse,
 )
+from app.event_engine.service_enforcer import ConstraintBlocked
 
 router = APIRouter(prefix="/inventory", tags=["inventory"])
 
@@ -83,6 +84,15 @@ async def outbound(data: OutboundRequest, db: AsyncSession = Depends(get_db)):
                                  data.reference_no, data.notes, "api")
     except ValueError as e:
         raise HTTPException(400, str(e))
+    except ConstraintBlocked as e:
+        raise HTTPException(422, detail={
+            "error": "business_rule_violation",
+            "operation": e.operation,
+            "verdicts": [
+                {"code": v.code, "message": v.message, "alternatives": v.alternatives}
+                for v in e.verdicts
+            ],
+        })
     return {
         "message": f"Outbound {data.quantity} of {data.part_no} OK",
         "location": data.location,

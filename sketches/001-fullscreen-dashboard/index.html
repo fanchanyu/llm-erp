@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP — 6 Role Dashboard Prototype</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Inter',-apple-system,sans-serif; background:#0a0e17; color:#e2e8f0; min-height:100vh; }
+
+/* LAYOUT */
+.layout { display:grid; grid-template-columns:220px 1fr; height:100vh; }
+
+/* SIDEBAR */
+.sidebar { background:#0d111c; border-right:1px solid #1e293b; padding:20px 14px; display:flex; flex-direction:column; }
+.logo { display:flex; align-items:center; gap:8px; font-size:16px; font-weight:700; color:#22d3ee; margin-bottom:24px; }
+.logo-icon { width:28px;height:28px;background:#22d3ee;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#0a0e17;font-weight:800; }
+
+/* Role selector */
+.role-section { margin-bottom:20px; }
+.role-label { font-size:10px; color:#475569; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+.role-btn {
+  display:flex; align-items:center; gap:8px; width:100%;
+  padding:8px 10px; border-radius:6px; margin-bottom:2px;
+  font-size:12px; font-weight:500; color:#64748b;
+  cursor:pointer; transition:all .15s; border:none; background:none; text-align:left;
+}
+.role-btn:hover { background:#1e293b; color:#e2e8f0; }
+.role-btn.active { background:rgba(34,211,238,0.1); color:#22d3ee; }
+.role-icon { width:20px; text-align:center; font-size:14px; }
+.role-badge { margin-left:auto; font-size:9px; padding:1px 6px; border-radius:8px; }
+
+/* Nav */
+.nav { margin-top:8px; }
+.nav-item { display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;font-size:12px;color:#475569;cursor:pointer; }
+.nav-item:hover { background:#1e293b; color:#94a3b8; }
+
+/* MAIN */
+.main { display:flex;flex-direction:column;overflow:hidden; }
+
+/* Header */
+.header { display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid #1e293b;background:#0c101c; }
+.header-left { display:flex;align-items:center;gap:12px; }
+.role-indicator { font-size:11px; color:#94a3b8; }
+.role-indicator strong { color:#22d3ee; }
+.st-dot { width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:4px; }
+
+/* CMD BAR */
+.cmd-bar { margin:10px 20px 6px; padding:10px 14px; background:#141b2d; border:1px solid #1e293b; border-radius:8px; display:flex; align-items:center; gap:8px; font-size:12px; transition:all .2s; }
+.cmd-bar:focus-within { border-color:#22d3ee; }
+.cmd-bar input { flex:1; background:none; border:none; outline:none; color:#e2e8f0; font-size:12px; font-family:inherit; }
+.cmd-bar input::placeholder { color:#3d4a5c; }
+.cmd-shortcut { background:#1e293b; padding:1px 6px; border-radius:3px; font-size:9px; color:#475569; font-family:monospace; }
+
+/* DASHBOARD GRID */
+.dashboard { flex:1;overflow-y:auto;padding:8px 20px 20px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-content:start; }
+
+/* WIDGET */
+.widget { background:#0d111c; border:1px solid #1e293b; border-radius:10px; padding:14px; }
+.widget-half { grid-column:span 2; }
+.widget-full { grid-column:1/-1; }
+.widget-header { display:flex;align-items:center;justify-content:space-between;margin-bottom:10px; }
+.widget-title { font-size:10px; font-weight:600; color:#475569; text-transform:uppercase; letter-spacing:0.3px; }
+.widget-action { font-size:10px; color:#22d3ee; cursor:pointer; }
+
+/* ALERT */
+.alert-bar { grid-column:1/-1; background:rgba(239,68,68,0.06); border:1px solid rgba(239,68,68,0.2); border-radius:8px; padding:10px 14px; display:flex; align-items:center; gap:10px; }
+.alert-text { font-size:12px; color:#fca5a5; flex:1; }
+.alert-action { background:rgba(239,68,68,0.1); color:#fca5a5; padding:4px 10px; border-radius:5px; font-size:10px; cursor:pointer; border:1px solid rgba(239,68,68,0.2); }
+
+/* KPI */
+.kpi-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+.kpi { background:#0d111c; border:1px solid #1e293b; border-radius:8px; padding:10px 12px; }
+.kpi-label { font-size:10px; color:#475569; margin-bottom:2px; }
+.kpi-value { font-size:18px; font-weight:700; }
+.kpi-change { font-size:10px; margin-top:3px; }
+.up { color:#4ade80; } .down { color:#ef4444; } .warn { color:#fbbf24; }
+
+/* TABLE */
+.table-c { width:100%; border-collapse:collapse; font-size:11px; }
+.table-c th { text-align:left; padding:6px 6px 6px 0; color:#475569; font-weight:500; font-size:9px; text-transform:uppercase; border-bottom:1px solid #1e293b; }
+.table-c td { padding:6px 6px 6px 0; border-bottom:1px solid rgba(30,41,59,0.4); }
+.table-c tr:hover td { background:rgba(34,211,238,0.02); }
+.tag { display:inline-block; padding:1px 6px; border-radius:3px; font-size:9px; font-weight:500; }
+.tr { background:rgba(239,68,68,0.12); color:#fca5a5; }
+.ty { background:rgba(251,191,36,0.12); color:#fde68a; }
+.tg { background:rgba(74,222,128,0.12); color:#86efac; }
+.tc { background:rgba(34,211,238,0.12); color:#67e8f9; }
+
+/* CHART */
+.chart-area { background:#0f1525; border-radius:6px; height:130px; position:relative; display:flex; align-items:flex-end; gap:3px; padding:0 6px 14px; overflow:hidden; }
+.bar { flex:1; border-radius:2px 2px 0 0; min-height:3px; transition:all .3s; cursor:pointer; }
+.bar:hover { opacity:0.8; }
+.bar-r { background:linear-gradient(to top,rgba(239,68,68,0.5),rgba(239,68,68,0.2)); border:1px solid rgba(239,68,68,0.3); }
+.bar-g { background:linear-gradient(to top,rgba(34,211,238,0.5),rgba(34,211,238,0.15)); border:1px solid rgba(34,211,238,0.2); }
+.bar-y { background:linear-gradient(to top,rgba(251,191,36,0.5),rgba(251,191,36,0.15)); border:1px solid rgba(251,191,36,0.2); }
+.marker { position:absolute;top:0;bottom:14px;width:1px;border-left:1px dashed rgba(239,68,68,0.4);z-index:2; }
+
+/* GANTT */
+.gantt { display:flex;flex-direction:column;gap:5px; }
+.gantt-row { display:flex;align-items:center;gap:6px; }
+.gl { width:70px; font-size:10px; color:#94a3b8; flex-shrink:0; }
+.gt { flex:1; height:18px; background:#0f1525; border-radius:3px; position:relative; overflow:hidden; }
+.gb { position:absolute;height:100%;border-radius:3px;display:flex;align-items:center;padding-left:4px;font-size:7px;color:white;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px; }
+.gn { position:absolute;top:-1px;bottom:-1px;width:1px;background:#ef4444;z-index:2; }
+
+/* INSIGHT */
+.insight-list { display:flex;flex-direction:column;gap:5px; }
+.insight-item { display:flex;align-items:flex-start;gap:8px;padding:6px 8px;border-radius:6px;font-size:11px;line-height:1.4;cursor:pointer; }
+.insight-item:hover { background:#141b2d; }
+.insight-item.ir { background:rgba(239,68,68,0.04); border-left:2px solid #ef4444; }
+.insight-item.iy { background:rgba(251,191,36,0.04); border-left:2px solid #fbbf24; }
+.insight-item.ig { background:rgba(74,222,128,0.04); border-left:2px solid #4ade80; }
+.ii-sug { font-size:10px; color:#475569; margin-top:2px; }
+
+/* Event Flow / Activity Log */
+.event-flow { display:flex; flex-direction:column; gap:4px; }
+.event-item { display:flex; align-items:flex-start; gap:8px; padding:6px 8px; border-radius:6px; font-size:11px; line-height:1.4; }
+.event-item:hover { background:#141b2d; }
+.event-time { font-size:9px; color:#475569; white-space:nowrap; min-width:32px; padding-top:1px; }
+.event-actor { font-size:10px; padding:1px 5px; border-radius:3px; font-weight:500; white-space:nowrap; }
+.ea-pur { background:rgba(34,211,238,0.1); color:#67e8f9; }
+.ea-pro { background:rgba(52,211,153,0.1); color:#86efac; }
+.ea-war { background:rgba(251,191,36,0.1); color:#fde68a; }
+.ea-fin { background:rgba(167,139,250,0.1); color:#c4b5fd; }
+.ea-qa { background:rgba(251,146,60,0.1); color:#fdba74; }
+.ea-pur2 { background:rgba(244,114,182,0.1); color:#f9a8d4; }
+.event-text { flex:1; }
+.event-target { font-size:9px; color:#475569; }
+.event-dot { width:5px;height:5px;border-radius:50%;margin-top:4px;flex-shrink:0; }
+
+/* Role - show/hide per role */
+[data-role] .d-role { display:none; }
+[data-role="director"] .d-dir { display:block; }
+[data-role="director"] .d-dir-flex { display:flex; }
+[data-role="production"] .d-prod { display:block; }
+[data-role="production"] .d-prod-flex { display:flex; }
+[data-role="warehouse"] .d-wh { display:block; }
+[data-role="warehouse"] .d-wh-flex { display:flex; }
+[data-role="purchasing"] .d-pur { display:block; }
+[data-role="purchasing"] .d-pur-flex { display:flex; }
+[data-role="quality"] .d-qa { display:block; }
+[data-role="quality"] .d-qa-flex { display:flex; }
+[data-role="accounting"] .d-acct { display:block; }
+[data-role="accounting"] .d-acct-flex { display:flex; }
+
+/* Default display for role-specific content */
+.d-role { display:none; }
+[data-role] .d-role { display:none; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:#1e293b; border-radius:2px; }
+
+/* Mini task list */
+.task-list { display:flex; flex-direction:column; gap:4px; }
+.task-item { display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:11px;background:#0f1525;border:1px solid #1e293b; }
+.task-check { width:14px;height:14px;border-radius:3px;border:1.5px solid #475569;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.task-check.done { background:#22d3ee; border-color:#22d3ee; }
+.task-pri { font-size:8px; padding:1px 5px; border-radius:3px; }
+.task-pri.high { background:rgba(239,68,68,0.15); color:#fca5a5; }
+.task-pri.med { background:rgba(251,191,36,0.15); color:#fde68a; }
+.task-pri.low { background:rgba(74,222,128,0.15); color:#86efac; }
+
+/* ACCOUNTING specific: cash flow chart */
+.cash-flow-viz { position:relative; height:100px; margin:12px 0; }
+.cf-line { position:absolute; left:0; right:0; height:2px; border-radius:1px; }
+.cf-fill { position:absolute; left:0; right:0; bottom:0; border-radius:0 0 4px 4px; }
+.cf-week { position:absolute; bottom:-18px; font-size:8px; color:#475569; transform:translateX(-50%); }
+.cf-annot { position:absolute; font-size:8px; padding:2px 6px; border-radius:3px; white-space:nowrap; }
+
+/* Notification panel */
+.notif-bell { position:relative; cursor:pointer; }
+.notif-count { position:absolute; top:-4px; right:-4px; width:14px;height:14px;background:#ef4444;border-radius:50%;font-size:8px;display:flex;align-items:center;justify-content:center;color:white;font-weight:600; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo"><div class="logo-icon">E</div>LLM-ERP</div>
+
+    <div class="role-section">
+      <div class="role-label">角色切換</div>
+      <button class="role-btn active" onclick="switchRole('director')" data-role-btn="director">
+        <span class="role-icon">👨‍💼</span> 廠長
+        <span class="role-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">3</span>
+      </button>
+      <button class="role-btn" onclick="switchRole('production')" data-role-btn="production">
+        <span class="role-icon">👨‍🔧</span> 生管
+        <span class="role-badge" style="background:rgba(251,191,36,0.15);color:#fde68a;">5</span>
+      </button>
+      <button class="role-btn" onclick="switchRole('warehouse')" data-role-btn="warehouse">
+        <span class="role-icon">📦</span> 倉庫
+        <span class="role-badge" style="background:rgba(34,211,238,0.15);color:#67e8f9;">2</span>
+      </button>
+      <button class="role-btn" onclick="switchRole('purchasing')" data-role-btn="purchasing">
+        <span class="role-icon">📋</span> 採購
+        <span class="role-badge" style="background:rgba(251,191,36,0.15);color:#fde68a;">1</span>
+      </button>
+      <button class="role-btn" onclick="switchRole('quality')" data-role-btn="quality">
+        <span class="role-icon">✅</span> 品管
+        <span class="role-badge" style="background:rgba(239,68,68,0.15);color:#fca5a5;">2</span>
+      </button>
+      <button class="role-btn" onclick="switchRole('accounting')" data-role-btn="accounting">
+        <span class="role-icon">💰</span> 會計
+        <span class="role-badge" style="background:rgba(167,139,250,0.15);color:#c4b5fd;">4</span>
+      </button>
+    </div>
+
+    <div class="nav">
+      <div class="nav-item">📊 儀表板</div>
+      <div class="nav-item">📖 工作日誌</div>
+      <div class="nav-item">⚙️ 設定</div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:12px;">
+      <div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:#0f1525;border-radius:6px;">
+        <div style="width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#22d3ee,#06b6d4);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#0a0e17;">P</div>
+        <div><div style="font-size:11px;font-weight:500;">Peter 范</div><div style="font-size:9px;color:#475569;" id="roleLabel">廠長</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainContainer" data-role="director">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <span style="font-size:11px;color:#64748b;"><span class="st-dot"></span>2025-05-06 週三</span>
+        <span class="role-indicator" id="roleIndicator">當前角色：<strong>👨‍💼 廠長</strong> — 策略級視角</span>
+      </div>
+      <div class="header-right" style="display:flex;align-items:center;gap:10px;">
+        <div class="notif-bell" id="notifBell">
+          🔔 <span class="notif-count" id="notifCount">3</span>
+        </div>
+        <span style="font-size:10px;color:#475569;">🤖 DeepSeek</span>
+      </div>
+    </div>
+
+    <!-- CMD BAR -->
+    <div class="cmd-bar">
+      <span style="font-size:12px;color:#64748b;">💬</span>
+      <input type="text" id="cmdInput" placeholder="輸入指令…" autofocus>
+      <span class="cmd-shortcut">↵</span>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="dashboard" id="dashboardGrid">
+
+      <!-- ==================== SHARED: Alert ==================== -->
+      <div class="alert-bar">
+        <span style="font-size:14px;">🔴</span>
+        <span class="alert-text"><strong id="alertTitle">銅排3mm庫存僅剩12%</strong> <span id="alertDesc">預估2天內用完，影響WO-005, WO-006</span></span>
+        <span class="alert-action" id="alertAction1">查看詳情</span>
+        <span class="alert-action" style="background:rgba(74,222,128,0.1);color:#86efac;border-color:rgba(74,222,128,0.15);">已處理</span>
+      </div>
+
+      <!-- ===== KPI (show for all, different content per role) ===== -->
+      <div class="kpi-grid widget-full" id="kpiArea">
+        <!-- Director KPIs -->
+        <div class="kpi d-dir d-role"><div class="kpi-label">庫存總值</div><div class="kpi-value" style="color:#22d3ee;">NT$2.85M</div><div class="kpi-change down">↓3.2% vs 昨日</div></div>
+        <div class="kpi d-dir d-role"><div class="kpi-label">WIP在製品</div><div class="kpi-value" style="color:#fbbf24;">NT$683K</div><div class="kpi-change warn">↑12% 偏高</div></div>
+        <div class="kpi d-dir d-role"><div class="kpi-label">產能利用率</div><div class="kpi-value" style="color:#4ade80;">87%</div><div class="kpi-change up">↑5%</div></div>
+        <div class="kpi d-dir d-role"><div class="kpi-label">逾期工單</div><div class="kpi-value" style="color:#ef4444;">3</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">最多延2.5天</div></div>
+        <div class="kpi d-dir d-role"><div class="kpi-label">本月良率</div><div class="kpi-value" style="color:#4ade80;">96.8%</div><div class="kpi-change up">↑1.2%</div></div>
+        <div class="kpi d-dir d-role"><div class="kpi-label">呆料比率</div><div class="kpi-value" style="color:#fbbf24;">7.3%</div><div class="kpi-change warn">偏高</div></div>
+
+        <!-- Production KPIs -->
+        <div class="kpi d-prod d-role"><div class="kpi-label">本日排程工單</div><div class="kpi-value" style="color:#22d3ee;">8 張</div><div class="kpi-change up">按時率 75%</div></div>
+        <div class="kpi d-prod d-role"><div class="kpi-label">機台稼動率</div><div class="kpi-value" style="color:#fbbf24;">82%</div><div class="kpi-change warn">CNC-01 滿載</div></div>
+        <div class="kpi d-prod d-role"><div class="kpi-label">缺料工單</div><div class="kpi-value" style="color:#ef4444;">2</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">銅排、軸承</div></div>
+        <div class="kpi d-prod d-role"><div class="kpi-label">急單數</div><div class="kpi-value" style="color:#fbbf24;">1</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">WO-006 客戶急催</div></div>
+        <div class="kpi d-prod d-role"><div class="kpi-label">在線WIP</div><div class="kpi-value" style="color:#22d3ee;">5 站</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">裝配線塞車</div></div>
+        <div class="kpi d-prod d-role"><div class="kpi-label">今日預計完工</div><div class="kpi-value" style="color:#4ade80;">4 張</div><div class="kpi-change up">vs 目標5張</div></div>
+
+        <!-- Warehouse KPIs -->
+        <div class="kpi d-wh d-role"><div class="kpi-label">揀貨任務</div><div class="kpi-value" style="color:#22d3ee;">12</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">待處理</div></div>
+        <div class="kpi d-wh d-role"><div class="kpi-label">入庫待辦</div><div class="kpi-value" style="color:#fbbf24;">5</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">2筆逾2小時</div></div>
+        <div class="kpi d-wh d-role"><div class="kpi-label">庫存品項</div><div class="kpi-value" style="color:#4ade80;">847</div><div class="kpi-change up">正常</div></div>
+        <div class="kpi d-wh d-role"><div class="kpi-label">待盤點</div><div class="kpi-value" style="color:#fbbf24;">23</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">本週到期</div></div>
+        <div class="kpi d-wh d-role"><div class="kpi-label">呆滯料</div><div class="kpi-value" style="color:#ef4444;">18 項</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">>90天未異動</div></div>
+        <div class="kpi d-wh d-role"><div class="kpi-label">儲位使用率</div><div class="kpi-value" style="color:#22d3ee;">74%</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">A區85% B區62%</div></div>
+
+        <!-- Purchasing KPIs -->
+        <div class="kpi d-pur d-role"><div class="kpi-label">進行中PO</div><div class="kpi-value" style="color:#22d3ee;">7 筆</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">總額NT$528K</div></div>
+        <div class="kpi d-pur d-role"><div class="kpi-label">逾期PO</div><div class="kpi-value" style="color:#ef4444;">1</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">大明金屬 遲5天</div></div>
+        <div class="kpi d-pur d-role"><div class="kpi-label">待確認報價</div><div class="kpi-value" style="color:#fbbf24;">3</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">銅排、軸承、馬達</div></div>
+        <div class="kpi d-pur d-role"><div class="kpi-label">緊急採購</div><div class="kpi-value" style="color:#ef4444;">2</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">銅排、感測器</div></div>
+        <div class="kpi d-pur d-role"><div class="kpi-label">本月採購額</div><div class="kpi-value" style="color:#22d3ee;">NT$1.2M</div><div class="kpi-change up">vs預算1.5M</div></div>
+        <div class="kpi d-pur d-role"><div class="kpi-label">供應商評分</div><div class="kpi-value" style="color:#4ade80;">4.2</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">/5.0</div></div>
+
+        <!-- Quality KPIs -->
+        <div class="kpi d-qa d-role"><div class="kpi-label">本月良率</div><div class="kpi-value" style="color:#4ade80;">96.8%</div><div class="kpi-change up">↑1.2%</div></div>
+        <div class="kpi d-qa d-role"><div class="kpi-label">待檢批次</div><div class="kpi-value" style="color:#fbbf24;">4</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">2批逾時</div></div>
+        <div class="kpi d-qa d-role"><div class="kpi-label">不合格(NC)</div><div class="kpi-value" style="color:#ef4444;">7</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">3待處置</div></div>
+        <div class="kpi d-qa d-role"><div class="kpi-label">CAPA</div><div class="kpi-value" style="color:#22d3ee;">2</div><div class="kpi-change" style="font-size:10px;color:#94a3b8;">進行中</div></div>
+        <div class="kpi d-qa d-role"><div class="kpi-label">主要缺陷</div><div class="kpi-value" style="color:#fbbf24;">尺寸</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">佔42%</div></div>
+        <div class="kpi d-qa d-role"><div class="kpi-label">供應商退貨率</div><div class="kpi-value" style="color:#4ade80;">2.1%</div><div class="kpi-change up">↓0.3%</div></div>
+
+        <!-- Accounting KPIs -->
+        <div class="kpi d-acct d-role"><div class="kpi-label">可用現金</div><div class="kpi-value" style="color:#22d3ee;">NT$1.85M</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">下週到期NT$250K</div></div>
+        <div class="kpi d-acct d-role"><div class="kpi-label">應收帳款</div><div class="kpi-value" style="color:#4ade80;">NT$3.2M</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">逾期NT$280K</div></div>
+        <div class="kpi d-acct d-role"><div class="kpi-label">應付帳款</div><div class="kpi-value" style="color:#ef4444;">NT$1.8M</div><div class="kpi-change" style="font-size:10px;color:#fca5a5;">本週到期NT$430K</div></div>
+        <div class="kpi d-acct d-role"><div class="kpi-label">本月營收</div><div class="kpi-value" style="color:#4ade80;">NT$4.2M</div><div class="kpi-change up">↑8% vs上月</div></div>
+        <div class="kpi d-acct d-role"><div class="kpi-label">毛利率</div><div class="kpi-value" style="color:#22d3ee;">31%</div><div class="kpi-change up">↑2%</div></div>
+        <div class="kpi d-acct d-role"><div class="kpi-label">待匹配發票</div><div class="kpi-value" style="color:#fbbf24;">5</div><div class="kpi-change" style="font-size:10px;color:#fde68a;">金額差NT$12K</div></div>
+      </div>
+
+      <!-- ===== ROLE-SPECIFIC WIDGETS ===== -->
+
+      <!-- DIRECTOR:庫存圖 + AI洞察 -->
+      <div class="widget widget-half d-dir d-role">
+        <div class="widget-header"><div class="widget-title">📦 庫存水位 — 前10高風險</div><div class="widget-action">全部→</div></div>
+        <div class="chart-area">
+          <div class="bar bar-r" style="height:85%"></div><div class="bar bar-g" style="height:65%"></div><div class="bar bar-r" style="height:92%"></div><div class="bar bar-y" style="height:18%"></div>
+          <div class="bar bar-g" style="height:55%"></div><div class="bar bar-r" style="height:78%"></div><div class="bar bar-y" style="height:12%"></div><div class="bar bar-g" style="height:45%"></div>
+          <div class="bar bar-r" style="height:88%"></div><div class="bar bar-y" style="height:8%"></div>
+          <div class="marker" style="left:30%;"><span style="position:absolute;top:-14px;left:-6px;font-size:7px;color:#ef4444;">安全線</span></div>
+          <div style="position:absolute;bottom:2px;left:6px;right:6px;display:flex;justify-content:space-between;font-size:7px;color:#475569;">
+            <span style="color:#ef4444;">🔴超庫3</span><span style="color:#fbbf24;">🟡低3</span><span style="color:#4ade80;">🟢正常4</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DIRECTOR: AI主動分析 -->
+      <div class="widget d-dir d-role">
+        <div class="widget-header"><div class="widget-title">🧠 AI分析 — 今日關注</div><div class="widget-action">刷新</div></div>
+        <div class="insight-list">
+          <div class="insight-item ir"><span>🔴</span><div class="insight-text"><strong>銅排庫存12%</strong> — 2天內用完<br><span class="ii-sug">💡 緊急採購 / 替代料 / 調單</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>WO-003 投料異常</strong> — BOM用量80，已開100<br><span class="ii-sug">💡 退料20 / 保留轉單 / 核准超發</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>裝配線A 負載112%</strong> — WO-007估延1.5天</div></div>
+          <div class="insight-item ig"><span>🟢</span><div class="insight-text"><strong>良率96.8% ↑1.2%</strong> — 銑床改善見效</div></div>
+        </div>
+      </div>
+
+      <!-- DIRECTOR:品質概要 -->
+      <div class="widget d-dir d-role">
+        <div class="widget-header"><div class="widget-title">✅ 品質即時</div><div class="widget-action">→</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div style="background:#0f1525;padding:8px;border-radius:6px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#4ade80;">96.8%</div><div style="font-size:9px;color:#475569;">良率</div></div>
+          <div style="background:#0f1525;padding:8px;border-radius:6px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#ef4444;">7</div><div style="font-size:9px;color:#475569;">不合格</div></div>
+          <div style="background:#0f1525;padding:8px;border-radius:6px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#fbbf24;">3</div><div style="font-size:9px;color:#475569;">待處置NC</div></div>
+          <div style="background:#0f1525;padding:8px;border-radius:6px;text-align:center;"><div style="font-size:20px;font-weight:700;color:#22d3ee;">2</div><div style="font-size:9px;color:#475569;">CAPA</div></div>
+        </div>
+      </div>
+
+      <!-- DIRECTOR:採購單 -->
+      <div class="widget d-dir d-role">
+        <div class="widget-header"><div class="widget-title">📋 待處理採購單</div><div class="widget-action">全部→</div></div>
+        <table class="table-c"><tr><th>PO#</th><th>供應商</th><th>金額</th><th>狀態</th></tr>
+        <tr><td>PO-0428</td><td>大明金屬</td><td>NT$85K</td><td><span class="tag tg">已到貨</span></td></tr>
+        <tr><td>PO-0503</td><td>永興五金</td><td>NT$23.5K</td><td><span class="tag tc">運送中</span></td></tr>
+        <tr><td>PO-0505</td><td>大明金屬</td><td>NT$120K</td><td><span class="tag ty">確認中</span></td></tr></table>
+      </div>
+
+      <!-- DIRECTOR:逾期工單 -->
+      <div class="widget d-dir d-role">
+        <div class="widget-header"><div class="widget-title">⏰ 逾期工單</div><div class="widget-action">處理→</div></div>
+        <table class="table-c"><tr><th>工單</th><th>品項</th><th>逾期</th><th>原因</th></tr>
+        <tr><td>WO-0501</td><td>ASM-001</td><td style="color:#ef4444;">2.5天</td><td><span class="tag tr">缺料</span></td></tr>
+        <tr><td>WO-0502</td><td>CNC-001</td><td style="color:#fbbf24;">1天</td><td><span class="tag ty">品質保留</span></td></tr>
+        <tr><td>WO-0503</td><td>ASM-002</td><td style="color:#fbbf24;">0.5天</td><td><span class="tag ty">產能不足</span></td></tr></table>
+      </div>
+
+      <!-- ==================== PRODUCTION VIEW ==================== -->
+      <!-- 排程甘特圖 -->
+      <div class="widget widget-half d-prod d-role">
+        <div class="widget-header"><div class="widget-title">🏭 機台排程 — 今日即時</div><div class="widget-action">🔄 重新排程</div></div>
+        <div class="gantt">
+          <div class="gantt-row"><span class="gl">CNC-01</span><div class="gt"><div class="gb" style="left:0;width:35%;background:#22d3ee;">WO-003 底板</div><div class="gb" style="left:38%;width:25%;background:#06b6d4;">WO-005 外殼</div><div class="gn" style="left:45%"></div></div></div>
+          <div class="gantt-row"><span class="gl">銑床-01</span><div class="gt"><div class="gb" style="left:0;width:42%;background:#22d3ee;">WO-003 銑面</div><div class="gn" style="left:45%"></div></div></div>
+          <div class="gantt-row"><span class="gl">鑽床-01</span><div class="gt"><div class="gb" style="left:20%;width:18%;background:#22d3ee;">WO-003 鑽孔</div><div class="gb" style="left:42%;width:30%;background:#fbbf24;">🚨 WO-006 急單</div><div class="gn" style="left:45%"></div></div></div>
+          <div class="gantt-row"><span class="gl">雷射切割</span><div class="gt"><div class="gb" style="left:0;width:60%;background:#22d3ee;">WO-004 切割</div><div class="gb" style="left:63%;width:15%;background:#4ade80;">閒置</div><div class="gn" style="left:45%"></div></div></div>
+          <div class="gantt-row"><span class="gl">裝配線A</span><div class="gt"><div class="gb" style="left:0;width:55%;background:#22d3ee;">WO-002 組裝</div><div class="gn" style="left:45%"></div></div></div>
+          <div class="gantt-row"><span class="gl">QC-01</span><div class="gt"><div class="gb" style="left:0;width:50%;background:#22d3ee;">WO-001 品檢</div><div class="gn" style="left:45%"></div></div></div>
+        </div>
+      </div>
+
+      <!-- 生產AI建議 -->
+      <div class="widget d-prod d-role">
+        <div class="widget-header"><div class="widget-title">🧠 生產AI建議</div></div>
+        <div class="insight-list">
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>裝配線A 滿載112%</strong><br><span class="ii-sug">建議：WO-007延1天 或 加班2h</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>鑽床-01 急單WO-006插隊</strong><br><span class="ii-sug">WO-003 Op2順延30min，交期仍可達</span></div></div>
+          <div class="insight-item ig"><span>🟢</span><div class="insight-text"><strong>銑床-01 提前完工</strong> — 剩餘工時低於預估</div></div>
+        </div>
+      </div>
+
+      <!-- 缺料預警 -->
+      <div class="widget d-prod d-role">
+        <div class="widget-header"><div class="widget-title">🔴 缺料影響工單</div></div>
+        <table class="table-c"><tr><th>工單</th><th>缺料</th><th>影響</th><th>預計到料</th></tr>
+        <tr><td>WO-005</td><td>銅排3mm</td><td>無法開工</td><td style="color:#fbbf24;">05/08</td></tr>
+        <tr><td>WO-006</td><td>感測器</td><td>Op4無法進行</td><td style="color:#fbbf24;">05/07</td></tr></table>
+      </div>
+
+      <!-- 產能調整面板 -->
+      <div class="widget d-prod d-role">
+        <div class="widget-header"><div class="widget-title">⚡ 產能調整</div></div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#0f1525;border-radius:6px;">
+            <span style="font-size:10px;color:#94a3b8;flex:1;">裝配線A 加班</span>
+            <span style="font-size:9px;color:#fbbf24;">+2h → 多產5台</span>
+            <span style="font-size:9px;color:#22d3ee;cursor:pointer;">套用</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:#0f1525;border-radius:6px;">
+            <span style="font-size:10px;color:#94a3b8;flex:1;">WO-007 外發加工</span>
+            <span style="font-size:9px;color:#4ade80;">協力廠有產能</span>
+            <span style="font-size:9px;color:#22d3ee;cursor:pointer;">套用</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ==================== WAREHOUSE VIEW ==================== -->
+      <div class="widget d-wh d-role">
+        <div class="widget-header"><div class="widget-title">📋 今天揀貨任務</div></div>
+        <div class="task-list">
+          <div class="task-item"><div class="task-check" onclick="this.classList.toggle('done')"></div><span class="task-pri high">急</span><span style="flex:1;font-size:11px;">WO-005: 銅排3mm x 120kg (A-12-03)</span><span style="font-size:9px;color:#475569;">08:30</span></div>
+          <div class="task-item"><div class="task-check" onclick="this.classList.toggle('done')"></div><span class="task-pri high">急</span><span style="flex:1;font-size:11px;">WO-006: 感測器 x 50pcs (B-08-01)</span><span style="font-size:9px;color:#475569;">09:00</span></div>
+          <div class="task-item"><div class="task-check" onclick="this.classList.toggle('done')"></div><span class="task-pri med">中</span><span style="flex:1;font-size:11px;">WO-003: 底板 x 100pcs (A-05-11)</span><span style="font-size:9px;color:#475569;">10:00</span></div>
+          <div class="task-item"><div class="task-check" onclick="this.classList.toggle('done')"></div><span class="task-pri med">中</span><span style="flex:1;font-size:11px;">WO-004: 密封圈 x 200pcs (C-02-07)</span><span style="font-size:9px;color:#475569;">10:30</span></div>
+          <div class="task-item"><div class="task-check" onclick="this.classList.toggle('done')"></div><span class="task-pri low">低</span><span style="flex:1;font-size:11px;">WO-002: 螺絲M6 x 500pcs (B-01-22)</span><span style="font-size:9px;color:#475569;">14:00</span></div>
+        </div>
+      </div>
+
+      <div class="widget d-wh d-role">
+        <div class="widget-header"><div class="widget-title">📥 入庫待辦</div></div>
+        <table class="table-c"><tr><th>單號</th><th>品項</th><th>數量</th><th>存放</th><th>狀態</th></tr>
+        <tr><td>PO-0428</td><td>鋁板6061</td><td>500kg</td><td>A-01-03</td><td><span class="tag ty">待上架</span></td></tr>
+        <tr><td>PO-0503</td><td>螺絲M6</td><td>2000pcs</td><td>B-01-22</td><td><span class="tag ty">待上架</span></td></tr>
+        <tr><td>PO-0504</td><td>油壓缸</td><td>10pcs</td><td>D-03-01</td><td><span class="tag tr">待QC</span></td></tr>
+        <tr><td>轉單</td><td>退料WO-003</td><td>20pcs</td><td>A-05-11</td><td><span class="tag tc">待入庫</span></td></tr>
+        <tr><td>PO-0425</td><td>馬達N-20</td><td>5pcs</td><td>D-01-08</td><td><span class="tag tg">✓已入庫</span></td></tr></table>
+      </div>
+
+      <div class="widget d-wh d-role">
+        <div class="widget-header"><div class="widget-title">🔍 庫存查詢</div></div>
+        <div style="display:flex;gap:6px;margin-bottom:8px;">
+          <input placeholder="輸入料號或名稱…" style="flex:1;background:#0f1525;border:1px solid #1e293b;border-radius:5px;padding:6px 8px;color:white;font-size:11px;font-family:inherit;outline:none;">
+          <button style="background:#22d3ee;border:none;border-radius:5px;padding:6px 10px;color:#0a0e17;font-size:10px;font-weight:600;cursor:pointer;">查詢</button>
+        </div>
+        <div style="font-size:10px;color:#475569;">最近查詢：銅排3mm → A-12-03, 庫存48kg</div>
+      </div>
+
+      <div class="widget d-wh d-role">
+        <div class="widget-header"><div class="widget-title">⚠️ 庫存預警</div></div>
+        <div class="insight-list">
+          <div class="insight-item ir"><span>🔴</span><div class="insight-text"><strong>銅排3mm</strong> 庫存12%<br><span class="ii-sug">A-12-03 | 採購PO-0507已開</span></div></div>
+          <div class="insight-item ir"><span>🔴</span><div class="insight-text"><strong>軸承6205</strong> 安全庫存不足<br><span class="ii-sug">B-03-08 | 需補貨</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>感測器</strong> 低於再訂購點<br><span class="ii-sug">C-01-04 | 建議採購</span></div></div>
+        </div>
+      </div>
+
+      <!-- ==================== PURCHASING VIEW ==================== -->
+      <div class="widget widget-half d-pur d-role">
+        <div class="widget-header"><div class="widget-title">📋 所有採購單</div></div>
+        <table class="table-c"><tr><th>PO#</th><th>供應商</th><th>品項</th><th>金額</th><th>交期</th><th>狀態</th></tr>
+        <tr><td>PO-0428</td><td>大明金屬</td><td>鋁板6061</td><td>NT$85K</td><td>已到</td><td><span class="tag tg">已到貨</span></td></tr>
+        <tr><td>PO-0503</td><td>永興五金</td><td>螺絲M6</td><td>NT$23.5K</td><td>05/08</td><td><span class="tag tc">運送中</span></td></tr>
+        <tr><td>PO-0504</td><td>大華傳動</td><td>油壓缸</td><td>NT$180K</td><td>05/10</td><td><span class="tag tc">已出貨</span></td></tr>
+        <tr><td><strong>PO-0505</strong></td><td>大明金屬</td><td>銅排3mm</td><td><strong>NT$120K</strong></td><td><span style="color:#ef4444;">逾期5天</span></td><td><span class="tag tr">追貨中</span></td></tr>
+        <tr><td>PO-0506</td><td>永興五金</td><td>軸承6205</td><td>NT$45K</td><td>05/12</td><td><span class="tag ty">確認中</span></td></tr>
+        <tr><td><strong>PO-0507</strong></td><td>大明金屬</td><td>銅排3mm</td><td><strong>NT$120K</strong></td><td>05/09</td><td><span class="tag ty">急件處理</span></td></tr>
+        <tr><td>PO-0508</td><td>聯華電子</td><td>感測器</td><td>NT$32K</td><td>05/11</td><td><span class="tag ty">報價中</span></td></tr></table>
+      </div>
+
+      <div class="widget d-pur d-role">
+        <div class="widget-header"><div class="widget-title">🧠 採購AI建議</div></div>
+        <div class="insight-list">
+          <div class="insight-item ir"><span>🔴</span><div class="insight-text"><strong>PO-0505 大明金屬逾期5天</strong><br><span class="ii-sug">影響銅排供應，已觸發生管缺料警示</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>銅排替代供應商比價</strong><br><span class="ii-sug">永興 NT$115K vs 大明 NT$120K → 永興便宜4%，交期相同</span></div></div>
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>軸承6205 建議批量採購</strong><br><span class="ii-sug">單價 NT$45 → 買500個可議NT$38</span></div></div>
+        </div>
+      </div>
+
+      <div class="widget d-pur d-role">
+        <div class="widget-header"><div class="widget-title">🏢 供應商評分</div></div>
+        <table class="table-c"><tr><th>供應商</th><th>評分</th><th>準交率</th><th>品質</th></tr>
+        <tr><td>大明金屬</td><td style="color:#fbbf24;">3.8</td><td>85%</td><td>96%</td></tr>
+        <tr><td>永興五金</td><td style="color:#4ade80;">4.5</td><td>96%</td><td>98%</td></tr>
+        <tr><td>大華傳動</td><td style="color:#4ade80;">4.2</td><td>92%</td><td>97%</td></tr></table>
+      </div>
+
+      <div class="widget d-pur d-role">
+        <div class="widget-header"><div class="widget-title">📊 採購趨勢</div></div>
+        <div class="chart-area" style="height:60px;">
+          <div class="bar bar-g" style="height:40%"></div><div class="bar bar-g" style="height:55%"></div><div class="bar bar-g" style="height:35%"></div><div class="bar bar-g" style="height:70%"></div><div class="bar bar-g" style="height:50%"></div><div class="bar bar-g" style="height:80%"></div><div class="bar bar-r" style="height:95%"></div>
+          <div style="position:absolute;bottom:1px;left:6px;right:6px;display:flex;justify-content:space-between;font-size:7px;color:#475569;"><span>4月</span><span>5月↑42%</span></div>
+        </div>
+      </div>
+
+      <!-- ==================== QUALITY VIEW ==================== -->
+      <div class="widget d-qa d-role">
+        <div class="widget-header"><div class="widget-title">🔬 待檢驗批次</div></div>
+        <div class="task-list">
+          <div class="task-item"><span class="task-pri high">急</span><span style="flex:1;font-size:11px;">PO-0428 鋁板6061 500kg</span><span style="font-size:9px;color:#fbbf24;">15min前到貨</span></div>
+          <div class="task-item"><span class="task-pri high">急</span><span style="flex:1;font-size:11px;">WO-003 Op2 底板銑面 80pcs</span><span style="font-size:9px;color:#fbbf24;">等待檢驗才能流站</span></div>
+          <div class="task-item"><span class="task-pri med">中</span><span style="flex:1;font-size:11px;">PO-0504 油壓缸 10pcs</span><span style="font-size:9px;color:#475569;">到貨2hr</span></div>
+          <div class="task-item"><span class="task-pri med">中</span><span style="flex:1;font-size:11px;">WO-001 成品ASM-001 x10</span><span style="font-size:9px;color:#475569;">等待出貨檢</span></div>
+        </div>
+      </div>
+
+      <div class="widget d-qa d-role">
+        <div class="widget-header"><div class="widget-title">📋 不合格(NC)處理</div></div>
+        <table class="table-c"><tr><th>NC#</th><th>品項</th><th>缺陷</th><th>處置</th></tr>
+        <tr><td>NC-005-01</td><td>ASM-001</td><td>尺寸超差</td><td><span class="tag ty">待MRB</span></td></tr>
+        <tr><td>NC-005-02</td><td>銅排</td><td>刮傷</td><td><span class="tag ty">退回供應商</span></td></tr>
+        <tr><td>NC-005-03</td><td>底板</td><td>平面度0.3mm</td><td><span class="tag tr">報廢申請</span></td></tr>
+        <tr><td>NC-004-28</td><td>密封圈</td><td>硬度不足</td><td><span class="tag tc">重工中</span></td></tr>
+        <tr><td>NC-004-25</td><td>鋁板</td><td>厚度規格不符</td><td><span class="tag tg">✓已結案</span></td></tr>
+        <tr><td>NC-004-20</td><td>油壓缸</td><td>漏油</td><td><span class="tag tg">✓供應商賠償</span></td></tr></table>
+      </div>
+
+      <div class="widget d-qa d-role">
+        <div class="widget-header"><div class="widget-title">📊 缺陷Pareto分析</div></div>
+        <div class="chart-area" style="height:80px;">
+          <div class="bar bar-r" style="height:100%;background:linear-gradient(to top,rgba(239,68,68,0.5),rgba(239,68,68,0.2));"></div>
+          <div class="bar bar-r" style="height:75%;background:linear-gradient(to top,rgba(239,68,68,0.4),rgba(239,68,68,0.15));"></div>
+          <div class="bar bar-y" style="height:55%;"></div>
+          <div class="bar bar-y" style="height:40%;"></div>
+          <div class="bar bar-g" style="height:30%;"></div>
+          <div class="bar bar-g" style="height:20%;"></div>
+          <div class="bar bar-g" style="height:12%;"></div>
+          <div style="position:absolute;bottom:2px;left:6px;right:6px;display:flex;justify-content:space-between;font-size:7px;color:#475569;">
+            <span>尺寸</span><span>刮傷</span><span>硬度</span><span>平面度</span><span>漏油</span><span>色差</span><span>其他</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget d-qa d-role">
+        <div class="widget-header"><div class="widget-title">🔄 CAPA 追蹤</div></div>
+        <div class="insight-list">
+          <div class="insight-item iy"><span>🟡</span><div class="insight-text"><strong>CAPA-005-01: 銑床平面度</strong><br><span class="ii-sug">更換刀片後測試中，預計05/08驗證</span></div></div>
+          <div class="insight-item ig"><span>🟢</span><div class="insight-text"><strong>CAPA-004-15: 密封圈硬度</strong><br><span class="ii-sug">供應商已更換配方，驗證通過 ✅</span></div></div>
+        </div>
+      </div>
+
+      <!-- ==================== ACCOUNTING VIEW ==================== -->
+      <div class="widget widget-full d-acct d-role">
+        <div class="widget-header"><div class="widget-title">💰 現金水位預測</div></div>
+        <div class="cash-flow-viz" style="height:80px;">
+          <div style="position:absolute;left:5%;right:5%;top:10px;height:60px;">
+            <!-- Cash line -->
+            <svg style="width:100%;height:100%;" viewBox="0 0 100 60" preserveAspectRatio="none">
+              <path d="M0,15 L15,18 L30,12 L45,25 L55,35 L70,40 L85,28 L100,20" fill="none" stroke="#22d3ee" stroke-width="2"/>
+              <path d="M0,15 L15,18 L30,12 L45,25 L55,35 L70,40 L85,28 L100,20 L100,60 L0,60 Z" fill="url(#cfGrad)" opacity="0.15"/>
+            </svg>
+            <defs><linearGradient id="cfGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="100%" stop-color="#22d3ee" stop-opacity="0"/></linearGradient></defs>
+          </div>
+          <div class="cf-annot" style="left:30%;top:2px;background:rgba(239,68,68,0.2);color:#fca5a5;">應付NT$250K</div>
+          <div class="cf-annot" style="left:60%;top:-2px;background:rgba(74,222,128,0.2);color:#86efac;">應收NT$180K</div>
+          <div class="cf-annot" style="left:75%;top:8px;background:rgba(251,191,36,0.2);color:#fde68a;">缺口NT$70K</div>
+          <span class="cf-week" style="left:6%;">W1</span><span class="cf-week" style="left:28%;">W2</span><span class="cf-week" style="left:52%;">W3</span><span class="cf-week" style="left:76%;">W4</span>
+        </div>
+      </div>
+
+      <div class="widget d-acct d-role">
+        <div class="widget-header"><div class="widget-title">📅 應收帳款</div></div>
+        <table class="table-c"><tr><th>客戶</th><th>金額</th><th>到期</th><th>狀態</th></tr>
+        <tr><td>鴻達電子</td><td>NT$850K</td><td>05/10</td><td><span class="tag tc">未到期</span></td></tr>
+        <tr><td>泰金精密</td><td>NT$420K</td><td style="color:#fbbf24;">05/06</td><td><span class="tag ty">今天到期</span></td></tr>
+        <tr><td><strong>振宇工業</strong></td><td><strong>NT$180K</strong></td><td style="color:#ef4444;"><strong>逾期10天</strong></td><td><span class="tag tr">催收中</span></td></tr>
+        <tr><td>瑞豐機械</td><td>NT$100K</td><td style="color:#ef4444;">逾期3天</td><td><span class="tag tr">催收中</span></td></tr>
+        <tr><td>Total</td><td><strong>NT$3.2M</strong></td><td></td><td><span style="color:#94a3b8;">逾期NT$280K</span></td></tr></table>
+      </div>
+
+      <div class="widget d-acct d-role">
+        <div class="widget-header"><div class="widget-title">📅 應付帳款</div></div>
+        <table class="table-c"><tr><th>供應商</th><th>金額</th><th>到期</th><th>建議</th></tr>
+        <tr><td>大明金屬</td><td>NT$120K</td><td style="color:#ef4444;">逾期5天</td><td><span class="tag tr">立即付款</span></td></tr>
+        <tr><td>永興五金</td><td>NT$85K</td><td style="color:#fbbf24;">05/08</td><td><span class="tag ty">如期付</span></td></tr>
+        <tr><td>大華傳動</td><td>NT$180K</td><td>05/15</td><td><span class="tag tc">可延至05/20</span></td></tr>
+        <tr><td>Total</td><td><strong>NT$1.8M</strong></td><td></td><td><span style="color:#fde68a;">本週到期NT$430K</span></td></tr></table>
+      </div>
+
+      <div class="widget d-acct d-role">
+        <div class="widget-header"><div class="widget-title">📊 成本差異分析</div></div>
+        <table class="table-c"><tr><th>工單</th><th>標準</th><th>實際</th><th>差異</th></tr>
+        <tr><td>WO-003</td><td>NT$12,500</td><td style="color:#fbbf24;">NT$13,800</td><td style="color:#ef4444;">+10%</td></tr>
+        <tr><td>WO-002</td><td>NT$28,000</td><td style="color:#4ade80;">NT$27,200</td><td style="color:#4ade80;">-3%</td></tr>
+        <tr><td>WO-001</td><td>NT$45,000</td><td>NT$45,800</td><td style="color:#94a3b8;">+2%</td></tr></table>
+      </div>
+
+      <div class="widget d-acct d-role">
+        <div class="widget-header"><div class="widget-title">📖 最近傳票</div></div>
+        <div class="event-flow">
+          <div class="event-item"><span class="event-dot" style="background:#a78bfa;"></span><span class="event-time">09:15</span><span style="font-size:10px;color:#94a3b8;">入庫 銅排500kg → 庫存↑NT$120K</span></div>
+          <div class="event-item"><span class="event-dot" style="background:#a78bfa;"></span><span class="event-time">08:30</span><span style="font-size:10px;color:#94a3b8;">投料 WO-003 → WIP↑NT$12,500</span></div>
+          <div class="event-item"><span class="event-dot" style="background:#a78bfa;"></span><span class="event-time">05/04</span><span style="font-size:10px;color:#94a3b8;">出貨 ASM-001 x10 → COGS NT$280K</span></div>
+          <div class="event-item"><span class="event-dot" style="background:#a78bfa;"></span><span class="event-time">05/03</span><span style="font-size:10px;color:#94a3b8;">PO-0505 大明 → 應付NT$120K</span></div>
+        </div>
+        <div style="margin-top:6px;padding:6px;background:#0f1525;border-radius:5px;font-size:9px;color:#475569;">
+          📌 月底結帳進度：成本已結60% | 待匹配發票5筆 | 固定資產折舊待攤
+        </div>
+      </div>
+
+      <!-- ==================== EVENT ENGINE (shared for all) ==================== -->
+      <div class="widget widget-full" style="border-color:rgba(34,211,238,0.15);">
+        <div class="widget-header">
+          <div class="widget-title" style="color:#22d3ee;">⚡ 跨角色事件引擎 — 即時活動</div>
+          <div class="widget-action" onclick="switchRole('director')">回到廠長視角</div>
+        </div>
+        <div class="event-flow">
+          <div class="event-item">
+            <span class="event-dot" style="background:#22d3ee;"></span>
+            <span class="event-time">08:22</span>
+            <span class="event-actor ea-pur">採購</span>
+            <span class="event-text"><strong>PO-0508 感測器</strong> 報價確認 NT$32K，已發單</span>
+            <span class="event-target">→ 通知：會計 (應付增), 生管 (到料日05/11)</span>
+          </div>
+          <div class="event-item">
+            <span class="event-dot" style="background:#fbbf24;"></span>
+            <span class="event-time">08:15</span>
+            <span class="event-actor ea-pro">生管</span>
+            <span class="event-text"><strong>WO-003 投料100</strong> (BOM 80)，超發20</span>
+            <span class="event-target">→ 通知：廠長 (核准), 倉庫 (出料), 會計 (成本↑)</span>
+          </div>
+          <div class="event-item">
+            <span class="event-dot" style="background:#4ade80;"></span>
+            <span class="event-time">07:50</span>
+            <span class="event-actor ea-war">倉庫</span>
+            <span class="event-text"><strong>PO-0428 鋁板6061</strong> 入庫500kg → A-01-03</span>
+            <span class="event-target">→ 通知：採購 (到貨), 品管 (待檢), 會計 (庫存↑NT$85K)</span>
+          </div>
+          <div class="event-item">
+            <span class="event-dot" style="background:#ef4444;"></span>
+            <span class="event-time">07:30</span>
+            <span class="event-actor ea-qa">品管</span>
+            <span class="event-text"><strong>NC-005-03 底板平面度0.3mm</strong> 建議報廢</span>
+            <span class="event-target">→ 通知：生管 (補產), 廠長 (核准報廢), 會計 (損失)</span>
+          </div>
+          <div class="event-item">
+            <span class="event-dot" style="background:#a78bfa;"></span>
+            <span class="event-time">昨</span>
+            <span class="event-actor ea-fin">會計</span>
+            <span class="event-text"><strong>振宇工業 NT$180K</strong> 逾期10天 → 已啟動催收</span>
+            <span class="event-target">→ 通知：業務 (客戶聯繫), 廠長 (現金影響)</span>
+          </div>
+          <div class="event-item">
+            <span class="event-dot" style="background:#22d3ee;"></span>
+            <span class="event-time">昨</span>
+            <span class="event-actor ea-pur2">廠長</span>
+            <span class="event-text"><strong>核准WO-003超發20</strong> — 原因：製程損耗率8% > BOM預估5%</span>
+            <span class="event-target">→ 更新BOM建議：底板標準用量 80→82 (自動學習)</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end dashboard -->
+  </div><!-- end main -->
+</div><!-- end layout -->
+
+<script>
+function switchRole(role) {
+  // Update main container
+  document.getElementById('mainContainer').setAttribute('data-role', role);
+
+  // Update sidebar buttons
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`[data-role-btn="${role}"]`).classList.add('active');
+
+  // Update header
+  const names = {
+    director: ['👨‍💼 廠長', '策略級視角 — 只看異常與趨勢'],
+    production: ['👨‍🔧 生管', '戰術級視角 — 排程、缺料、產能調整'],
+    warehouse: ['📦 倉庫', '執行級視角 — 揀貨、入庫、庫存查詢'],
+    purchasing: ['📋 採購', '戰術級視角 — PO管理、供應商、採購策略'],
+    quality: ['✅ 品管', '分析級視角 — 檢驗、不合格、CAPA'],
+    accounting: ['💰 會計', '預測級視角 — 現金流、應收/應付、成本']
+  };
+  document.getElementById('roleLabel').textContent = names[role][0].split(' ')[1];
+  document.getElementById('roleIndicator').innerHTML = `當前角色：<strong>${names[role][0]}</strong> — ${names[role][1]}`;
+
+  // Update notifications count
+  const counts = { director: 3, production: 5, warehouse: 2, purchasing: 1, quality: 2, accounting: 4 };
+  document.getElementById('notifCount').textContent = counts[role];
+
+  // Update alerts per role
+  const alerts = {
+    director: { title: '銅排3mm庫存僅剩12%', desc: '預估2天內用完，影響WO-005, WO-006' },
+    production: { title: '裝配線A 滿載112%', desc: 'WO-007預計延遲1.5天，建議加班或外發' },
+    warehouse: { title: '揀貨任務積壓', desc: '12筆待處理，2筆逾時30分鐘' },
+    purchasing: { title: 'PO-0505 大明金屬逾期5天', desc: '銅排3mm NT$120K，影響2張工單' },
+    quality: { title: '待檢批次4批', desc: '2批已逾時，含急件PO-0428' },
+    accounting: { title: '振宇工業NT$180K逾期10天', desc: '現金缺口預估NT$70K，需啟動催收' }
+  };
+  document.getElementById('alertTitle').textContent = alerts[role].title;
+  document.getElementById('alertDesc').textContent = alerts[role].desc;
+}
+
+// CMD input: demo suggestions
+document.getElementById('cmdInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    const val = e.target.value.trim();
+    if (!val) return;
+    const role = document.getElementById('mainContainer').getAttribute('data-role');
+    alert(`[${role}]\n指令: "${val}"\n\n(開發中) LLM 將根據角色身份與上下文提供回應 + 更新儀表板`);
+  }
+});
+</script>
+</body>
+</html>

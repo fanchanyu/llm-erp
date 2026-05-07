@@ -11,6 +11,7 @@ from app.schemas.purchase import (
     SupplierCreate, SupplierResponse, POCreate, POResponse,
     POItemResponse, POStatusUpdate,
 )
+from app.event_engine.service_enforcer import ConstraintBlocked
 
 router = APIRouter(prefix="/purchase", tags=["purchase"])
 
@@ -26,10 +27,29 @@ async def list_suppliers(
     return {
         "suppliers": [
             SupplierResponse(id=str(s.id), name=s.name, contact=s.contact,
-                             phone=s.phone, email=s.email) for s in suppliers
+                             phone=s.phone, email=s.email, score=s.score) for s in suppliers
         ],
         "total": total,
     }
+
+
+@router.patch("/suppliers/{supplier_id}/score")
+async def update_supplier_score(supplier_id: str, score: float,
+                                db: AsyncSession = Depends(get_db)):
+    """Update supplier quality score. Locks supplier if score < 2.0."""
+    try:
+        uid = uuid.UUID(supplier_id)
+    except ValueError:
+        raise HTTPException(400, "Invalid supplier ID")
+    s = await svc.update_supplier_score(db, uid, score)
+    if not s:
+        raise HTTPException(404, "Supplier not found")
+    msg = f"供應商 {s.name} 評分更新為 {score}"
+    if score < 2.0:
+        msg += " — 評分低於2.0，已自動鎖定"
+    elif score < 3.0:
+        msg += " — 評分低於3.0，建議留意"
+    return {"message": msg, "score": s.score, "locked": score < 2.0}
 
 
 @router.post("/suppliers", response_model=SupplierResponse, status_code=201)
@@ -88,10 +108,21 @@ async def create_order(data: POCreate, db: AsyncSession = Depends(get_db)):
             "expected_delivery": item.expected_delivery,
         })
 
-    po = await svc.create_purchase_order(
-        db, supplier.id, resolved_items,
-        ordered_by=data.ordered_by, notes=data.notes,
-    )
+    try:
+        po = await svc.create_purchase_order(
+            db, supplier.id, resolved_items,
+            ordered_by=data.ordered_by, notes=data.notes,
+            actor_role="api",
+        )
+    except ConstraintBlocked as e:
+        raise HTTPException(422, detail={
+            "error": "business_rule_violation",
+            "operation": e.operation,
+            "verdicts": [
+                {"code": v.code, "message": v.message, "alternatives": v.alternatives}
+                for v in e.verdicts
+            ],
+        })
     return {
         "message": f"Purchase order {po.po_no} created",
         "po_no": po.po_no,

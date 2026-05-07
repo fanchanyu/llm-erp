@@ -1,7 +1,7 @@
 .PHONY: dev test seed db
 
-# ─── Development ───────────────────────────────
-dev: db
+# ─── Development (SQLite dev; PostgreSQL: make db) ──
+dev:
 	cd backend && uvicorn app.main:app --reload
 
 frontend:
@@ -11,7 +11,7 @@ db:
 	docker compose up -d postgres
 
 # ─── Data ──────────────────────────────────────
-seed: db
+seed:
 	cd backend && python -m app.seed
 
 # ─── Testing ───────────────────────────────────
