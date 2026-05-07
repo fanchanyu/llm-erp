@@ -9,6 +9,7 @@ import {
   listAR, listJournalEntries,
   listWorkCenters, listDispatchOrders,
   listCustomers, listSalesOrders,
+  confirmSalesOrder, shipSalesOrder, deliverSalesOrder,
   getCRMEvents, createCRMEvent,
   listConversationSessions, getConversation,
 } from './api/client'
@@ -741,27 +742,92 @@ function CustomerList() {
 // ─── Sales Order Table (業務) ───────────────────────────────────
 function SalesOrderTable() {
   const [orders, setOrders] = useState<any[]>([])
+  const [acting, setActing] = useState<number | null>(null)
+
   useEffect(() => {
-    listSalesOrders().then(d => {
-      if (d?.orders) setOrders(d.orders)
-    }).catch(() => {})
+    listSalesOrders().then(d => { if (d?.orders) setOrders(d.orders) }).catch(() => {})
   }, [])
-  const statusColor = (s: string) => {
-    if (s === 'draft') return 'gray'
-    if (s === 'confirmed') return 'cyan'
-    if (s === 'production') return 'yellow'
-    if (s === 'shipped') return 'green'
-    if (s === 'delivered') return 'gray'
-    return 'gray'
+
+  const doAction = async (id: number, action: 'confirm' | 'ship' | 'deliver') => {
+    setActing(id)
+    try {
+      if (action === 'confirm') await confirmSalesOrder(id)
+      else if (action === 'ship') await shipSalesOrder(id)
+      else await deliverSalesOrder(id)
+      const d = await listSalesOrders()
+      if (d?.orders) setOrders(d.orders)
+    } catch (e) { console.error(e) }
+    setActing(null)
   }
-  const rows = orders.slice(0, 6).map((so: any) => [
-    so.so_no,
-    so.customer_name,
-    <Tag color={statusColor(so.status)}>{so.status}</Tag>,
-    so.total_amount ? `NT${Intl.NumberFormat('zh-TW').format(so.total_amount)}` : '-',
-    so.created_at ? so.created_at.slice(0, 10) : '-',
-  ])
-  return <SimpleTable title="📋 銷售訂單" headers={['SO#', '客戶', '狀態', '金額', '建立日期']} rows={rows} action="全部→" />
+
+  return (
+    <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4">
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-[10px] text-gray-500 uppercase tracking-wider">📋 銷售訂單</span>
+        <span className="text-[10px] text-cyan-400 cursor-pointer" onClick={() => listSalesOrders().then(d => { if (d?.orders) setOrders(d.orders) }).catch(() => {})}>🔄 刷新</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-gray-500 border-b border-gray-800">
+              <th className="text-left py-2 px-2">SO#</th>
+              <th className="text-left py-2 px-2">客戶</th>
+              <th className="text-left py-2 px-2">狀態</th>
+              <th className="text-right py-2 px-2">金額</th>
+              <th className="text-left py-2 px-2">日期</th>
+              <th className="text-center py-2 px-2">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.slice(0, 8).map((so: any) => (
+              <tr key={so.id} className="border-b border-gray-800/50 hover:bg-gray-800/20">
+                <td className="py-2 px-2 text-gray-200 font-mono">{so.so_no}</td>
+                <td className="py-2 px-2 text-gray-300">{so.customer_name || '-'}</td>
+                <td className="py-2 px-2">
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    so.status === 'draft' ? 'bg-gray-700 text-gray-300' :
+                    so.status === 'production' || so.status === 'confirmed' ? 'bg-yellow-500/20 text-yellow-400' :
+                    so.status === 'shipped' ? 'bg-green-500/20 text-green-400' :
+                    'bg-gray-700 text-gray-500'
+                  }`}>{so.status}</span>
+                </td>
+                <td className="py-2 px-2 text-right text-gray-200 font-mono">
+                  {so.total_amount ? `NT$${Intl.NumberFormat('zh-TW').format(so.total_amount)}` : '-'}
+                </td>
+                <td className="py-2 px-2 text-gray-400">{so.created_at?.slice(0, 10)}</td>
+                <td className="py-2 px-2 text-center">
+                  {so.status === 'draft' && (
+                    <button onClick={() => doAction(so.id, 'confirm')} disabled={acting === so.id}
+                      className="text-[10px] px-2 py-1 rounded bg-cyan-500/20 text-cyan-400 hover:bg-cyan-500/30 disabled:opacity-40">
+                      {acting === so.id ? '⋯' : '確認'}
+                    </button>
+                  )}
+                  {so.status === 'production' && (
+                    <button onClick={() => doAction(so.id, 'ship')} disabled={acting === so.id}
+                      className="text-[10px] px-2 py-1 rounded bg-green-500/20 text-green-400 hover:bg-green-500/30 disabled:opacity-40">
+                      {acting === so.id ? '⋯' : '出貨'}
+                    </button>
+                  )}
+                  {so.status === 'shipped' && (
+                    <button onClick={() => doAction(so.id, 'deliver')} disabled={acting === so.id}
+                      className="text-[10px] px-2 py-1 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 disabled:opacity-40">
+                      {acting === so.id ? '⋯' : '完成'}
+                    </button>
+                  )}
+                  {(so.status === 'delivered' || so.status === 'cancelled') && (
+                    <span className="text-[10px] text-gray-500">—</span>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {orders.length === 0 && (
+              <tr><td colSpan={6} className="text-center py-6 text-gray-500">暫無訂單</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 }
 
 // ─── CRM Events (業務) ──────────────────────────────────────────

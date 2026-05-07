@@ -137,7 +137,7 @@ export async function listSuppliers(search?: string) {
   return res.json()
 }
 
-// ─── Sales / CRM (業務) ──────────────────────────────────────────
+// ─── CRM / Sales ──────────────────────────────────────────────────
 
 export async function listCustomers(search?: string) {
   const q = search ? `?search=${encodeURIComponent(search)}` : ''
@@ -147,9 +147,7 @@ export async function listCustomers(search?: string) {
 
 export async function createCustomer(data: any) {
   const res = await fetch(`${API_BASE}/customers`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
@@ -168,11 +166,24 @@ export async function listSalesOrders(status?: string) {
 
 export async function createSalesOrder(data: any) {
   const res = await fetch(`${API_BASE}/so`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function confirmSalesOrder(id: number) {
+  const res = await fetch(`${API_BASE}/so/${id}/confirm`, { method: 'POST' })
+  return res.json()
+}
+
+export async function shipSalesOrder(id: number) {
+  const res = await fetch(`${API_BASE}/so/${id}/ship`, { method: 'POST' })
+  return res.json()
+}
+
+export async function deliverSalesOrder(id: number) {
+  const res = await fetch(`${API_BASE}/so/${id}/deliver`, { method: 'POST' })
   return res.json()
 }
 
@@ -183,9 +194,7 @@ export async function getCRMEvents(customerId: number) {
 
 export async function createCRMEvent(data: any) {
   const res = await fetch(`${API_BASE}/crm/events`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
   })
   if (!res.ok) throw new Error(`API error: ${res.status}`)
   return res.json()
