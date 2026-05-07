@@ -432,4 +432,81 @@ User Chat → LLM Orchestrator → Intent Classification → Domain Agent → To
 
 ---
 
+## 10. Scenario Walkthroughs
+
+End-to-end workflow demonstrations showing how to use LLM-ERP in real situations.
+
+### Scenario 1: Order-to-Delivery (End-to-End)
+
+**Situation: Customer ordered 3 units of CNC-001, due by May 15.**
+
+```
+Step    You Say                    System Response
+────────────────────────────────────────────────────────────────────────
+① Check stock     "Any CNC-001 in stock?"          Only 1 unit available
+② BOM check       "I need to build 3 CNC-001,     Shortage: 4 bearings,
+                   check material availability"       200 screws needed
+③ Create PO       "Order 4 bearings and 200       PO-20260507-001
+                   M6x20 screws from DaMing"          created
+④ Receive goods   "PO-20260507-001 arrived,       Stock updated:
+                   receive 4 bearings, 200 screws"    bearings:8, screws:350
+⑤ Dispatch        "Release work order for          WO-20260507-001
+                   3 CNC-001 units"                    released & scheduled
+⑥ Complete        "WO-20260507-001 done,          3 CNC-001 received
+                   all 3 units finished"               Work order closed
+⑦ Check cost      "What's the actual cost?"       Materials $X, Labor $Y,
+                                                      Total $Z
+```
+
+### Scenario 2: Exception Handling — Machine Breakdown
+
+**Situation: CNC-01 machine broke down. Orders need rescheduling.**
+
+```bash
+# ① Right-shift reschedule (fastest recovery)
+You → "CNC-01 is down, right-shift all operations by 2 hours"
+System → "All CNC-01 operations shifted +2h, estimated completion: 05/07 16:00"
+
+# ② Route change (if backup machine available)
+You → "CNC-01 down, switch all work to CNC-02"
+System → "Switched to CNC-02, orders rescheduled"
+
+# ③ Expedite (urgent order)
+You → "Emergency order WO-20260507-001, expedite it"
+System → "WO-20260507-001 moved to front of queue, ETA 3 days earlier"
+```
+
+### Scenario 3: Cross-Module Decision Support
+
+**Situation: Evaluating whether to accept a large order.**
+
+```bash
+# Comprehensive query
+You → "Customer wants 5 CNC-001, due 05/20. Can we take it?"
+System → "BOM check: materials available → ✅
+         Capacity check: CNC-01 has 40hr free before 05/15 → ✅
+         Purchase lead: bearings arrive 05/10 → ✅
+         Result: Accept! Estimated completion: 05/16"
+```
+
+### Scenario 4: Quality Issue Tracing
+
+**Situation: Customer reports quality issue with CNC-001.**
+
+```bash
+# ① Check NC records
+You → "Any quality issues recorded for CNC-001 recently?"
+System → "Found 1 NC: Lot LOT-B001, bearing dimension out of spec"
+
+# ② Create CAPA
+You → "Create a corrective action for NC-20260505-001"
+System → "CAPA created: Switch bearing supplier, add 100% incoming inspection"
+
+# ③ Trace back to supplier
+You → "Which supplier provided those bearings?"
+System → "DaMing Screws, score dropped from 4.2 to 3.5"
+```
+
+---
+
 *This manual corresponds to LLM-ERP v0.1.0. Updated: 2026-05-07.*

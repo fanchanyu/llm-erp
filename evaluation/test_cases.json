@@ -4,7 +4,9 @@
     "category": "Inventory",
     "query": "M6x20螺絲還有多少庫存？",
     "expected_intent": "query_inventory",
-    "expected_entities": {"part_no": "M6x20"},
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
     "validation_hint": "contains stock quantity for M6x20 or 螺絲"
   },
   {
@@ -12,7 +14,9 @@
     "category": "Inventory",
     "query": "我想查一下軸承BRG-001的庫存量",
     "expected_intent": "query_inventory",
-    "expected_entities": {"part_no": "BRG-001"},
+    "expected_entities": {
+      "part_no": "BRG-001"
+    },
     "validation_hint": "contains BRG-001 or 軸承 and a quantity number"
   },
   {
@@ -28,7 +32,9 @@
     "category": "Inventory",
     "query": "傳動件有哪些零件？庫存夠嗎？",
     "expected_intent": "query_inventory",
-    "expected_entities": {"category": "傳動件"},
+    "expected_entities": {
+      "category": "傳動件"
+    },
     "validation_hint": "contains 傳動件 parts (軸承, 滑軌, 滑塊, 皮帶)"
   },
   {
@@ -36,7 +42,9 @@
     "category": "Inventory",
     "query": "查一下馬達類零件的庫存狀況",
     "expected_intent": "query_inventory",
-    "expected_entities": {"name": "馬達"},
+    "expected_entities": {
+      "name": "馬達"
+    },
     "validation_hint": "contains 馬達 or MTR-001 or DRV-001"
   },
   {
@@ -44,7 +52,10 @@
     "category": "Purchase",
     "query": "幫我開一張採購單，向大明螺絲買 M6x20螺絲 200顆，單價0.5元",
     "expected_intent": "create_purchase_order",
-    "expected_entities": {"supplier": "大明螺絲", "part_no": "M6x20"},
+    "expected_entities": {
+      "supplier": "大明螺絲",
+      "part_no": "M6x20"
+    },
     "validation_hint": "contains PO number or 採購單 or 大明螺絲"
   },
   {
@@ -60,7 +71,9 @@
     "category": "Purchase",
     "query": "查一下供應商大明螺絲的資料",
     "expected_intent": "query_suppliers",
-    "expected_entities": {"supplier": "大明螺絲"},
+    "expected_entities": {
+      "supplier": "大明螺絲"
+    },
     "validation_hint": "contains 大明螺絲 or supplier info"
   },
   {
@@ -68,7 +81,9 @@
     "category": "Purchase",
     "query": "PO-20260505-001這張採購單的狀態是什麼？",
     "expected_intent": "query_purchase_orders",
-    "expected_entities": {"po_no": "PO-20260505-001"},
+    "expected_entities": {
+      "po_no": "PO-20260505-001"
+    },
     "validation_hint": "mentions PO-20260505-001 or 採購單 status"
   },
   {
@@ -76,7 +91,10 @@
     "category": "Purchase",
     "query": "幫我收貨，PO-20260505-001 的 M6x20入庫200顆",
     "expected_intent": "inbound_material",
-    "expected_entities": {"po_no": "PO-20260505-001", "part_no": "M6x20"},
+    "expected_entities": {
+      "po_no": "PO-20260505-001",
+      "part_no": "M6x20"
+    },
     "validation_hint": "mentions receiving or inbound or 收貨"
   },
   {
@@ -84,7 +102,9 @@
     "category": "BOM",
     "query": "ASM-001自動鎖螺絲機基座用了哪些零件？",
     "expected_intent": "query_bom",
-    "expected_entities": {"product_no": "ASM-001"},
+    "expected_entities": {
+      "product_no": "ASM-001"
+    },
     "validation_hint": "contains ASM-001 or BOM structure with parts list"
   },
   {
@@ -92,7 +112,10 @@
     "category": "BOM",
     "query": "ASM-001要做5台，需要多少料？幫我展開BOM",
     "expected_intent": "bom_explode",
-    "expected_entities": {"product_no": "ASM-001", "quantity": 5},
+    "expected_entities": {
+      "product_no": "ASM-001",
+      "quantity": 5
+    },
     "validation_hint": "contains BOM explosion or material requirements for 5 units"
   },
   {
@@ -100,7 +123,9 @@
     "category": "BOM",
     "query": "CNC-001小型CNC銑床的BOM結構是怎樣的？多階展開給我看",
     "expected_intent": "query_bom",
-    "expected_entities": {"product_no": "CNC-001"},
+    "expected_entities": {
+      "product_no": "CNC-001"
+    },
     "validation_hint": "contains CNC-001 or multi-level BOM structure"
   },
   {
@@ -108,7 +133,10 @@
     "category": "BOM",
     "query": "CNC-001要做5台，料夠不夠？幫我檢查缺料",
     "expected_intent": "check_stock_shortage",
-    "expected_entities": {"product_no": "CNC-001", "quantity": 5},
+    "expected_entities": {
+      "product_no": "CNC-001",
+      "quantity": 5
+    },
     "validation_hint": "contains shortage check result or 缺料 or material availability"
   },
   {
@@ -124,7 +152,9 @@
     "category": "Dispatch",
     "query": "幫我釋出工單 WO-20260506-001",
     "expected_intent": "release_order",
-    "expected_entities": {"order_no": "WO-20260506-001"},
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
     "validation_hint": "contains released or 釋出 or WO-20260506-001"
   },
   {
@@ -132,7 +162,9 @@
     "category": "Dispatch",
     "query": "查一下WO-20260506-001這張工單的狀態",
     "expected_intent": "query_work_orders",
-    "expected_entities": {"order_no": "WO-20260506-001"},
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
     "validation_hint": "contains WO-20260506-001 or 工單 status"
   },
   {
@@ -140,7 +172,9 @@
     "category": "Dispatch",
     "query": "WO-20260506-001已經釋出了，幫我派工排程",
     "expected_intent": "dispatch_order",
-    "expected_entities": {"order_no": "WO-20260506-001"},
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
     "validation_hint": "contains dispatched or 派工 or schedule"
   },
   {
@@ -148,7 +182,9 @@
     "category": "Dispatch",
     "query": "CNC-01機台故障了，需要維修，幫我把後面的工序往後推30分鐘",
     "expected_intent": "right_shift_reschedule",
-    "expected_entities": {"work_center": "CNC-01"},
+    "expected_entities": {
+      "work_center": "CNC-01"
+    },
     "validation_hint": "contains right-shift or 重排程 or CNC-01 or 推移"
   },
   {
@@ -164,7 +200,9 @@
     "category": "Quality",
     "query": "新增一張品檢單，檢驗M6x20螺絲，數量500顆，批號LOT-B001",
     "expected_intent": "create_inspection",
-    "expected_entities": {"part_no": "M6x20"},
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
     "validation_hint": "mentions inspection creation or 品檢單 or cannot create"
   },
   {
@@ -180,7 +218,9 @@
     "category": "Quality",
     "query": "NC-20260505-001的改善對策是什麼？幫我建立CAPA",
     "expected_intent": "direct_response",
-    "expected_entities": {"nc_no": "NC-20260505-001"},
+    "expected_entities": {
+      "nc_no": "NC-20260505-001"
+    },
     "validation_hint": "mentions CAPA or 改善 or NC-20260505-001"
   },
   {
@@ -220,7 +260,9 @@
     "category": "Accounting",
     "query": "查詢2026年5月的總帳分錄記錄",
     "expected_intent": "direct_response",
-    "expected_entities": {"period": "2026-05"},
+    "expected_entities": {
+      "period": "2026-05"
+    },
     "validation_hint": "mentions journal entries or 分錄 or GL"
   },
   {
@@ -228,7 +270,10 @@
     "category": "Cross-module",
     "query": "我要生產5台CNC-001，先幫我檢查料夠不夠，如果不夠就開採購單補料",
     "expected_intent": "check_stock_shortage",
-    "expected_entities": {"product_no": "CNC-001", "quantity": 5},
+    "expected_entities": {
+      "product_no": "CNC-001",
+      "quantity": 5
+    },
     "validation_hint": "contains shortage check or 缺料 for CNC-001"
   },
   {
@@ -236,7 +281,315 @@
     "category": "Cross-module",
     "query": "我想了解ASM-001的BOM結構，順便檢查庫存量夠不夠做3台",
     "expected_intent": "query_bom",
-    "expected_entities": {"product_no": "ASM-001"},
+    "expected_entities": {
+      "product_no": "ASM-001"
+    },
     "validation_hint": "contains ASM-001 BOM and stock information"
+  },
+  {
+    "id": "inv-inbound-06",
+    "category": "Inventory",
+    "query": "入庫M6x20螺絲500顆到A01貨架",
+    "expected_intent": "inbound_material",
+    "expected_entities": {
+      "part_no": "M6x20",
+      "quantity": 500
+    },
+    "validation_hint": "mentions inbound or 入庫 and M6x20 and quantity 500"
+  },
+  {
+    "id": "inv-outbound-07",
+    "category": "Inventory",
+    "query": "發料M6x20螺絲100顆給工單WO-20260506-001",
+    "expected_intent": "outbound_material",
+    "expected_entities": {
+      "part_no": "M6x20",
+      "order_no": "WO-20260506-001"
+    },
+    "validation_hint": "mentions outbound or 發料 or issue and work order number"
+  },
+  {
+    "id": "inv-location-08",
+    "category": "Inventory",
+    "query": "M6x20螺絲放在哪個貨架？查一下儲位",
+    "expected_intent": "query_inventory",
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
+    "validation_hint": "mentions location or 儲位 or 貨架 for M6x20"
+  },
+  {
+    "id": "inv-lowstock-09",
+    "category": "Inventory",
+    "query": "有哪些料件庫存量低於安全庫存？幫我列出來",
+    "expected_intent": "query_inventory",
+    "expected_entities": {},
+    "validation_hint": "identifies low stock or 低於安全庫存 items"
+  },
+  {
+    "id": "inv-transfer-10",
+    "category": "Inventory",
+    "query": "從A01貨架移動200顆M6x20到B02貨架",
+    "expected_intent": "direct_response",
+    "expected_entities": {
+      "part_no": "M6x20",
+      "from_location": "A01",
+      "to_location": "B02"
+    },
+    "validation_hint": "mentions transfer or 移動 between locations for M6x20"
+  },
+  {
+    "id": "pur-create-supplier-06",
+    "category": "Purchase",
+    "query": "新增供應商：永裕鋼鐵，聯絡人：王先生，電話：02-12345678",
+    "expected_intent": "create_supplier",
+    "expected_entities": {
+      "name": "永裕鋼鐵"
+    },
+    "validation_hint": "mentions supplier creation or 新增供應商 永裕鋼鐵"
+  },
+  {
+    "id": "pur-score-supplier-07",
+    "category": "Purchase",
+    "query": "查一下大明螺絲的供應商評分",
+    "expected_intent": "query_suppliers",
+    "expected_entities": {
+      "supplier": "大明螺絲"
+    },
+    "validation_hint": "mentions supplier score or 評分 for 大明螺絲"
+  },
+  {
+    "id": "pur-constraint-08",
+    "category": "Purchase",
+    "query": "我向大明螺絲下單M6x20螺絲，但我要買20,000顆，單價寫0.01元",
+    "expected_intent": "create_purchase_order",
+    "expected_entities": {
+      "supplier": "大明螺絲",
+      "part_no": "M6x20"
+    },
+    "validation_hint": "rejects or warns about price below cost constraint"
+  },
+  {
+    "id": "pur-update-09",
+    "category": "Purchase",
+    "query": "PO-20260505-001的數量改成300，幫我更新",
+    "expected_intent": "update_purchase_order",
+    "expected_entities": {
+      "po_no": "PO-20260505-001"
+    },
+    "validation_hint": "mentions updating PO or 修改採購單 and PO-20260505-001"
+  },
+  {
+    "id": "bom-compare-05",
+    "category": "BOM",
+    "query": "比較ASM-001和CNC-001兩張BOM的差異",
+    "expected_intent": "direct_response",
+    "expected_entities": {
+      "product_no": "ASM-001"
+    },
+    "validation_hint": "compares two BOMs or mentions 差異 between products"
+  },
+  {
+    "id": "bom-total-cost-06",
+    "category": "BOM",
+    "query": "CNC-001的BOM總材料成本是多少？",
+    "expected_intent": "bom_explode",
+    "expected_entities": {
+      "product_no": "CNC-001"
+    },
+    "validation_hint": "contains cost calculation or 材料成本 for CNC-001"
+  },
+  {
+    "id": "bom-substitute-07",
+    "category": "BOM",
+    "query": "ASM-001裡面的軸承BRG-001缺料，有替代料可以用嗎？",
+    "expected_intent": "check_stock_shortage",
+    "expected_entities": {
+      "product_no": "ASM-001",
+      "part_no": "BRG-001"
+    },
+    "validation_hint": "mentions substitute or 替代料 for BRG-001"
+  },
+  {
+    "id": "disp-complete-06",
+    "category": "Dispatch",
+    "query": "WO-20260506-001已經做完了，幫我報完工",
+    "expected_intent": "complete_order",
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
+    "validation_hint": "mentions completion or 完工 for WO-20260506-001"
+  },
+  {
+    "id": "disp-expedite-07",
+    "category": "Dispatch",
+    "query": "有急單WO-20260507-001，客戶要趕出貨，插隊優先處理",
+    "expected_intent": "expedite_order",
+    "expected_entities": {
+      "order_no": "WO-20260507-001"
+    },
+    "validation_hint": "mentions expedite or 插隊 or 急單 for work order"
+  },
+  {
+    "id": "disp-route-change-08",
+    "category": "Dispatch",
+    "query": "CNC-01故障，改到備用機台CNC-02生產",
+    "expected_intent": "route_change_reschedule",
+    "expected_entities": {
+      "work_center": "CNC-01"
+    },
+    "validation_hint": "mentions route change or 替代路徑 or 換機台"
+  },
+  {
+    "id": "disp-workcenter-load-09",
+    "category": "Dispatch",
+    "query": "查一下各工作站的負載狀況",
+    "expected_intent": "query_work_orders",
+    "expected_entities": {},
+    "validation_hint": "mentions work center load or 工作站負載 or capacity"
+  },
+  {
+    "id": "qual-inspect-result-05",
+    "category": "Quality",
+    "query": "IQC-20260505-001的檢驗結果是什麼？合格嗎？",
+    "expected_intent": "query_inspections",
+    "expected_entities": {
+      "inspection_no": "IQC-20260505-001"
+    },
+    "validation_hint": "mentions inspection result or 檢驗結果 for IQC-20260505-001"
+  },
+  {
+    "id": "qual-scrap-06",
+    "category": "Quality",
+    "query": "M6x20有50顆不良品要報廢處理",
+    "expected_intent": "create_nc",
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
+    "validation_hint": "mentions scrap or 報廢 for M6x20"
+  },
+  {
+    "id": "qual-nc-severity-07",
+    "category": "Quality",
+    "query": "NC-20260505-001的嚴重程度是什麼？需要怎麼處理？",
+    "expected_intent": "query_ncs",
+    "expected_entities": {
+      "nc_no": "NC-20260505-001"
+    },
+    "validation_hint": "mentions NC severity or 嚴重程度 for NC-20260505-001"
+  },
+  {
+    "id": "acct-month-close-06",
+    "category": "Accounting",
+    "query": "5月底到了，幫我執行月結",
+    "expected_intent": "direct_response",
+    "expected_entities": {
+      "period": "2026-05"
+    },
+    "validation_hint": "mentions month-end close or 月結 for May 2026"
+  },
+  {
+    "id": "acct-balance-07",
+    "category": "Accounting",
+    "query": "查一下銀行存款科目目前的餘額",
+    "expected_intent": "query_accounts",
+    "expected_entities": {
+      "account_no": "1101"
+    },
+    "validation_hint": "mentions account balance or 科目餘額 for 銀行存款"
+  },
+  {
+    "id": "acct-profit-08",
+    "category": "Accounting",
+    "query": "這個月的損益狀況如何？幫我算一下淨利",
+    "expected_intent": "direct_response",
+    "expected_entities": {
+      "period": "2026-05"
+    },
+    "validation_hint": "mentions profit/loss or 損益 or 淨利 for period"
+  },
+  {
+    "id": "cross-po-inv-03",
+    "category": "Cross-module",
+    "query": "M6x20的採購單PO-20260505-001貨到了嗎？入庫了沒？",
+    "expected_intent": "query_purchase_orders",
+    "expected_entities": {
+      "po_no": "PO-20260505-001",
+      "part_no": "M6x20"
+    },
+    "validation_hint": "links purchase order status with inventory receipt for M6x20"
+  },
+  {
+    "id": "cross-dispatch-inv-04",
+    "category": "Cross-module",
+    "query": "WO-20260506-001要做CNC-001，需要的料都備齊了嗎？",
+    "expected_intent": "check_stock_shortage",
+    "expected_entities": {
+      "order_no": "WO-20260506-001",
+      "product_no": "CNC-001"
+    },
+    "validation_hint": "checks material readiness for work order across BOM and inventory"
+  },
+  {
+    "id": "cross-quality-po-05",
+    "category": "Cross-module",
+    "query": "PO-20260505-001進貨的M6x20品質檢驗過了嗎？結果如何？",
+    "expected_intent": "query_inspections",
+    "expected_entities": {
+      "po_no": "PO-20260505-001",
+      "part_no": "M6x20"
+    },
+    "validation_hint": "links purchase order receipt with quality inspection results"
+  },
+  {
+    "id": "cross-supplier-po-06",
+    "category": "Cross-module",
+    "query": "大明螺絲的所有採購單記錄和供應商評分一起給我看",
+    "expected_intent": "query_suppliers",
+    "expected_entities": {
+      "supplier": "大明螺絲"
+    },
+    "validation_hint": "combines supplier info with PO history and score"
+  },
+  {
+    "id": "cross-cost-bom-po-07",
+    "category": "Cross-module",
+    "query": "CNC-001的材料成本跟採購價格比一比，看利潤多少",
+    "expected_intent": "bom_explode",
+    "expected_entities": {
+      "product_no": "CNC-001"
+    },
+    "validation_hint": "compares BOM material cost with purchase price for CNC-001"
+  },
+  {
+    "id": "cross-dispatch-account-08",
+    "category": "Cross-module",
+    "query": "WO-20260506-001完工了，這張工單的實際成本是多少？",
+    "expected_intent": "complete_order",
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
+    "validation_hint": "links work order completion with actual cost from accounting"
+  },
+  {
+    "id": "cross-inventory-quality-09",
+    "category": "Cross-module",
+    "query": "M6x20入庫500顆，但之前有不良品記錄，這批來料有檢驗嗎？",
+    "expected_intent": "inbound_material",
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
+    "validation_hint": "cross-references inventory inbound with quality history for M6x20"
+  },
+  {
+    "id": "cross-end-to-end-10",
+    "category": "Cross-module",
+    "query": "客戶訂了5台CNC-001，先查庫存夠不夠，不夠就開採購單，然後派工生產",
+    "expected_intent": "check_stock_shortage",
+    "expected_entities": {
+      "product_no": "CNC-001",
+      "quantity": 5
+    },
+    "validation_hint": "end-to-end flow: check stock → purchase → dispatch for CNC-001"
   }
 ]
