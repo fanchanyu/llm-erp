@@ -10,8 +10,20 @@ build/
 .env
 .env.local
 *.env
+# Python venv
+.venv/
 
-# IDE
+# Paper & journal (NOT for public repo)
+paper/
+PAPER_OUTLINE.md
+REFERENCES.md
+ROADMAP.md
+CLAUDE.md
+llm-erp-architecture.html
+sketches/
+work-logs/
+evaluation/provider-comparison.md
+evaluation/results*.json
 .vscode/
 .idea/
 *.swp
