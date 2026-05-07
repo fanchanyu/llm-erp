@@ -8,13 +8,14 @@ An open-source, LLM-powered Enterprise Resource Planning system with 7 modules. 
 
 | | Feature | Description |
 |---|---------|-------------|
-| 🗣️ | **Natural Language Interface** | Talk to your ERP. Ask questions, give commands, get answers. |
+| 🗣️ | **Bilingual Natural Language** | Chinese OR English. The system auto-detects your language. |
 | 🧠 | **7 Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / War Room |
 | 🔒 | **20 Constraint Rules** | Service-Enforcer Pattern — validate every write before execution |
 | ⚡ | **Event-Driven Engine** | Pub/Sub architecture with role-based real-time notifications |
 | 📊 | **War Room Dashboard** | SVG value-stream visualization with live event animations |
+| 📄 | **PDF Report Generation** | Ask "Generate inventory report" — get a formatted PDF |
 | 🤖 | **Multi-Provider** | DeepSeek / Anthropic / OpenAI / Ollama / OpenRouter |
-| 📈 | **30-Test Benchmark** | DeepSeek 90% / Gemma4 local 83% |
+| 📈 | **75-Test Benchmark** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
 
 ---
 
