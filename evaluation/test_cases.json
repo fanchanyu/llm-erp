@@ -591,5 +591,143 @@
       "quantity": 5
     },
     "validation_hint": "end-to-end flow: check stock → purchase → dispatch for CNC-001"
+  },
+  {
+    "id": "en-inv-01",
+    "category": "EN-Inventory",
+    "query": "How many M6x20 screws are in stock?",
+    "expected_intent": "query_inventory",
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
+    "validation_hint": "contains quantity/stock/庫存 information for M6x20 or 螺絲"
+  },
+  {
+    "id": "en-inv-02",
+    "category": "EN-Inventory",
+    "query": "Show me all inventory items",
+    "expected_intent": "query_inventory",
+    "expected_entities": {},
+    "validation_hint": "lists multiple inventory items with stock quantities"
+  },
+  {
+    "id": "en-pur-01",
+    "category": "EN-Purchase",
+    "query": "Create a purchase order to DaMing Screws for 200 M6x20 screws at $0.50 each",
+    "expected_intent": "create_purchase_order",
+    "expected_entities": {
+      "supplier": "DaMing Screws",
+      "part_no": "M6x20"
+    },
+    "validation_hint": "contains PO number or purchase order or DaMing"
+  },
+  {
+    "id": "en-pur-02",
+    "category": "EN-Purchase",
+    "query": "List all current purchase orders",
+    "expected_intent": "query_purchase_orders",
+    "expected_entities": {},
+    "validation_hint": "responds about purchase orders or PO list"
+  },
+  {
+    "id": "en-pur-03",
+    "category": "EN-Purchase",
+    "query": "Check supplier DaMing Screws information and score",
+    "expected_intent": "query_suppliers",
+    "expected_entities": {
+      "supplier": "DaMing Screws"
+    },
+    "validation_hint": "contains DaMing Screws or supplier info or score"
+  },
+  {
+    "id": "en-bom-01",
+    "category": "EN-BOM",
+    "query": "Show me the BOM structure for CNC-001",
+    "expected_intent": "query_bom",
+    "expected_entities": {
+      "product_no": "CNC-001"
+    },
+    "validation_hint": "contains CNC-001 or BOM structure with parts list"
+  },
+  {
+    "id": "en-bom-02",
+    "category": "EN-BOM",
+    "query": "I need to build 5 units of CNC-001. Check if materials are available",
+    "expected_intent": "check_stock_shortage",
+    "expected_entities": {
+      "product_no": "CNC-001",
+      "quantity": 5
+    },
+    "validation_hint": "contains shortage check result or material availability for CNC-001"
+  },
+  {
+    "id": "en-disp-01",
+    "category": "EN-Dispatch",
+    "query": "List all work orders",
+    "expected_intent": "query_work_orders",
+    "expected_entities": {},
+    "validation_hint": "lists work orders with order numbers and status"
+  },
+  {
+    "id": "en-disp-02",
+    "category": "EN-Dispatch",
+    "query": "Release work order WO-20260506-001",
+    "expected_intent": "release_order",
+    "expected_entities": {
+      "order_no": "WO-20260506-001"
+    },
+    "validation_hint": "contains released or WO-20260506-001"
+  },
+  {
+    "id": "en-disp-03",
+    "category": "EN-Dispatch",
+    "query": "CNC-01 machine broke down, right-shift by 30 minutes",
+    "expected_intent": "right_shift_reschedule",
+    "expected_entities": {
+      "work_center": "CNC-01"
+    },
+    "validation_hint": "contains right-shift or reschedule or CNC-01"
+  },
+  {
+    "id": "en-qual-01",
+    "category": "EN-Quality",
+    "query": "Show all inspection records",
+    "expected_intent": "query_inspections",
+    "expected_entities": {},
+    "validation_hint": "mentions inspection or 品檢 records"
+  },
+  {
+    "id": "en-qual-02",
+    "category": "EN-Quality",
+    "query": "Are there any non-conformances (NC) for M6x20?",
+    "expected_intent": "query_ncs",
+    "expected_entities": {
+      "part_no": "M6x20"
+    },
+    "validation_hint": "mentions NC or non-conformance or 不良 for M6x20"
+  },
+  {
+    "id": "en-acct-01",
+    "category": "EN-Accounting",
+    "query": "Show me the AR aging report — which invoices are overdue?",
+    "expected_intent": "check_ar_overdue",
+    "expected_entities": {},
+    "validation_hint": "mentions overdue or AR or aging report"
+  },
+  {
+    "id": "en-acct-02",
+    "category": "EN-Accounting",
+    "query": "Generate an inventory report as PDF",
+    "expected_intent": "direct_response",
+    "expected_entities": {},
+    "validation_hint": "mentions report or PDF or inventory report"
+  },
+  {
+    "id": "en-report-01",
+    "category": "EN-Reports",
+    "query": "Generate the monthly P&L report for May 2026",
+    "expected_intent": "direct_response",
+    "expected_entities": {},
+    "validation_hint": "mentions report or P&L or monthly or 損益表"
   }
 ]

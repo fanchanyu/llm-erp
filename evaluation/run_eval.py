@@ -40,14 +40,19 @@ HTTP_TIMEOUT = 60  # seconds (LLM calls can be slow)
 
 # Intent keyword signatures: what the reply should mention if a given tool was called
 INTENT_SIGNATURES = {
+
     "query_inventory": ["庫存", "庫存量", "庫存數", "庫存狀況", "庫存列表",
                         "庫存查詢", "庫存資訊", "庫存記錄", "庫存資料", "庫存明細",
                         "庫存一覽", "庫存清單", "庫存狀況", "庫存狀態",
-                        "庫存資料", "庫存數量", "庫存餘額"],
+                        "庫存資料", "庫存數量", "庫存餘額", "stock", "inventory",
+                        "quantity", "on hand"],
     "create_purchase_order": ["採購單", "PO-", "purchase order", "採購訂單",
-                               "已建立", "已開立", "已開單", "已建立採購單"],
+                              "已建立", "已開立", "已開單", "已建立採購單",
+                              "PO has been created", "PO created", "created"],
     "query_bom": ["BOM", "物料清單", "物料表", "用料", "零件表", "BOM結構",
-                   "材料清單", "物料結構"],
+                  "材料清單", "物料結構", "bill of materials", "parts list",
+                  "components", "structure"],
+
     "bom_explode": ["展開", "爆炸", "explode", "需求", "需要", "BOM展開",
                      "物料需求", "材料需求"],
     "check_stock_shortage": ["缺料", "料不夠", "短缺", "shortage", "庫存不足",
@@ -88,7 +93,8 @@ INTENT_SIGNATURES = {
 
 # Module display order for summary
 MODULE_ORDER = [
-    "Inventory", "Purchase", "BOM", "Dispatch", "Quality", "Accounting", "Cross-module"
+    "Inventory", "Purchase", "BOM", "Dispatch", "Quality", "Accounting", "Cross-module",
+    "EN-Inventory", "EN-Purchase", "EN-BOM", "EN-Dispatch", "EN-Quality", "EN-Accounting", "EN-Reports"
 ]
 
 
@@ -138,12 +144,13 @@ def validate_response(reply: str, hint: str, expected_entities: dict = None) -> 
     # Check for specific data patterns (part numbers, supplier names, order numbers, stock counts)
     data_patterns = {
         "part_number": [r'[A-Z]+-\d+', r'M6x20', r'BRG-\d+', r'MTR-\d+', r'DRV-\d+',
-                        r'CNC-\d+', r'ASM-\d+'],
-        "supplier_name": ['大明螺絲', '電機王', '供應商'],
+                        r'CNC-\d+', r'ASM-\d+', r'[A-Z]+-\d{4,}'],
+        "supplier_name": ['大明螺絲', '電機王', '供應商', 'DaMing', 'Screws'],
         "order_number": [r'PO-\d+', r'WO-\d+', r'IQC-\d+', r'NC-\d+', r'JE-\d+'],
-        "stock_count": [r'\d+[,\.]\d+', r'\d+ 顆', r'\d+ 件', r'\d+ 個', r'\d+ pcs'],
+        "stock_count": [r'\d+[,\.]\d+', r'\d+ 顆', r'\d+ 件', r'\d+ 個', r'\d+ pcs',
+                        r'\d+ units', r'\d+ items', r'quantity', r'stock'],
         "status": ['draft', 'pending', 'released', 'dispatched', 'approved',
-                   'rejected', 'open', 'overdue', 'paid'],
+                   'rejected', 'open', 'overdue', 'paid', 'completed'],
     }
 
     # Check entity-specific data
