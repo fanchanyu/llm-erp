@@ -2,78 +2,81 @@
 
 > Talk to your ERP. Let AI handle the rest.
 
-一套以 LLM 為核心的智慧企業資源規劃系統（ERP），讓使用者透過自然語言管理庫存、採購、BOM 與生產排程。
+一個以 LLM 驅動的開源智慧企業資源規劃系統（ERP）。支援 7 大模組，使用者透過自然語言管理整個工廠流程。
 
 ## 核心特色
 
-- **🗣️ LLM-First 操作** — 用講話的管工廠，不需要點選單
-- **🧠 多 Agent 協作** — 庫存 Agent、採購 Agent、BOM Agent 各自獨立又協同
-- **🔁 閉環控制** — 繼承工業 4.0 Closed-loop 架構，即時回饋與動態調整
-- **📈 可進化** — 模組化設計，可逐步加入排程、品質、財務等模組
-- **✅ ERP 原則對齊** — 嚴格遵循 MPS → MRP → CRP 規劃流程
+- **🗣️ Natural Language Interface** — 用講話的管工廠，不需要點選單或 T-code
+- **🧠 7 模組** — 庫存 / 採購 / BOM / 派工 / 品質 / 會計 / 戰情室
+- **🔒 20 條約束規則** — Service-Enforcer Pattern，寫入前強制驗證
+- **⚡ 事件驅動引擎** — Pub/Sub 架構，跨角色即時通知
+- **📊 戰情室 War Room** — SVG 價值流儀表板 + 即時事件動畫
+- **🤖 Multi-Provider** — 支援 DeepSeek / Anthropic / OpenAI / Ollama
+- **📈 30 題 Benchmark: 90% (DeepSeek) / 93% (Gemma4 local)**
 
 ## 快速開始
 
 ```bash
-# 1. 啟動 PostgreSQL
-docker compose up -d postgres
-
-# 2. 啟動 Backend
+# 1. 啟動 Backend (開發環境用 SQLite，零依賴)
 cd backend
-cp .env.example .env   # 編輯 .env 填入 ANTHROPIC_API_KEY
+cp .env.example .env   # 編輯 .env 填入 LLM API Key
 pip install -r requirements.txt
 uvicorn app.main:app --reload
 
-# 3. 啟動 Frontend
+# 2. 啟動 Frontend
 cd frontend
 npm install
 npm run dev
+
+# 3. 對話測試
+# 打開 http://localhost:5173 開始用自然語言操作 ERP
 ```
 
-## 架構
+## 系統架構
 
 ```
-User Chat → LLM Orchestrator → Intent Classification → Domain Agent → Tool Call → DB
+User Chat → LLM Orchestrator → Intent Classification → Domain Agent → Tool Call → DB / Event Bus
+                                      ↓
+                             Constraint Checker (20 rules)
+                                      ↓
+                             Response + Notifications (role-based)
 ```
 
-### 三層架構
+7 領域服務 + 事件引擎 + 22 資料表 + 27 LLM Tools
 
-| 層級 | 對應 | 說明 |
-|------|------|------|
-| 🧠 戰略層 | MPS / MRP / CRP | 決定「做什麼、何時做、用什麼做」 |
-| ⚙️ 戰術層 | APS / BOM 展開 | 決定「怎麼做最好、資源怎麼分配」 |
-| 🏭 執行層 | MES / 庫存異動 | 執行任務 + 即時回饋 |
+| 模組 | 功能 | 約束 |
+|------|------|:----:|
+| 📦 庫存 | 料號管理、庫存查詢、入出庫異動 | 4 |
+| 📋 採購 | 供應商管理、採購單生命週期 | 4 |
+| 📐 BOM | 多階展開、缺料檢查、物料需求 | 4 |
+| ⚙️ 派工 | 工單管理、機台排程、動態重排程 | 4 |
+| ✅ 品質 | 檢驗單、不合格品(NC)、矯正措施(CAPA) | 2 |
+| 💰 會計 | 會計科目、傳票、AR逾期、月結 | 4 |
+| 🏭 戰情室 | SVG 價值流即時儀表板 | — |
+
+## Provider 切換
+
+```bash
+# 編輯 backend/.env
+LLM_PROVIDER=deepseek|ollama|anthropic|openai|openrouter
+LLM_MODEL=deepseek-chat|gemma4:e4b|claude-sonnet-4|gpt-4o
+MAX_TOOL_ROUNDS=5       # cloud=5, local=8-10
+
+# 執行 Benchmark
+cd evaluation && python3 run_eval.py --verbose
+```
+
+## 論文
+
+投稿 **Engineering Applications of AI (EAAI, Elsevier, IF 7.5)**
+
+- 論文全文: `paper/llm-erp-eaai.md`
+- 30 題 Benchmark: DeepSeek 27/30 (90%) / Gemma4 28/30 (93%)
+- 74 篇驗證文獻
 
 ## 技術棧
 
-- **Backend:** Python FastAPI + SQLAlchemy + PostgreSQL
-- **Frontend:** React + TypeScript + Tailwind CSS + Vite
-- **LLM:** Anthropic Claude (Function Calling)
-- **Vector:** pgvector (對話記憶 & RAG)
-
-## 專案結構
-
-```
-llm-erp/
-├── backend/
-│   ├── app/
-│   │   ├── api/        # REST API 端點
-│   │   ├── agents/     # LLM Agent (每模組一個)
-│   │   ├── services/   # 業務邏輯層
-│   │   ├── models/     # SQLAlchemy 資料模型
-│   │   ├── schemas/    # Pydantic 驗證 schema
-│   │   └── tools/      # LLM function calling 工具
-│   └── tests/
-├── frontend/
-│   └── src/
-│       ├── components/ # React 組件
-│       ├── hooks/      # 自訂 hooks
-│       └── api/        # API client
-└── docker-compose.yml
-```
-
-## 開發路線圖
-
-- **Phase 1:** Chat UI + 庫存 + 採購 + BOM（MVP）
-- **Phase 2:** 生產排程 Agent + 動態重排程 + 報表
-- **Phase 3:** 多 Agent 協作 + 數位孿生 + RAG 知識庫
+- **Backend:** Python FastAPI + SQLAlchemy + SQLite (dev) / PostgreSQL (prod)
+- **Frontend:** React 18 + TypeScript + Tailwind CSS + Vite + i18n
+- **LLM:** DeepSeek / Anthropic Claude / OpenAI GPT / Ollama (local)
+- **Event:** In-process pub/sub bus, role-based routing

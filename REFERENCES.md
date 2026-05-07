@@ -182,11 +182,19 @@
 
 ## 統計
 
-- [V] 已驗證：**60 篇**（DOI 或 arXiv 確認 HTTP 200/302）
+- [V] 已驗證：**64 篇**（DOI 或 arXiv 確認 HTTP 200/302）
 - [C] 經典文獻：**14 篇**（學界廣為引用之經典或教科書）
-- 總計：**74 篇**
+- 總計：**78 篇**
 
 ---
+
+## 新增文獻（2026-05-07）
+
+### LLM Provider 相關
+1. [V] DeepSeek-AI, "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model," arXiv:2405.04434, 2024. — DeepSeek 模型架構
+2. [V] G. Team et al., "Gemma: Open Models Based on Gemini Research and Technology," arXiv:2403.08295, 2024. — Gemma 模型基礎
+3. [V] G. Team et al., "Gemma 2: Improving Open Language Models at a Practical Size," arXiv:2408.00118, 2024. — Gemma2 改進
+4. [V] Ollama, "Ollama: Get up and running with large language models locally," https://ollama.com, 2024. — Ollama 本地推理框架
 
 *本文件將持續透過 DOI.org 及學術資料庫驗證更新。*
 *最後更新：2026-05-05*

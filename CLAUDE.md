@@ -3,14 +3,19 @@
 > Talk to your ERP. Let AI handle the rest.
 
 ## Stack
-- Backend: Python FastAPI + SQLAlchemy + PostgreSQL + pgvector
+- Backend: Python FastAPI + SQLAlchemy + SQLite (dev) / PostgreSQL (prod)
 - Frontend: React + TypeScript + Tailwind CSS + Vite
 - LLM: Multi-provider (Anthropic / OpenAI / DeepSeek / OpenRouter / Ollama) via function calling
+- Event Engine: In-process pub/sub with 10 event types, role-based routing
 - Auth: Session-based (Phase 1)
 
 ## Architecture
 ```
-User Chat → LLM Orchestrator → Intent Classification → Domain Agent → Tool Call → DB
+User Chat → LLM Orchestrator → Intent Classification → Domain Agent → Tool Call → DB / Event Bus
+                                               ↓
+                                      Constraint Checker (20 rules)
+                                               ↓
+                                      Response + Notifications (role-based)
 ```
 
 ## Key Conventions
@@ -20,44 +25,40 @@ User Chat → LLM Orchestrator → Intent Classification → Domain Agent → To
 - Tool definitions (JSON Schema) in `backend/app/tools/`
 - Tests in `backend/tests/` mirror the app structure
 - Alembic for all DB migrations
+- Every write operation passes through ConstraintBlocked → 422 middleware
 
-## How to Run
-```bash
-# Backend
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-
-# Frontend
-cd frontend
-npm install
-npm run dev
-
-# DB
-docker compose up -d postgres
-```
+## Config
+- `.env`: LLM_PROVIDER, LLM_MODEL, API keys, MAX_TOOL_ROUNDS
+- `MAX_TOOL_ROUNDS=5` for cloud models, `8-10` for local models
 
 ## MVP Modules (Phase 1)
 1. **Chat Interface** — Natural language ERP interaction
-2. **Inventory** — Query stock, inbound/outbound
-3. **Purchase** — Create and track purchase orders
-4. **BOM** — Bill of Materials management
+2. **Inventory** — Query stock, inbound/outbound (4 constraints)
+3. **Purchase** — Create and track purchase orders (4 constraints)
+4. **BOM** — Bill of Materials management (4 constraints)
+5. **Dispatch** — Production scheduling, right-shift/route-change reschedule (4 constraints)
+6. **Quality** — Inspection orders, non-conformance tracking, CAPA (2 constraints)
+7. **Accounting** — Journal entries, AR aging, month-end close (4 constraints)
 
 ## Project Structure
 ```
 llm-erp/
 ├── backend/           # FastAPI + SQLAlchemy
 │   ├── app/
-│   │   ├── api/       # REST endpoints
-│   │   ├── agents/    # LLM agents per domain
-│   │   ├── services/  # Business logic
-│   │   ├── models/    # SQLAlchemy models
+│   │   ├── api/       # REST endpoints (~42 routes)
+│   │   ├── agents/    # LLM orchestrator + providers
+│   │   ├── services/  # 7 domain services (business logic)
+│   │   ├── models/    # SQLAlchemy models (22 tables)
 │   │   ├── schemas/   # Pydantic schemas
-│   │   └── tools/     # LLM tool definitions
-│   └── tests/
-├── frontend/          # React + Vite + Tailwind
+│   │   ├── tools/     # 27 LLM tool definitions
+│   │   └── event_engine/ # pub/sub event bus
+│   ├── tests/
+│   └── .env
+├── frontend/          # React + Vite + Tailwind + i18n
+│   └── public/war-room.html
+├── evaluation/        # 30-test benchmark + provider comparison
+├── paper/             # EAAI manuscript + figures
 └── docker-compose.yml
-```
 
 ## LLM Agent Pattern
 ```python
@@ -72,4 +73,16 @@ class InventoryAgent:
         # 3. Call the matching tool function
         # 4. LLM generates natural language response
         ...
+```
+
+## Provider Switching
+```bash
+# To switch LLM provider:
+# 1. Edit backend/.env: LLM_PROVIDER=deepseek|ollama|anthropic|openai|openrouter
+# 2. Set LLM_MODEL (e.g. deepseek-chat, gemma4:e4b)
+# 3. For local models, increase MAX_TOOL_ROUNDS=8
+# Backend auto-reloads on .env change (uvicorn --reload)
+
+# Run benchmark:
+cd evaluation && python3 run_eval.py --verbose
 ```
