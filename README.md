@@ -2,19 +2,20 @@
 
 > Talk to your ERP. Let AI handle the rest.
 
-An open-source, LLM-powered Enterprise Resource Planning system with 7 modules. Manage your factory floor through **natural language** — no menu clicking, no T-codes to memorize.
+An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. Manage your factory floor and customer relationships through **natural language** — no menu clicking, no T-codes to memorize.
 
 ## Features
 
 | | Feature | Description |
 |---|---------|-------------|
 | 🗣️ | **Bilingual Natural Language** | Chinese OR English. The system auto-detects your language. |
-| 🧠 | **7 Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / War Room |
+| 🧠 | **8 Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / CRM / War Room |
 | 🔒 | **20 Constraint Rules** | Service-Enforcer Pattern — validate every write before execution |
 | ⚡ | **Event-Driven Engine** | Pub/Sub architecture with role-based real-time notifications |
 | 📊 | **War Room Dashboard** | SVG value-stream visualization with live event animations |
 | 📄 | **PDF Report Generation** | Ask "Generate inventory report" — get a formatted PDF |
 | 🤖 | **Multi-Provider** | DeepSeek / Anthropic / OpenAI / Ollama / OpenRouter |
+| 🧑‍💼 | **CRM Module** | Customer master, sales orders, opportunity pipeline, interaction events |
 | 📈 | **75-Test Benchmark** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
 
 ---
@@ -92,6 +93,8 @@ python -m scripts.manage_data schema
 | `10-quality.csv` | Inspection Orders | `inspection_no`, `part_no`, `quantity` | parts |
 | `11-accounting.csv` | Journal Entries | `entry_no`, `description`, `entry_date`, `period`, `line_account_no`, `line_debit`, `line_credit` | accounts |
 | `12-ar.csv` | Accounts Receivable | `customer_name`, `invoice_no`, `amount`, `due_date` | — |
+| `13-customers.csv` | Customers | `customer_no`, `name`, `contact_person`, `level` | — |
+| `14-sales-orders.csv` | Sales Orders | `so_no`, `customer_no`, `item_part_no`, `item_quantity`, `unit_price` | customers |
 
 ---
 
@@ -105,7 +108,7 @@ User Chat → LLM Orchestrator → Intent Classification → Domain Agent → To
                              Response + Notifications (role-based)
 ```
 
-7 domain services + event engine + 22 tables + 27 LLM Tools
+8 domain services + event engine + 22 tables + 27 LLM Tools
 
 | Module | Features | Constraints |
 |--------|----------|:-----------:|
@@ -115,6 +118,7 @@ User Chat → LLM Orchestrator → Intent Classification → Domain Agent → To
 | ⚙️ Dispatch | Work order management, machine scheduling, dynamic rescheduling | 4 |
 | ✅ Quality | Inspection orders, non-conformance tracking, CAPA | 2 |
 | 💰 Accounting | Chart of accounts, journal entries, AR aging, month-end close | 4 |
+| 🤝 CRM | Customer management, opportunity pipeline, sales order lifecycle, lead tracking | 4 |
 | 🏭 War Room | SVG value-stream dashboard, real-time event animations | — |
 
 ---
