@@ -1,0 +1,6 @@
+name,description,status,capacity_hours,efficiency,location,alternate_group
+CNC-01,CNC 加工中心,idle,8.0,0.95,A區,cnc_group
+銑床-01,立式銑床,idle,8.0,0.90,A區,mill_group
+鑽床-01,鑽孔機,idle,8.0,0.85,B區,drill_group
+裝配線A,主裝配線,idle,8.0,1.0,C區,assembly
+QC-01,品檢站,idle,8.0,1.0,C區,qc

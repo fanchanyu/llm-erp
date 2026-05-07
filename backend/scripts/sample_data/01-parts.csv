@@ -1,0 +1,13 @@
+part_no,name,spec,unit,category
+M6x20,不鏽鋼螺絲 M6x20,SUS304 M6x20 全牙,pcs,緊固件
+M8x30,碳鋼螺絲 M8x30,12.9級 碳鋼 M8x30,pcs,緊固件
+PLT-001,底板 300x200mm,Q235 雷切底板 300x200x5mm,pcs,鈑金件
+PLT-002,側板 200x150mm,Q235 雷切側板 200x150x3mm,pcs,鈑金件
+MTR-001,馬達 400W,交流伺服馬達 400W 220V,pcs,電機
+DRV-001,驅動器 400W,數位驅動器 400W 相容MTR-001,pcs,電機
+CBL-001,電源線 1.5m,3芯 2.0mm² 電源線 1.5米,pcs,線材
+CBL-002,編碼器線 3m,編碼器訊號線 3米,pcs,線材
+BRG-001,軸承 6205,深溝滾珠軸承 6205ZZ,pcs,傳動件
+SLR-001,線性滑軌 500mm,線性滑軌 HGH20 500mm,pcs,傳動件
+BLK-001,滑塊 HGH20,直線滑塊 HGH20-CA,pcs,傳動件
+TIM-001,時規皮帶 600mm,時規皮帶 HTD 5M 600mm,pcs,傳動件

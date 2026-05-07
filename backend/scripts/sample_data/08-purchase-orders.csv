@@ -1,0 +1,3 @@
+po_no,supplier_name,status,ordered_by,notes,item_part_no,item_quantity,item_unit_price,item_expected_delivery,item_received_qty
+PO-20260505-001,大明螺絲,draft,seed,測試採購單,M6x20,500,0.50,2026-06-01,0
+PO-20260505-001,大明螺絲,draft,seed,測試採購單,M8x30,300,0.80,2026-06-01,0

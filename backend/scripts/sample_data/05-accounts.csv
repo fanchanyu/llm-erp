@@ -1,0 +1,13 @@
+account_no,name,type,normal_balance,is_active
+1101,現金,asset,debit,true
+1102,銀行存款,asset,debit,true
+1201,應收帳款,asset,debit,true
+1301,庫存原料,asset,debit,true
+1302,在製品,asset,debit,true
+1303,庫存成品,asset,debit,true
+2101,應付帳款,liability,credit,true
+2102,暫估應付,liability,credit,true
+3101,股本,equity,credit,true
+4101,銷貨收入,revenue,credit,true
+5101,原料成本,expense,debit,true
+5102,製造費用,expense,debit,true

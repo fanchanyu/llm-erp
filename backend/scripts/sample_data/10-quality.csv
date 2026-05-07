@@ -1,0 +1,2 @@
+inspection_no,part_no,po_no,lot_no,quantity,status,inspection_date,inspected_by,item_no,description,spec_value,measured_value,result,notes
+IQC-20260505-001,M6x20,PO-20260505-001,LOT-A001,500,pending,2026-05-05 10:00:00,QC-Team,,,,,,

@@ -1,0 +1,4 @@
+order_no,product_no,product_name,quantity,due_date,priority,status,notes,created_by
+WO-20260507-001,ASM-001,自動鎖螺絲機基座,10,2026-05-12,2,released,自動鎖螺絲機基座 x10,seed
+WO-20260507-002,CNC-001,小型CNC銑床,5,2026-05-17,3,released,小型CNC銑床 x5,seed
+WO-20260507-003,ASM-001,自動鎖螺絲機基座,8,2026-05-14,1,released,急單-自動鎖螺絲機基座 x8,seed

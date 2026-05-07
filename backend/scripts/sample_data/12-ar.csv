@@ -1,0 +1,2 @@
+customer_name,invoice_no,amount,due_date,paid_amount,status
+客戶A-精密機械,INV-20260505-001,150000.0,2026-06-05,0,open
