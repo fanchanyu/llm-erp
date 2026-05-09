@@ -77,6 +77,8 @@ curl -X POST http://localhost:8000/api/factory/config \
 
 ## 🚀 快速啟動（5 分鐘）
 
+> **關於 LLM 模型選擇：** 本系統包含 37 個工具定義，雲端模型（DeepSeek、Claude、GPT）完全沒問題。本地小 context 模型（如 Gemma4 8B ~8K tokens）可能無法一次載入全部工具定義，這是該模型本身的限制，非系統問題。建議使用 DeepSeek（$0.5/百萬 token）獲得最佳體驗。
+
 ```bash
 # 前置需求：Python 3.11+、Node.js 18+、LLM API Key
 

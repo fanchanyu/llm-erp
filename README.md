@@ -121,6 +121,8 @@ See **[docs/test-scenarios.md](docs/test-scenarios.md)** for 3 complete end-to-e
 
 ## 🚀 Quick Start (5 minutes)
 
+> **Note on LLM models:** This system includes 37 tool definitions. Cloud models (DeepSeek, Claude, GPT) handle this easily. Local models with small context windows (Gemma4 8B ~8K tokens) may struggle with the full tool set. If using a local model, reduce tool count in `orchestrator.py` or use DeepSeek ($0.5/M tokens).
+
 ```bash
 # Prerequisites: Python 3.11+, Node.js 18+, and an LLM API key
 
