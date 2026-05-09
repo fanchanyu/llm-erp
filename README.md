@@ -11,14 +11,68 @@ An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. 
 | | Feature | Description |
 |---|---------|-------------|
 | 🗣️ | **Bilingual Natural Language** | Chinese OR English. The system auto-detects your language. |
-| 🧠 | **8 Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / CRM / War Room |
-| 🔒 | **20 Constraint Rules** | Service-Enforcer Pattern — validate every write before execution |
-| ⚡ | **Event-Driven Engine** | Pub/Sub architecture with role-based real-time notifications |
-| 📊 | **War Room Dashboard** | SVG value-stream visualization with live event animations |
-| 📄 | **PDF Report Generation** | Ask "Generate inventory report" — get a formatted PDF |
-| 🤖 | **Multi-Provider** | DeepSeek / Anthropic / OpenAI / Ollama / OpenRouter |
-| 🧑‍💼 | **CRM Module** | Customer master, sales orders, opportunity pipeline, interaction events |
-| 📈 | **75-Test Benchmark** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
+|| 🧠 | **12+ Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / CRM / War Room / Leads / Opportunities / Contracts / Decision AAR |
+|| 🔒 | **25 Constraint Rules** | Service-Enforcer Pattern — validate every write before execution |
+|| ⚡ | **Event-Driven Engine** | Pub/Sub architecture with role-based real-time notifications |
+|| 📊 | **War Room Dashboard** | SVG value-stream visualization with live event animations |
+|| 📄 | **PDF Report Generation** | Ask "Generate inventory report" — get a formatted PDF |
+|| 🤖 | **Multi-Provider** | DeepSeek / Anthropic / OpenAI / Ollama / OpenRouter |
+|| 🧑‍💼 | **CRM + Sales Pipeline** | Customer master, leads, opportunities, sales orders, contracts, interaction events |
+|| 👥 | **3 Factory Types** | MTO (make-to-order), MTS (make-to-stock), ETO (engineer-to-order) — configurable pipeline, forms, and cash flow rules |
+|| 💰 | **Cash Flow Constraints** | Cash position check before PO creation, rush order financial assessment, AR-blocked shipment |
+|| 📋 | **Decision Audit + AAR** | Every major decision logged, After Action Review cycle with lessons learned |
+|| 📈 | **75-Test Benchmark** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
+
+---
+
+## 👥 Target Audience (適用對象 / 目標族群)
+
+This system is built for three distinct user groups:
+
+### 🏭 1-1. Manufacturing SMEs (中小型製造業) — 50~500 employees
+
+| Factory Type | Description | Key Pain Points |
+|-------------|-------------|-----------------|
+| **MTO** (Make-to-Order) 訂單式生產 | 機械加工、模具、零件製造 | Each order differs — drawing management, rush order scheduling, material costing |
+| **MTS** (Make-to-Stock) 存貨式生產 | 消費品、電子零件、包材 | Forecast accuracy, stockout vs overstock, bulk contract pricing |
+| **ETO** (Engineer-to-Order) 專案式生產 | 自動化設備、特種機械、系統整合 | Long cycle time, milestone billing, change order management, retention tracking |
+
+**If your factory runs on Excel + paper and upgrading to SAP/Oracle/鼎新 costs too much 👉 LLM-ERP fits.**
+
+### 🎯 1-2. Factory Managers & Operations (廠長與營運主管)
+
+- Need **cross-department visibility** (Inventory → Purchase → Production → Quality → Accounting)
+- Need **real-time alerts** (not postmortem reports)
+- Want **natural language queries** (not menu clicking / T-code memorizing)
+
+### 🔬 1-3. AI / ERP Researchers (學術研究者)
+
+- Validate LLM feasibility in manufacturing ERP
+- Multi-agent, function calling, event-driven architecture in industrial scenarios
+- **Open-source, reproducible** — full data pipeline included
+
+### ❌ What This System Is NOT
+
+- Not a replacement for SAP/Oracle in large enterprises (it targets SMEs)
+- Not a MES/SCADA control layer (Level 2 integration is separate)
+- Not a full IFRS accounting system (simplified vouchers for factory use)
+- ✅ **It is an LLM-native factory management system** — filling the gap between Excel and million-dollar ERPs
+
+### 🔧 Factory Type Configuration
+
+When you first deploy, set your factory type in the admin panel:
+
+```bash
+curl -X POST http://localhost:8000/api/factory/config \
+  -H "Content-Type: application/json" \
+  -d '{"factory_type": "MTO", "name": "永裕精密工業"}'
+```
+
+This adjusts:
+- **Pipeline stages** — MTO: 詢價→報價→打樣→接單; MTS: 樣品→量產→補貨; ETO: RFQ→設計→議約→里程碑
+- **Sales order forms** — MTO has drawing_no + material_spec; MTS has catalog selector; ETO has milestone lines
+- **Cash flow rules** — MTO needs down payment tracking; MTS needs volume discount; ETO needs milestone billing + retention
+- **Dashboard widgets** — Each role sees factory-type-relevant data
 
 ---
 

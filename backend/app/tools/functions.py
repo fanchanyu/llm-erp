@@ -539,6 +539,99 @@ async def create_customer_event(customer_no: str, event_type: str, description: 
     }
 
 
+# ── Lead / Opportunity / Contract Functions ─────────────────────────
+
+
+async def query_leads(status: str = "") -> list:
+    """查詢潛在客戶列表。可過濾狀態：new/contacted/qualified/converted/lost。"""
+    from app.services import lead_service
+    async with async_session() as db:
+        leads, total = await lead_service.list_leads(db, status=status or None, limit=100)
+    return [
+        {
+            "id": l.id, "company": l.company, "contact_person": l.contact_person,
+            "phone": l.phone, "source": l.source, "score": l.score,
+            "status": l.status, "assigned_to": l.assigned_to,
+        }
+        for l in leads
+    ]
+
+
+async def query_opportunities(stage: str = "") -> list:
+    """查詢商機列表。可過濾階段：qualification/needs_analysis/proposal/negotiation/closed_won/closed_lost。"""
+    from app.services import opportunity_service
+    async with async_session() as db:
+        opps, total = await opportunity_service.list_opportunities(db, stage=stage or None, limit=100)
+    return [
+        {
+            "id": o.id, "customer_id": o.customer_id, "name": o.name,
+            "amount": float(o.amount or 0), "probability": o.probability,
+            "stage": o.stage, "expected_close_date": str(o.expected_close_date) if o.expected_close_date else None,
+            "win_reason": o.win_reason, "lost_reason": o.lost_reason,
+        }
+        for o in opps
+    ]
+
+
+async def query_contracts(customer_name: str = "", status: str = "") -> list:
+    """查詢合約列表。可依客戶名稱或狀態過濾：draft/active/expired/terminated。"""
+    from app.services import contract_service
+    async with async_session() as db:
+        contracts, total = await contract_service.list_contracts(db, status=status or None, limit=100)
+    return [
+        {
+            "id": c.id, "contract_no": c.contract_no, "type": c.type,
+            "customer_id": c.customer_id,
+            "start_date": str(c.start_date) if c.start_date else None,
+            "end_date": str(c.end_date) if c.end_date else None,
+            "status": c.status, "auto_renew": c.auto_renew,
+        }
+        for c in contracts
+    ]
+
+
+async def query_decisions(department: str = "") -> list:
+    """查詢決策紀錄。可依部門過濾：sales/production/purchasing/quality/accounting。"""
+    from app.services import decision_service
+    async with async_session() as db:
+        decisions, total = await decision_service.list_decisions(db, department=department or None, limit=100)
+    return [
+        {
+            "id": d.id, "decision_type": d.decision_type,
+            "description": d.description, "department": d.department,
+            "actor": d.actor, "status": d.status,
+            "outcome_summary": d.outcome_summary,
+        }
+        for d in decisions
+    ]
+
+
+async def evaluate_rush_order(so_amount: float, customer_name: str = "", part_no: str = "") -> dict:
+    """評估急單的財務影響與風險。傳入訂單金額與客戶名稱。"""
+    from app.services import rush_order_service
+    async with async_session() as db:
+        so_data = {"items": [{"part_no": part_no or "unknown", "quantity": 1, "unit_price": so_amount}]}
+        if customer_name:
+            so_data["customer_name"] = customer_name
+        assessment = await rush_order_service.evaluate_rush_order(db, so_data)
+    return assessment
+
+
+async def check_cash_position() -> dict:
+    """查詢公司當前現金水位與未來30天現金預測。"""
+    from app.services import cashflow_service as cf
+    async with async_session() as db:
+        pos = await cf.get_cash_position(db)
+        proj = await cf.get_projected_cash(db, 30)
+    return {
+        "cash_balance": pos.get("total_cash", 0),
+        "projected_in": proj.get("expected_inflow", 0),
+        "projected_out": proj.get("expected_outflow", 0),
+        "projected_30d_balance": proj.get("projected_balance", 0),
+        "notes": proj.get("notes", []),
+    }
+
+
 # Tool name -> function mapping
 TOOL_FUNCTIONS = {
     "query_inventory": query_inventory,
@@ -579,4 +672,13 @@ TOOL_FUNCTIONS = {
     "query_customers": query_customers,
     "query_sales_orders": query_sales_orders,
     "create_customer_event": create_customer_event,
+    # ── Lead / Oppty / Contract ──
+    "query_leads": query_leads,
+    "query_opportunities": query_opportunities,
+    "query_contracts": query_contracts,
+    # ── Decision ──
+    "query_decisions": query_decisions,
+    # ── Analysis ──
+    "evaluate_rush_order": evaluate_rush_order,
+    "check_cash_position": check_cash_position,
 }

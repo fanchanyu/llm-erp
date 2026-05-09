@@ -268,6 +268,11 @@ function WidgetSlot({ widgetId, role: _role, events: _events }: { widgetId: Widg
     case 'so-table': return <SalesOrderTable />
     case 'crm-events': return <CRMEvents />
     case 'history-panel': return <HistoryPanel />
+    case 'lead-list': return <LeadList />
+    case 'opportunity-pipeline': return <OpportunityPipeline />
+    case 'contract-list': return <ContractList />
+    case 'decision-log': return <DecisionLogWidget />
+    case 'aar-list': return <AARList />
     default: return <div className="bg-[#0d111c] border border-gray-800 rounded-lg p-4 text-xs text-gray-500">Widget: {widgetId}</div>
   }
 }
@@ -1394,3 +1399,91 @@ function InsightPanel({ title, items }: { title: string; items: { icon: string; 
     </div>
   )
 }
+
+// ─── Lead List ──────────────────────────────────────────────────────
+function LeadList() {
+  const [leads, setLeads] = useState<any[]>([])
+  useEffect(() => {
+    listLeads().then(d => { if (d?.leads) setLeads(d.leads) }).catch(() => {})
+  }, [])
+  const statusColor = (s: string) =>
+    s === 'new' ? 'cyan' : s === 'contacted' ? 'yellow' : s === 'qualified' ? 'cyan' : s === 'converted' ? 'green' : 'red'
+  const rows = leads.slice(0, 5).map((l: any) => [
+    l.company,
+    l.contact_person || '-',
+    l.source || '-',
+    `${l.score ?? '-'}`,
+    <Tag color={statusColor(l.status)}>{l.status}</Tag>,
+  ])
+  return <SimpleTable title="👤 潛在客戶" headers={['公司', '聯絡人', '來源', '評分', '狀態']} rows={rows} action="全部→" />
+}
+
+// ─── Opportunity Pipeline ──────────────────────────────────────────
+function OpportunityPipeline() {
+  const [opps, setOpps] = useState<any[]>([])
+  useEffect(() => {
+    listOpportunities().then(d => { if (d?.opportunities) setOpps(d.opportunities) }).catch(() => {})
+  }, [])
+  const stageIcons: Record<string, string> = {
+    qualification: '🔍', needs_analysis: '📋', proposal: '📄',
+    negotiation: '🤝', closed_won: '✅', closed_lost: '❌',
+  }
+  const items = opps.slice(0, 5).map((o: any) => ({
+    icon: stageIcons[o.stage] || '🔄',
+    text: `${o.name || ''} (${o.stage}) — NT${Intl.NumberFormat('zh-TW').format(o.amount || 0)}`,
+    sug: `成功率: ${o.probability || 0}% | 預計結案: ${o.expected_close_date?.slice(0, 10) || '未設定'}`,
+  }))
+  return <InsightPanel title="📊 商機 Pipeline" items={items} />
+}
+
+// ─── Contract List ─────────────────────────────────────────────────
+function ContractList() {
+  const [contracts, setContracts] = useState<any[]>([])
+  useEffect(() => {
+    listContracts().then(d => { if (d?.contracts) setContracts(d.contracts) }).catch(() => {})
+  }, [])
+  const statusColor = (s: string) =>
+    s === 'active' ? 'green' : s === 'draft' ? 'yellow' : 'red'
+  const rows = contracts.slice(0, 5).map((c: any) => [
+    c.contract_no,
+    c.type || '-',
+    c.start_date?.slice(0, 10) || '-',
+    c.end_date?.slice(0, 10) || '-',
+    <Tag color={statusColor(c.status)}>{c.status}</Tag>,
+  ])
+  return <SimpleTable title="📝 合約一覽" headers={['合約號', '類型', '開始', '結束', '狀態']} rows={rows} />
+}
+
+// ─── Decision Log Widget ───────────────────────────────────────────
+function DecisionLogWidget() {
+  const [decisions, setDecisions] = useState<any[]>([])
+  useEffect(() => {
+    listDecisions().then(d => { if (d?.decisions) setDecisions(d.decisions) }).catch(() => {})
+  }, [])
+  const typeIcons: Record<string, string> = {
+    rush_order: '⚡', supplier_change: '🔄', schedule_change: '📅',
+    price_change: '💰', other: '📌',
+  }
+  const items = decisions.slice(0, 5).map((d: any) => ({
+    icon: typeIcons[d.decision_type] || '📌',
+    text: `${d.description?.slice(0, 30) || ''} (${d.department})`,
+    sug: `決策者: ${d.actor || '-'} | 狀態: ${d.status || '-'}`,
+  }))
+  return <InsightPanel title="📋 部門決策紀錄" items={items} />
+}
+
+// ─── AAR List ──────────────────────────────────────────────────────
+function AARList() {
+  const [aars, setAars] = useState<any[]>([])
+  useEffect(() => {
+    listAARs().then(d => { if (d?.aars) setAars(d.aars) }).catch(() => {})
+  }, [])
+  const items = aars.slice(0, 5).map((a: any) => ({
+    icon: a.status === 'implemented' ? '✅' : a.status === 'published' ? '🔄' : '📝',
+    text: `${a.title?.slice(0, 25) || ''}`,
+    sug: `部門: ${a.department} | 偏差: ${a.variance_analysis?.slice(0, 20) || ''}`,
+  }))
+  return <InsightPanel title="🔄 事後回顧 (AAR)" items={items} />
+}
+
+export default App

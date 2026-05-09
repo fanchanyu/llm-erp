@@ -214,3 +214,92 @@ export async function getConversationsByCustomer(customerId: number) {
   const res = await fetch(`${API_BASE}/conversations/by-customer/${customerId}`)
   return res.json()
 }
+
+// ─── Lead / Opportunity / Contract ──────────────────────────────────
+
+export async function listLeads(status?: string) {
+  const q = status ? `?status=${status}` : ''
+  const res = await fetch(`${API_BASE}/leads${q}`)
+  return res.json()
+}
+
+export async function createLead(data: any) {
+  const res = await fetch(`${API_BASE}/leads`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function listOpportunities(stage?: string) {
+  const q = stage ? `?stage=${stage}` : ''
+  const res = await fetch(`${API_BASE}/opportunities${q}`)
+  return res.json()
+}
+
+export async function createOpportunity(data: any) {
+  const res = await fetch(`${API_BASE}/opportunities`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function listContracts(status?: string) {
+  const q = status ? `?status=${status}` : ''
+  const res = await fetch(`${API_BASE}/contracts${q}`)
+  return res.json()
+}
+
+export async function createContract(data: any) {
+  const res = await fetch(`${API_BASE}/contracts`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+// ─── Decision / AAR ──────────────────────────────────────────────────
+
+export async function listDecisions(department?: string) {
+  const q = department ? `?department=${department}` : ''
+  const res = await fetch(`${API_BASE}/decisions${q}`)
+  return res.json()
+}
+
+export async function createDecision(data: any) {
+  const res = await fetch(`${API_BASE}/decisions`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+export async function listAARs(department?: string) {
+  const q = department ? `?department=${department}` : ''
+  const res = await fetch(`${API_BASE}/decisions/aar${q}`)
+  return res.json()
+}
+
+export async function createAAR(data: any) {
+  const res = await fetch(`${API_BASE}/decisions/aar`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}
+
+// ─── Factory Config ──────────────────────────────────────────────────
+
+export async function getFactoryConfig() {
+  const res = await fetch(`${API_BASE}/factory/config`)
+  return res.json()
+}
+
+export async function setFactoryConfig(data: any) {
+  const res = await fetch(`${API_BASE}/factory/config`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(`API error: ${res.status}`)
+  return res.json()
+}

@@ -515,6 +515,90 @@ TOOLS = [
             }
         }
     },
+
+    # ── Lead / Opportunity ──
+    {
+        "type": "function",
+        "function": {
+            "name": "query_leads",
+            "description": "查詢潛在客戶列表。使用者說潛在客戶/開發中客戶/Lead/開發新客戶時調用。可過濾狀態：new/contacted/qualified/converted/lost。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string", "description": "狀態過濾: new/contacted/qualified/converted/lost (留空查全部)"}
+                }
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "query_opportunities",
+            "description": "查詢商機列表。使用者說商機/漏鬥/機會/Pipeline時調用。可過濾階段：qualification/needs_analysis/proposal/negotiation/closed_won/closed_lost。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "stage": {"type": "string", "description": "階段過濾: qualification/needs_analysis/proposal/negotiation/closed_won/closed_lost (留空查全部)"}
+                }
+            }
+        }
+    },
+    # ── Contract ──
+    {
+        "type": "function",
+        "function": {
+            "name": "query_contracts",
+            "description": "查詢合約列表。使用者說合約/框架合約/年度合約/長期協議時調用。可過濾狀態：draft/active/expired/terminated。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "status": {"type": "string", "description": "狀態過濾: draft/active/expired/terminated (留空查全部)"}
+                }
+            }
+        }
+    },
+    # ── Decision ──
+    {
+        "type": "function",
+        "function": {
+            "name": "query_decisions",
+            "description": "查詢決策紀錄。使用者說決策/過去的決定/回顧/AAR/事後檢討時調用。可依部門過濾。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "department": {"type": "string", "description": "部門過濾: sales/production/purchasing/quality/accounting (留空查全部)"}
+                }
+            }
+        }
+    },
+    # ── Analysis ──
+    {
+        "type": "function",
+        "function": {
+            "name": "evaluate_rush_order",
+            "description": "評估急單的財務影響與風險。使用者說急單/插單/趕貨/優先生產時調用。傳入訂單金額與客戶名稱。",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "so_amount": {"type": "number", "description": "訂單金額 (NTD)"},
+                    "customer_name": {"type": "string", "description": "客戶名稱 (選填)"},
+                    "part_no": {"type": "string", "description": "產品編號 (選填)"}
+                },
+                "required": ["so_amount"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "check_cash_position",
+            "description": "查詢公司當前現金水位與未來30天現金預測。使用者說現金/資金/錢夠不夠/財務狀況時調用。",
+            "parameters": {
+                "type": "object",
+                "properties": {}
+            }
+        }
+    },
 ]
 
 # Bilingual prompt: Chinese first, with English support
@@ -527,16 +611,35 @@ You are a factory ERP system AI assistant that helps users manage the entire pro
 - 若使用者提到 應收帳款/AR/傳票/分錄/記帳/科目/逾期 → 用會計工具(query_ar, query_accounts, check_ar_overdue, create_journal_entry)
 - 若使用者提到 入庫/收貨/發料/出庫/領料 → 用庫存異動工具(inbound_material, outbound_material)
 - 若使用者提到 工單/派工/機台故障/急單/插隊 → 用生產工具(release_order, dispatch_order, right_shift_reschedule, route_change_reschedule, expedite_order)
-- 若使用者提到 BOM/展開/缺料/料夠不夠 → 用BOM工具(query_bom, bom_explode, check_stock_shortage)
-- 若使用者提到 客戶/訂單/SO/CRM/業務/銷售 → 用CRM工具(query_customers, query_sales_orders, create_customer_event)
-- ❌ 查採購單絕對不能用 query_inventory
-- ❌ 查供應商絕對不能用 query_inventory
-- ❌ 查品檢單絕對不能用 query_inventory
-- ❌ 查AR/會計資料絕對不能用 query_inventory
-- ❌ 入庫/出庫是 inbound_material/outbound_material，不能用 query_inventory
-- ❌ 查客戶絕對不能用 query_inventory
-- ❌ 查銷售訂單絕對不能用 query_inventory
-
+|- 若使用者提到 客戶/訂單/SO/CRM/業務/銷售 → 用CRM工具(query_customers, query_sales_orders, create_customer_event)
+|- 若使用者提到 潛在客戶/開發中客戶/商機/漏鬥/Lead → 用(query_leads, query_opportunities)
+|- 若使用者提到 合約/框架合約/年度合約 → 用 query_contracts
+|- 若使用者提到 決策紀錄/過去的決策/回顧/AAR → 用 query_decisions
+|- 若使用者提到 急單/插單/趕貨/優先生產 → 用 evaluate_rush_order
+|- 若使用者提到 現金水位/現金流/資金/財務狀況 → 用 check_cash_position
+|- ❌ 查採購單絕對不能用 query_inventory
+|- ❌ 查供應商絕對不能用 query_inventory
+|- ❌ 查品檢單絕對不能用 query_inventory
+|- ❌ 查AR/會計資料絕對不能用 query_inventory
+|- ❌ 入庫/出庫是 inbound_material/outbound_material，不能用 query_inventory
+|- ❌ 查客戶絕對不能用 query_inventory
+|- ❌ 查銷售訂單絕對不能用 query_inventory到 現金水位/現金流/資金/財務狀況 → 用 check_cash_position
+|- ❌ 查採購單絕對不能用 query_inventory
+|- ❌ 查供應商絕對不能用 query_inventory
+|- ❌ 查品檢單絕對不能用 query_inventory
+|- ❌ 查AR/會計資料絕對不能用 query_inventory
+|- ❌ 入庫/出庫是 inbound_material/outbound_material，不能用 query_inventory
+|- ❌ 查客戶絕對不能用 query_inventory
+|- ❌ 查銷售訂單絕對不能用 query_inventorydecisions
+|- 若使用者提到 急單/插單/趕貨/優先生產 → 用 evaluate_rush_order
+|- 若使用者提到 現金水位/現金流/資金/財務狀況 → 用 check_cash_position
+|- ❌ 查採購單絕對不能用 query_inventory
+|- ❌ 查供應商絕對不能用 query_inventory
+|- ❌ 查品檢單絕對不能用 query_inventory
+|- ❌ 查AR/會計資料絕對不能用 query_inventory
+|- ❌ 入庫/出庫是 inbound_material/outbound_material，不能用 query_inventory
+|- ❌ 查客戶絕對不能用 query_inventory
+|- ❌ 查銷售訂單絕對不能用 query_inventory
 你可以執行的操作：
 
 【庫存管理】

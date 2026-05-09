@@ -517,6 +517,83 @@ def check_ar_block_shipment(customer: str, overdue_days: int,
     return ConstraintVerdict(result=CheckResult.PASS, message="")
 
 
+# ── Cash Flow Constraints ──────────────────────────────────────────
+
+
+def check_cash_sufficient(cash_balance: float, po_amount: float,
+                           projected_balance: float = 0) -> ConstraintVerdict:
+    """BLOCK PO if cash insufficient (現金不足鎖定採購)."""
+    min_reserve = cash_balance * 0.1
+    available = cash_balance + projected_balance - min_reserve
+    if po_amount > available + min_reserve:
+        return ConstraintVerdict(
+            result=CheckResult.BLOCK,
+            code="CASH_INSUFFICIENT",
+            message=f"現金不足（可用 NT${available:,.0f} < PO NT${po_amount:,.0f}），已鎖定採購單",
+            alternatives=[
+                f"採購金額降為 NT${available:,.0f}",
+                f"延後付款協商供應商",
+                f"申請緊急資金（需廠長核准）",
+            ],
+            required_approval_role="director",
+        )
+    if po_amount > available * 0.8:
+        return ConstraintVerdict(
+            result=CheckResult.WARN,
+            code="CASH_TIGHT",
+            message=f"現金吃緊，PO NT${po_amount:,.0f} 將使可用資金低於 NT${cash_balance - po_amount:,.0f}",
+            alternatives=[f"分批下單", f"確認應收帳款入帳時間"],
+        )
+    return ConstraintVerdict(result=CheckResult.PASS, message="")
+
+
+def check_rush_cash_impact(so_amount: float, premium_pct: float,
+                             overtime_cost: float, delay_penalties: float,
+                             cash_balance: float) -> ConstraintVerdict:
+    """WARN/BLOCK rush order if financial impact is negative (急單財務風險)."""
+    net = so_amount * (1 + premium_pct) - overtime_cost - delay_penalties
+    if net < 0:
+        return ConstraintVerdict(
+            result=CheckResult.BLOCK,
+            code="RUSH_NEGATIVE",
+            message=f"急單淨效益為負（NT${net:,.0f}），溢價不足以覆蓋成本",
+            alternatives=[
+                f"提高溢價至 {(abs(net) / so_amount + 0.2) * 100:.0f}%",
+                f"按正常排程生產",
+                f"部分外包降低成本",
+            ],
+            required_approval_role="director",
+        )
+    if net < so_amount * 0.05:
+        return ConstraintVerdict(
+            result=CheckResult.WARN,
+            code="RUSH_LOW_MARGIN",
+            message=f"急單利潤偏低（NT${net:,.0f}，margin {net / (so_amount * (1 + premium_pct)) * 100:.1f}%）",
+            alternatives=[f"協調客戶提高溢價", f"重新評估插單排程"],
+        )
+    return ConstraintVerdict(result=CheckResult.PASS, message="")
+
+
+def check_contract_active(contract_status: str, end_date: Optional[datetime] = None,
+                            days_to_expiry: int = 30) -> ConstraintVerdict:
+    """WARN if contract expiring or inactive (合約即將到期)."""
+    if contract_status in ("expired", "terminated"):
+        return ConstraintVerdict(
+            result=CheckResult.BLOCK,
+            code="CONTRACT_INACTIVE",
+            message=f"合約狀態為 {contract_status}，無法建立銷售訂單",
+            alternatives=[f"續約合約", f"重新簽訂合約"],
+        )
+    if end_date and days_to_expiry <= 30:
+        return ConstraintVerdict(
+            result=CheckResult.WARN,
+            code="CONTRACT_EXPIRING",
+            message=f"合約將於 {days_to_expiry} 天後到期",
+            alternatives=[f"啟動續約流程", f"聯繫客戶確認續約意願"],
+        )
+    return ConstraintVerdict(result=CheckResult.PASS, message="")
+
+
 # ═══════════════════════════════════════════════════════════════════
 # ORCHESTRATOR
 # ═══════════════════════════════════════════════════════════════════
@@ -671,6 +748,22 @@ def _register_all(checker: ConstraintChecker):
         return check_ar_block_shipment(
             p.get("customer", ""), p.get("overdue_days", 0), p.get("overdue_amount", 0))
 
+    # ── Cash Flow ──
+    def _fi_cash(p, role):
+        return check_cash_sufficient(
+            p.get("cash_balance", 0), p.get("po_amount", 0), p.get("projected_balance", 0))
+
+    def _fi_rush(p, role):
+        return check_rush_cash_impact(
+            p.get("so_amount", 0), p.get("premium_pct", 0.2),
+            p.get("overtime_cost", 0), p.get("delay_penalties", 0),
+            p.get("cash_balance", 0))
+
+    def _fi_contract(p, role):
+        return check_contract_active(
+            p.get("contract_status", "active"), p.get("end_date"),
+            p.get("days_to_expiry", 30))
+
     # Register all
     for ops in [
         ("issue_material", [_inv_outbound, _inv_safety, _inv_expiry]),
@@ -688,6 +781,9 @@ def _register_all(checker: ConstraintChecker):
         ("close_period", [_fi_close]),
         ("ship_order", [_fi_ar]),
         ("inventory_movement", [_fi_entry]),
+        ("create_po", [_fi_cash]),
+        ("evaluate_rush_order", [_fi_rush]),
+        ("create_so_with_contract", [_fi_contract]),
     ]:
         for fn in ops[1]:
             checker.register(ops[0], fn)

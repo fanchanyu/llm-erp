@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db
-from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events
+from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events, factory, leads, opportunities, contracts, decisions
 from app.event_engine import init_event_engine, get_notifications, count_unread
 from app.event_engine.role_config import Role
 
@@ -40,6 +40,11 @@ app.include_router(conversations.router, prefix="/api", tags=["conversations"])
 app.include_router(customers.router, prefix="/api", tags=["customers"])
 app.include_router(sales_orders.router, prefix="/api", tags=["sales_orders"])
 app.include_router(crm_events.router, prefix="/api", tags=["crm"])
+app.include_router(factory.router, prefix="/api", tags=["factory"])
+app.include_router(leads.router, prefix="/api", tags=["leads"])
+app.include_router(opportunities.router, prefix="/api", tags=["opportunities"])
+app.include_router(contracts.router, prefix="/api", tags=["contracts"])
+app.include_router(decisions.router, prefix="/api", tags=["decisions"])
 
 
 @app.get("/health")

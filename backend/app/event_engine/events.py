@@ -143,3 +143,84 @@ def ar_overdue(customer: str, amount: float, days_overdue: int,
         metadata={"notification_targets": ["director"]}
         if sev == EventSeverity.CRITICAL else {"notification_targets": []},
     )
+
+
+def cash_projected(balance: float, projected_in: float, projected_out: float,
+                   days: int = 30, actor_role: str = "accounting") -> DomainEvent:
+    """Cash position projected (現金水位預測)."""
+    low = balance + projected_in - projected_out < balance * 0.1
+    return DomainEvent(
+        event_type="cash.projected",
+        category=EventCategory.FINANCE,
+        severity=EventSeverity.WARNING if low else EventSeverity.INFO,
+        actor_role=actor_role,
+        aggregate_id=f"cash-{days}d",
+        aggregate_type="cash_flow",
+        payload={"balance": balance, "projected_in": projected_in,
+                 "projected_out": projected_out, "projected_end": balance + projected_in - projected_out,
+                 "days": days, "low": low},
+        metadata={"notification_targets": ["director", "purchasing"]}
+        if low else {"notification_targets": ["director"]},
+    )
+
+
+def cash_alert_low(balance: float, min_required: float,
+                   actor_role: str = "accounting") -> DomainEvent:
+    """Cash below safety threshold (現金低於安全線)."""
+    return DomainEvent(
+        event_type="cash.alert_low",
+        category=EventCategory.FINANCE,
+        severity=EventSeverity.CRITICAL,
+        actor_role=actor_role,
+        aggregate_id="cash-alert",
+        aggregate_type="cash_flow",
+        payload={"balance": balance, "min_required": min_required, "shortfall": min_required - balance},
+        metadata={"notification_targets": ["director", "purchasing", "production"]},
+    )
+
+
+def rush_order_assessed(so_ref: str, customer: str, amount: float,
+                        premium: float, net_benefit: float, recommended: bool,
+                        actor_role: str = "sales") -> DomainEvent:
+    """Rush order financial assessment (急單財務評估)."""
+    return DomainEvent(
+        event_type="rush_order.assessed",
+        category=EventCategory.PRODUCTION,
+        severity=EventSeverity.INFO if recommended else EventSeverity.WARNING,
+        actor_role=actor_role,
+        aggregate_id=so_ref,
+        aggregate_type="sales_order",
+        payload={"customer": customer, "amount": amount, "premium": premium,
+                 "net_benefit": net_benefit, "recommended": recommended},
+        metadata={"notification_targets": ["director", "production", "accounting"]},
+    )
+
+
+def decision_made(decision_type: str, description: str, department: str,
+                  actor_role: str = "") -> DomainEvent:
+    """A business decision was made (部門決策紀錄)."""
+    return DomainEvent(
+        event_type="decision.made",
+        category=EventCategory.SYSTEM,
+        severity=EventSeverity.INFO,
+        actor_role=actor_role or department,
+        aggregate_id=f"decision-{decision_type}",
+        aggregate_type="decision_log",
+        payload={"decision_type": decision_type, "description": description, "department": department},
+        metadata={"notification_targets": ["director"]},
+    )
+
+
+def aar_completed(decision_id: str, department: str, variance: str,
+                  actor_role: str = "") -> DomainEvent:
+    """After Action Review completed (決策回顧完成)."""
+    return DomainEvent(
+        event_type="decision.aar_completed",
+        category=EventCategory.SYSTEM,
+        severity=EventSeverity.INFO,
+        actor_role=actor_role or department,
+        aggregate_id=f"aar-{decision_id}",
+        aggregate_type="after_action_review",
+        payload={"decision_id": decision_id, "department": department, "variance_summary": variance},
+        metadata={"notification_targets": ["director", department]},
+    )

@@ -43,7 +43,10 @@ async def init_db():
     from app.models.quality import Base as QualityBase
     from app.models.conversation import Base as ConversationBase
     from app.models.crm_event import Base as CrmEventBase
+    from app.models.contract import Base as ContractBase
+    from app.models.decision_log import Base as DecisionLogBase
+    from app.models.after_action_review import Base as AARBase
 
     async with engine.begin() as conn:
-        for base in [Base, PurchaseBase, BomBase, AuditBase, DispatchBase, AccountingBase, QualityBase, ConversationBase, CrmEventBase]:
+        for base in [Base, PurchaseBase, BomBase, AuditBase, DispatchBase, AccountingBase, QualityBase, ConversationBase, CrmEventBase, ContractBase, DecisionLogBase, AARBase]:
             await conn.run_sync(base.metadata.create_all)

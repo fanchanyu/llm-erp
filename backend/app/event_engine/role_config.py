@@ -16,6 +16,7 @@ class Role(Enum):
     PURCHASING = "purchasing"   # 採購 — Purchasing Agent
     QUALITY = "quality"         # 品管 — Quality Inspector
     ACCOUNTING = "accounting"   # 會計 — Accountant/CFO
+    SALES = "sales"             # 業務 — Sales Manager
 
 
 class DecisionLevel(Enum):
@@ -83,6 +84,11 @@ WIDGET_EVENT_FLOW = "event-flow"
 WIDGET_CAPACITY_ADJUST = "capacity-adjust"
 WIDGET_SHORTAGE_TABLE = "shortage-table"
 WIDGET_PRODUCTION_INSIGHTS = "production-insights"
+WIDGET_LEAD_LIST = "lead-list"               # 潛在客戶列表
+WIDGET_OPPORTUNITY_PIPELINE = "opportunity-pipeline"  # 商機漏鬥
+WIDGET_CONTRACT_LIST = "contract-list"       # 合約列表
+WIDGET_DECISION_LOG = "decision-log"         # 決策紀錄
+WIDGET_AAR_LIST = "aar-list"                 # 決策回顧列表
 
 # ─── Role Definitions ────────────────────────────────────────────
 
@@ -192,6 +198,24 @@ ROLE_CONFIGS: dict[Role, RoleConfig] = {
         permissions=[
             "view-financial", "approve-payment", "cost-close",
             "view-gl", "view-pnl", "view-balance-sheet",
+        ],
+        notify_categories=["critical", "warning"],
+    ),
+    Role.SALES: RoleConfig(
+        role=Role.SALES,
+        label="業務",
+        label_en="Sales Manager",
+        icon="🤝",
+        decision_level=DecisionLevel.TACTICAL,
+        llm_mode=LLMMode.TACTICAL,
+        widgets=[
+            WIDGET_ALERT, WIDGET_KPI, WIDGET_LEAD_LIST,
+            WIDGET_OPPORTUNITY_PIPELINE, WIDGET_CONTRACT_LIST,
+            WIDGET_DECISION_LOG, WIDGET_AAR_LIST, WIDGET_EVENT_FLOW,
+        ],
+        permissions=[
+            "view-leads", "create-lead", "view-opportunities",
+            "view-contracts", "view-orders", "create-so",
         ],
         notify_categories=["critical", "warning"],
     ),
