@@ -7,7 +7,7 @@
 
 ## 1. System Overview
 
-LLM-ERP is an open-source intelligent ERP system that lets you manage your entire factory floor through **natural language** — no menu clicking, no T-codes to memorize. It covers 7 modules:
+LLM-ERP is an open-source intelligent ERP system that lets you manage your entire factory floor through **natural language** — no menu clicking, no T-codes to memorize. It covers **12+ modules**, **25 business constraints**, and **37 LLM-powered tools**:
 
 | Module | Code | Core Function |
 |--------|:----:|---------------|
@@ -19,8 +19,14 @@ LLM-ERP is an open-source intelligent ERP system that lets you manage your entir
 | ✅ Quality | QM | Inspection orders, non-conformance tracking, CAPA |
 | 💰 Accounting | FI | Chart of accounts, journal entries, AR aging, month-end close |
 | 📄 Reports | — | Generate PDF reports via natural language (inventory, AR, purchase, production, P&L) |
-|| 🏭 War Room | — | SVG value-stream dashboard, real-time event animations, multi-screen display |
-|| 🤝 **CRM** | **SD** | **Customer master with A/B/C grading, sales orders (SO), interaction events, sales role dashboard** |
+| 🤝 **CRM** | **SD** | **Customer master with A/B/C grading, sales orders (SO), interaction events, sales role dashboard** |
+| 🏭 War Room | — | SVG value-stream dashboard, real-time event animations, multi-screen display |
+| 👤 **7 Roles** | — | **Plant Manager / Production Planner / Warehouse / Purchasing / QA / Accounting / 🤝Sales** |
+| 🎯 **Leads & Opportunities** | **CRM** | **Lead source tracking, scoring, pipeline stage management, conversion analytics** |
+| 📝 **Contract Management** | **SD** | **Framework contracts, annual agreements, project contracts, auto-pricing on SO, expiry alerts** |
+| 📋 **Decision Log & AAR** | **QM** | **Auto-log major decisions, After Action Review workflow, KPI feedback loop** |
+| 💵 **Cash Flow & Rush Orders** | **FI** | **Financial impact evaluation, 30-day cash projection, auto-block PO on insufficient cash** |
+| 🏗️ **3 Factory Types** | **MFG** | **MTO / MTS / ETO — auto-adjusts pipeline, form fields, and cash flow rules** |
 
 ---
 
@@ -345,6 +351,150 @@ Ask anything about stock:
 
 ---
 
+### 4.9 Lead & Opportunity Management
+
+Track potential customers from first contact through deal closure.
+
+| Feature | Description |
+|---------|-------------|
+| **Lead Sources** | Exhibition / Website / Referral / Cold Call — auto-tagged on creation |
+| **Lead Scoring** | Auto-calculated score based on source, budget, timeline, and interaction frequency |
+| **Pipeline Stages** | New → Qualified → Proposal → Negotiation → Won/Lost |
+| **Conversion Analytics** | Win rate, average deal cycle, source effectiveness breakdown |
+
+**Sample LLM Queries:**
+
+| English Query | Description |
+|---------------|-------------|
+| "Show me my leads" | List all leads with status and score |
+| "What's in the pipeline?" | Show opportunities by pipeline stage |
+| "Create a lead from the Beijing exhibition" | Add a new lead with source tag |
+| "Show conversion rate by source" | Analytics: which sources close best |
+
+---
+
+### 4.10 Contract Management
+
+Manage customer and supplier contracts with auto-enforcement on transactions.
+
+| Contract Type | Description |
+|---------------|-------------|
+| **Framework Contract** | Long-term pricing agreement with preferred customer |
+| **Annual Agreement** | Yearly supply contract with volume commitments |
+| **Project Contract** | One-time project with fixed scope, milestones, and payment terms |
+
+**Key Features:**
+- **Auto-apply contract pricing:** When creating a SO for a contracted customer, the system automatically applies the contract unit price without manual lookup
+- **Expiry alerts:** System notifies 30 days before contract expiration
+- **Status tracking:** Active / Expiring / Expired / Renewed
+
+**Sample LLM Queries:**
+
+| English Query | Description |
+|---------------|-------------|
+| "List active contracts" | Show all currently active contracts |
+| "When does YongYu's contract expire?" | Query specific contract expiry date |
+| "Create a new annual contract for HongDa Electronics" | Add a contract with terms |
+| "Show contracts expiring this month" | Proactive expiry management |
+
+---
+
+### 4.11 Decision Log & After Action Review (AAR)
+
+LLM-ERP automatically logs major decisions and provides a structured post-mortem workflow.
+
+**Auto-Logged Decisions:**
+
+| Decision Type | Trigger |
+|---------------|---------|
+| Rush order acceptance | Rush order assessment executed |
+| Supplier change | Supplier switch on a PO or work order |
+| Schedule change | Reschedule operation (right-shift, route change) |
+| Price override | Manual price adjustment on SO or PO |
+
+**AAR Workflow:**
+
+```
+① Expected vs Actual → ② Variance Analysis → ③ Corrective Action → ④ Rule Update
+```
+
+- **Expected vs Actual:** Compare planned outcome with actual result (cost, timeline, quality)
+- **Variance Analysis:** Identify root causes of deviation
+- **Corrective Action:** Generate actionable improvement items
+- **Rule Updates:** Optionally convert learnings into new system constraints
+
+**Department KPI Feedback Loop:** Corrective actions from AAR feed into department KPIs (e.g., if rush orders cause quality issues, QA KPI is adjusted).
+
+**Sample LLM Queries:**
+
+| English Query | Description |
+|---------------|-------------|
+| "Show recent sales decisions" | List recent auto-logged decisions in sales |
+| "AAR for last month's rush orders" | Run AAR on rush order decisions from last month |
+| "What corrective actions are still open?" | Check pending AAR action items |
+| "Show KPI changes after the AAR" | View KPI impact from completed reviews |
+
+---
+
+### 4.12 Rush Order Assessment & Cash Flow Constraints
+
+Evaluate financial impact of rush orders in real time and enforce cash-based controls.
+
+**Financial Impact Evaluation Formula:**
+```
+Net Impact = Premium Revenue + Overtime Cost + Delay Penalties
+```
+
+- **Premium Revenue:** Additional charge for rush service (e.g., +20% on unit price)
+- **Overtime Cost:** Additional labor and machine hours
+- **Delay Penalties:** Penalty from pushing existing orders (if applicable)
+
+**Cash Flow Features:**
+- **Cash position query:** Display current cash balance, AR, AP, and net position
+- **30-day cash projection:** Forecast inflows (AR collections) vs outflows (AP due, payroll)
+- **Auto-block PO creation:** If cash position is insufficient to cover the rush order cost, PO creation is blocked with an explanation
+
+**Sample LLM Queries:**
+
+| English Query | Description |
+|---------------|-------------|
+| "Evaluate this rush order" | Run financial impact assessment |
+| "What's our cash position?" | Show current cash + 30-day projection |
+| "Create a rush order for YongYu: 5 CNC-001 in 3 days" | Attempt rush SO creation (may be blocked) |
+
+---
+
+### 4.13 Factory Type Configuration
+
+LLM-ERP supports three factory types that automatically adjust pipelines, form fields, and business rules.
+
+| Type | Description | Typical Workflow |
+|:----:|-------------|:----------------|
+| **MTO** | Make-to-Order | Lead → Opportunity → Quote → SO → BOM → Work Order → Produce → Ship |
+| **MTS** | Make-to-Stock | Forecast → Production Plan → Produce → Stock → SO → Ship |
+| **ETO** | Engineer-to-Order | RFQ → Design → Quote → Contract → Milestones → BOM → Produce → Bill |
+
+**What Auto-Adjusts:**
+- **Pipeline stages:** Different stages for each factory type
+- **Form fields:** Additional fields appear (e.g., design specs for ETO)
+- **Cash flow rules:** MTS may have inventory holding costs, ETO has milestone-based billing
+- **AAR triggers:** Different decision types are auto-logged per type
+
+**Configure via API or Natural Language:**
+
+```bash
+# Set factory type via LLM
+You → "Set factory type to ETO"
+System → "Factory configured as ETO. Pipeline stages updated to: RFQ → Design → Quote → Contract → Milestones → Produce → Ship"
+```
+
+```bash
+# Or via curl (direct API)
+curl -X PUT http://localhost:8000/api/factory/config \
+  -H "Content-Type: application/json" \
+  -d '{"factory_type": "mto"}'
+```
+
 ## 5. War Room
 
 The War Room is a full-screen SVG value-stream dashboard, suitable for factory floor multi-monitor setups.
@@ -434,7 +584,7 @@ A: Restart Vite dev server: `Ctrl+C` then re-run `npm run dev`.
 ```
 User Chat → LLM Orchestrator → Intent Classification → Domain Agent → Tool Call → DB
                                       ↓
-                             Constraint Checker (20 rules)
+                             Constraint Checker (25 rules)
                                       ↓
                              Response + Notifications (Event Bus)
 ```
@@ -443,7 +593,7 @@ User Chat → LLM Orchestrator → Intent Classification → Domain Agent → To
 |-------|------------|-------------|
 | Frontend | React 18 + TypeScript + Vite + Tailwind | Role dashboards, Chat UI, War Room |
 | Backend | Python FastAPI + SQLAlchemy | 7 domain services, 42 API routes |
-| LLM | DeepSeek / Anthropic / OpenAI / Ollama | 27 tool definitions, Function Calling |
+| LLM | DeepSeek / Anthropic / OpenAI / Ollama | 37 tool definitions, Function Calling |
 | Events | Pub/Sub Event Bus | 10 event types, role-based routing |
 | Database | SQLite (dev) / PostgreSQL (prod) | 22 tables, Alembic migrations |
 
@@ -522,6 +672,145 @@ System → "CAPA created: Switch bearing supplier, add 100% incoming inspection"
 # ③ Trace back to supplier
 You → "Which supplier provided those bearings?"
 System → "DaMing Screws, score dropped from 4.2 to 3.5"
+```
+
+### Scenario 5: CRM — Sales Order to Delivery (Full Flow)
+
+**Situation: Sales manager got a new order from YongYu Electronics. Walk through from customer query to shipment.**
+
+```bash
+# ① Query / Create customer
+You → "Look up YongYu Precision's info"
+System → "YongYu Precision Industrial, Grade-A customer, Contact: Manager Lin, Credit Limit: NT$500K"
+
+# ② Create Sales Order
+You → "Create SO for YongYu: CNC-001 × 5 units, unit price 1,500"
+System → "SO-20260507-004 created (draft), total NT$7,500"
+
+# ③ Confirm SO → auto-create work order
+You → "Confirm SO-20260507-004"
+System → "Confirmed → Auto-generated work order WO-20260507-003 (in production)"
+
+# ④ Ship → auto-deduct inventory
+You → "Ship SO-20260507-004"
+System → "Shipped, CNC-001 inventory: 47 → 42 units"
+
+# ⑤ Complete
+You → "Complete SO-20260507-004"
+System → "SO-20260507-004 delivered to customer. Order complete ✅"
+
+# ⑥ Log interaction (sales record)
+You → "Log: YongYu's Manager Lin is very satisfied with delivery"
+System → "📞 Customer interaction event recorded"
+```
+
+---
+
+### Scenario 6: MTO Machine Shop — Rush Order Handling
+
+**Situation: Customer needs urgent CNC parts. The factory runs MTO (Make-to-Order). Walk through lead tracking → rush assessment → contract → SO → production → shipment.**
+
+```bash
+# ① Track lead → qualify opportunity
+You → "Show me my leads"
+System → "3 leads: Beijing exhibition (score 85), Website inquiry (72), Cold call (45)"
+
+# ② Advance qualified lead to opportunity
+You → "Move Beijing exhibition lead to opportunity, create quote for CNC-001 × 5"
+System → "Quote Q-001 created, opportunity moved to Proposal stage"
+
+# ③ Customer accepts → create contract
+You → "Quote Q-001 accepted. Create project contract for Beijing Tech with milestone billing"
+System → "Contract CT-001 created. Milestones: 30% deposit → 40% delivery → 30% acceptance"
+
+# ④ Rush order assessment
+You → "Customer needs 5 CNC-001 in 3 days. Evaluate as rush order"
+System → "Rush assessment: Premium +20% ($1,500), Overtime cost ($800), Delay penalty ($200)
+         Net impact: +$500 → Recommended: accept with rush premium"
+
+# ⑤ Create SO with contract pricing
+You → "Create rush SO for Beijing Tech: CNC-001 × 5, apply contract CT-001 pricing"
+System → "SO-20260508-001 created. Contract pricing applied: $1,500/unit (list: $1,200/unit)"
+
+# ⑥ Confirm → auto-create work order with expedite
+You → "Confirm SO-20260508-001 as rush"
+System → "Rush SO confirmed. Work order WO-20260508-001 created and expedited to front of queue"
+
+# ⑦ Ship
+You → "Ship SO-20260508-001"
+System → "Shipped. Inventory deducted. Rush order completed in 3 days ✅"
+```
+
+---
+
+### Scenario 7: MTS Electronics — Contract Renewal & Replenishment
+
+**Situation: Annual contract with a key customer is about to expire. Factory runs MTS (Make-to-Stock). Walk through contract check → renewal → contract pricing → SO from catalog → shipment.**
+
+```bash
+# ① Check contract expiry
+You → "Show contracts expiring this month"
+System → "1 contract expiring: HongDa Electronics Annual Agreement, expires 2026-05-31"
+
+# ② Renew contract
+You → "Renew HongDa Electronics annual contract for 2026-2027, same terms"
+System → "Contract renewed. New expiry: 2027-05-31. Contract pricing active"
+
+# ③ Customer places order — auto-apply contract price
+You → "Create SO for HongDa: Power Supply PS-001 × 200 units"
+System → "SO-20260508-002 created. Contract pricing auto-applied: $85/unit (list: $100/unit)"
+
+# ④ Check stock for MTS fulfillment
+You → "Do we have enough PS-001 in stock?"
+System → "Stock: 150 units. Shortage: 50 units. Auto-triggering production order"
+
+# ⑤ Ship from stock
+You → "Ship SO-20260508-002"
+System → "Shipped 200 units. Stock: 150 → 0 (50 units in production, ETA 3 days)"
+```
+
+---
+
+### Scenario 8: ETO Automation Equipment — Project Milestones
+
+**Situation: New custom automation equipment project. The factory runs ETO (Engineer-to-Order). Walk through RFQ → Design → Negotiation → Contract → Milestones → Billing → AAR.**
+
+```bash
+# ① RFQ received
+You → "Record RFQ from PrecisionTech for custom assembly line"
+System → "RFQ-2026-001 created. Status: New. Moving to Design phase..."
+
+# ② Design complete, send quote
+You → "Design complete. Create quote for PrecisionTech: assembly line, $250K"
+System → "Quote Q-002 created. ETO pipeline: RFQ → Design → Quote → Negotiation"
+
+# ③ Negotiate and close
+You → "Customer counter-offer $230K. Accept and create project contract with milestone billing"
+System → "Contract CT-002 created.
+         Milestones:
+         ├─ Milestone 1: Design approval → $69K (30%)
+         ├─ Milestone 2: Assembly complete → $92K (40%)
+         └─ Milestone 3: Customer acceptance → $69K (30%)"
+
+# ④ Create BOM and work orders
+You → "Create BOM for assembly line project, release work orders for Milestone 1"
+System → "BOM created (47 parts). Work orders released for design phase. ETA: 2 weeks"
+
+# ⑤ Milestone billing
+You → "Milestone 1 complete. Bill $69K to PrecisionTech"
+System → "Invoice INV-001 created: $69K. AR recorded. Due: Net 30"
+
+# ⑥ Project complete → AAR
+You → "Project complete. Run AAR comparing planned vs actual"
+System → "AAR Results:
+         ├─ Budget: $230K planned vs $245K actual (+$15K, +6.5%)
+         ├─ Timeline: 45 days planned vs 52 days actual (+7 days)
+         ├─ Root Cause: Design revisions during assembly (+3 days)
+         └─ Corrective: Add design review gate before production release"
+
+# ⑦ AAR feeds into department KPIs
+You → "Apply AAR corrective actions to Engineering KPI"
+System → "Engineering KPI updated: Add 'Design Review Completion Rate' metric. KPI adjustment logged."
 ```
 
 ---

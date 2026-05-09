@@ -74,6 +74,49 @@ This adjusts:
 - **Cash flow rules** — MTO needs down payment tracking; MTS needs volume discount; ETO needs milestone billing + retention
 - **Dashboard widgets** — Each role sees factory-type-relevant data
 
+### 📋 New in v0.1.0 (2026-05-09)
+
+| Area | Feature | What It Does |
+|------|---------|-------------|
+| **🎯 Lead Management** | `leads` table | Track prospects by source (web/exhibition/referral/cold-call), score (0-100), status workflow (new→contacted→qualified→converted→lost) |
+| **📈 Opportunity Pipeline** | `opportunities` table | Full sales funnel: 6 stages, probability-weighted forecast, win/loss analysis |
+| **📝 Contract Management** | `contracts` + `contract_pricing` | Annual/framework/project contracts, auto-pricing on SO, expiry alerts (30d) |
+| **💵 Cash Flow Control** | `cashflow_service` | Real-time cash position, 30-day projection, auto-block PO when cash insufficient (+3 new constraints) |
+| **⚡ Rush Order Engine** | `rush_order_service` | Financial impact: premium revenue vs overtime cost vs delay penalties → auto-recommend accept/reject |
+| **📋 Decision Audit** | `decision_logs` | Auto-log every major decision (rush order, supplier change, schedule change, price change) |
+| **🔄 AAR Loop** | `after_action_reviews` | After Action Review: expected vs actual → variance → corrective action → rule update |
+| **🏭 3 Factory Types** | `factory_config` | MTO/MTS/ETO — each with custom pipeline, forms, cash flow rules, and dashboard |
+| **👤 7th Role: Sales** | `role_config.py` | Sales manager dashboard with Leads, Oppty Pipeline, Contracts, Decision Log, AAR widgets |
+| **🧠 37 LLM Tools** | `tools/functions.py` | Up from 27 — covers all new modules + rush order evaluation + cash position |
+
+### 🎬 Quick Start: Test Drive in 60 Seconds
+
+Want to try it right now? After starting the backend, run:
+
+```bash
+# 1. Set factory type
+curl -X POST http://localhost:8000/api/factory/config \
+  -H "Content-Type: application/json" \
+  -d '{"factory_type":"MTO","name":"Demo Factory"}'
+
+# 2. Create a lead
+curl -X POST http://localhost:8000/api/leads \
+  -H "Content-Type: application/json" \
+  -d '{"company":"Acme Corp","source":"web","score":80}'
+
+# 3. List leads
+curl -s http://localhost:8000/api/leads
+```
+
+Or just open the dashboard and ask the LLM: *"Show me my leads"*, *"What's our cash position?"*, *"Evaluate a rush order for 450K"*.
+
+### 📖 Full Walkthrough Guides
+
+See **[docs/test-scenarios.md](docs/test-scenarios.md)** for 3 complete end-to-end scenarios:
+- **MTO Machine Shop** — Rush order handling (lead → oppty → contract → rush assessment → SO → AAR)
+- **MTS Electronics** — Contract renewal & replenishment (contract check → renewal → catalog SO → auto-replenish)
+- **ETO Automation** — Project milestone management (RFQ → design → contract → milestones → billing → AAR)
+
 ---
 
 ## 🚀 Quick Start (5 minutes)
