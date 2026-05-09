@@ -1,0 +1,246 @@
+<svg viewBox="0 0 1040 780" xmlns="http://www.w3.org/2000/svg">
+    52|      <defs>
+    53|        <pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse">
+    54|          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+    55|        </pattern>
+    56|        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    57|          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#475569"/>
+    58|        </marker>
+    59|        <marker id="arrow-cyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    60|          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#22d3ee"/>
+    61|        </marker>
+    62|        <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+    63|          <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb923c"/>
+    64|        </marker>
+    65|        <filter id="glow">
+    66|          <feGaussianBlur stdDeviation="2" result="blur"/>
+    67|          <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    68|        </filter>
+    69|        <linearGradient id="bg-frontend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#22d3ee" stop-opacity="0.08"/></linearGradient>
+    70|        <linearGradient id="bg-backend" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#34d399" stop-opacity="0.08"/></linearGradient>
+    71|        <linearGradient id="bg-event" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb923c" stop-opacity="0.08"/></linearGradient>
+    72|        <linearGradient id="bg-data" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#a78bfa" stop-opacity="0.08"/></linearGradient>
+    73|      </defs>
+    74|
+    75|      <rect width="1040" height="780" fill="url(#g)"/>
+    76|
+    77|      <!-- ═══ LAYER BOUNDARIES ═══ -->
+    78|      <!-- Layer 1: Frontend -->
+    79|      <rect x="20" y="10" width="1000" height="160" rx="10" fill="none" stroke="#22d3ee" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+    80|      <text x="30" y="30" fill="#22d3ee" font-size="9" font-weight="600" opacity="0.7">PRESENTATION LAYER (React + TypeScript + Vite)</text>
+    81|
+    82|      <!-- Layer 2: API / Backend -->
+    83|      <rect x="20" y="180" width="1000" height="240" rx="10" fill="none" stroke="#34d399" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+    84|      <text x="30" y="198" fill="#34d399" font-size="9" font-weight="600" opacity="0.7">APPLICATION LAYER (FastAPI + Python)</text>
+    85|
+    86|      <!-- Layer 3: Event Engine -->
+    87|      <rect x="20" y="430" width="1000" height="130" rx="10" fill="none" stroke="#fb923c" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+    88|      <text x="30" y="448" fill="#fb923c" font-size="9" font-weight="600" opacity="0.7">EVENT ENGINE &amp; CONSTRAINT LAYER</text>
+    89|
+    90|      <!-- Layer 4: Data -->
+    91|      <rect x="20" y="570" width="1000" height="195" rx="10" fill="none" stroke="#a78bfa" stroke-width="1" stroke-dasharray="8,4" opacity="0.3"/>
+    92|      <text x="30" y="588" fill="#a78bfa" font-size="9" font-weight="600" opacity="0.7">DATA LAYER (SQLAlchemy ORM)</text>
+    93|
+    94|      <!-- ═══ ARROWS (drawn early for z-order) ═══ -->
+    95|      <!-- Frontend → Backend -->
+    96|      <line x1="180" y1="170" x2="180" y2="220" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    97|      <line x1="340" y1="170" x2="340" y2="220" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    98|      <line x1="600" y1="170" x2="600" y2="220" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    99|      <!-- Backend → Event Engine -->
+   100|      <line x1="180" y1="420" x2="180" y2="450" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+   101|      <line x1="340" y1="420" x2="340" y2="450" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+   102|      <line x1="600" y1="420" x2="600" y2="450" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-cyan)"/>
+   103|      <!-- Event Engine → Data -->
+   104|      <line x1="100" y1="560" x2="100" y2="600" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+   105|      <line x1="400" y1="560" x2="400" y2="600" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+   106|      <line x1="700" y1="560" x2="700" y2="600" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-orange)"/>
+   107|      <!-- Backend → Data (direct) -->
+   108|      <line x1="550" y1="420" x2="550" y2="600" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+   109|      <line x1="720" y1="420" x2="720" y2="600" stroke="#475569" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow)"/>
+   110|
+   111|      <!-- ═══ FRONTEND COMPONENTS ═══ -->
+   112|      <!-- Role Dashboard -->
+   113|      <rect x="40" y="50" width="220" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+   114|      <rect x="40" y="50" width="220" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+   115|      <text x="150" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">Role Dashboard</text>
+   116|      <text x="150" y="84" text-anchor="middle" fill="#64748b" font-size="7">6 Roles · 17 Widgets</text>
+   117|
+   118|      <!-- Chat Interface -->
+   119|      <rect x="280" y="50" width="220" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+   120|      <rect x="280" y="50" width="220" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+   121|      <text x="390" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">LLM Chat Interface</text>
+   122|      <text x="390" y="84" text-anchor="middle" fill="#64748b" font-size="7">DeepSeek Provider</text>
+   123|
+   124|      <!-- War Room -->
+   125|      <rect x="520" y="50" width="200" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1.5" opacity="0.9"/>
+   126|      <rect x="520" y="50" width="200" height="44" rx="6" fill="rgba(8,51,68,0.4)" stroke="none"/>
+   127|      <text x="620" y="68" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">War Room</text>
+   128|      <text x="620" y="84" text-anchor="middle" fill="#64748b" font-size="7">Event Flow · SVG Pipeline</text>
+   129|
+   130|      <!-- i18n -->
+   131|      <rect x="740" y="50" width="120" height="44" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.9"/>
+   132|      <rect x="740" y="50" width="120" height="44" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+   133|      <text x="800" y="68" text-anchor="middle" fill="#94a3b8" font-size="9">ZH / EN</text>
+   134|      <text x="800" y="84" text-anchor="middle" fill="#64748b" font-size="7">i18n Bilingual</text>
+   135|
+   136|      <!-- KPI / Alert -->
+   137|      <rect x="40" y="108" width="140" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+   138|      <rect x="40" y="108" width="140" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+   139|      <text x="110" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">KPI Aggregation</text>
+   140|      <text x="110" y="142" text-anchor="middle" fill="#64748b" font-size="7">36 Metrics</text>
+   141|
+   142|      <rect x="200" y="108" width="140" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+   143|      <rect x="200" y="108" width="140" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+   144|      <text x="270" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">Alert Bar</text>
+   145|      <text x="270" y="142" text-anchor="middle" fill="#64748b" font-size="7">DB Scan</text>
+   146|
+   147|      <rect x="360" y="108" width="140" height="40" rx="6" fill="#0f172a" stroke="#22d3ee" stroke-width="1" opacity="0.8"/>
+   148|      <rect x="360" y="108" width="140" height="40" rx="6" fill="rgba(8,51,68,0.3)" stroke="none"/>
+   149|      <text x="430" y="128" text-anchor="middle" fill="#94a3b8" font-size="9">Event Stream</text>
+   150|      <text x="430" y="142" text-anchor="middle" fill="#64748b" font-size="7">Live Activity Feed</text>
+   151|
+   152|      <!-- ═══ BACKEND: SERVICE MODULES ═══ -->
+   153|      <!-- Row 1: Core modules -->
+   154|      <rect x="40" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   155|      <rect x="40" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   156|      <text x="110" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📦 Inventory</text>
+   157|      <text x="110" y="254" text-anchor="middle" fill="#64748b" font-size="7">Parts · Stock · Txns</text>
+   158|      <text x="110" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+   159|
+   160|      <rect x="200" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   161|      <rect x="200" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   162|      <text x="270" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📋 Purchase</text>
+   163|      <text x="270" y="254" text-anchor="middle" fill="#64748b" font-size="7">Suppliers · POs</text>
+   164|      <text x="270" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+   165|
+   166|      <rect x="360" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   167|      <rect x="360" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   168|      <text x="430" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">📐 BOM</text>
+   169|      <text x="430" y="254" text-anchor="middle" fill="#64748b" font-size="7">Products · BOM Tree</text>
+   170|      <text x="430" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">2 constraints</text>
+   171|
+   172|      <rect x="520" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   173|      <rect x="520" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   174|      <text x="590" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">⚙️ Dispatch</text>
+   175|      <text x="590" y="254" text-anchor="middle" fill="#64748b" font-size="7">WOs · WorkCenters</text>
+   176|      <text x="590" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">3 constraints</text>
+   177|
+   178|      <rect x="680" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   179|      <rect x="680" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   180|      <text x="750" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">✅ Quality</text>
+   181|      <text x="750" y="254" text-anchor="middle" fill="#64748b" font-size="7">Insp · NC · CAPA</text>
+   182|      <text x="750" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">3 constraints</text>
+   183|
+   184|      <rect x="840" y="218" width="140" height="52" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1.5"/>
+   185|      <rect x="840" y="218" width="140" height="52" rx="6" fill="rgba(6,78,59,0.4)" stroke="none"/>
+   186|      <text x="910" y="238" text-anchor="middle" fill="#e2e8f0" font-size="10" font-weight="600">💰 Accounting</text>
+   187|      <text x="910" y="254" text-anchor="middle" fill="#64748b" font-size="7">Journals · AR/AP</text>
+   188|      <text x="910" y="264" text-anchor="middle" fill="#22d3ee" font-size="6">4 constraints</text>
+   189|
+   190|      <!-- Dashboard API -->
+   191|      <rect x="300" y="290" width="300" height="42" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1.5"/>
+   192|      <rect x="300" y="290" width="300" height="42" rx="6" fill="rgba(120,53,15,0.3)" stroke="none"/>
+   193|      <text x="450" y="310" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">📊 Dashboard KPI / Alert Aggregation API</text>
+   194|      <text x="450" y="325" text-anchor="middle" fill="#64748b" font-size="7">Cross 7 Modules · Real-time DB Query</text>
+   195|
+   196|      <!-- Constraint Checker (prominent) -->
+   197|      <rect x="40" y="290" width="230" height="42" rx="6" fill="#0f172a" stroke="#fb7185" stroke-width="1.5"/>
+   198|      <rect x="40" y="290" width="230" height="42" rx="6" fill="rgba(136,19,55,0.4)" stroke="none"/>
+   199|      <text x="155" y="310" text-anchor="middle" fill="#fb7185" font-size="10" font-weight="600">🔒 Constraint Checker</text>
+   200|      <text x="155" y="325" text-anchor="middle" fill="#64748b" font-size="7">20 Business Rules · 6 Domains</text>
+   201|
+   202|      <!-- LLM Orchestrator -->
+   203|      <rect x="720" y="290" width="220" height="42" rx="6" fill="#0f172a" stroke="#34d399" stroke-width="1" opacity="0.8"/>
+   204|      <rect x="720" y="290" width="220" height="42" rx="6" fill="rgba(6,78,59,0.3)" stroke="none"/>
+   205|      <text x="830" y="310" text-anchor="middle" fill="#94a3b8" font-size="9">🤖 LLM Orchestrator</text>
+   206|      <text x="830" y="325" text-anchor="middle" fill="#64748b" font-size="7">Intent → Domain Agent → Tool</text>
+   207|
+   208|      <!-- LLM Provider -->
+   209|      <rect x="720" y="345" width="220" height="42" rx="6" fill="#0f172a" stroke="#fbbf24" stroke-width="1" opacity="0.8"/>
+   210|      <rect x="720" y="345" width="220" height="42" rx="6" fill="rgba(120,53,15,0.3)" stroke="none"/>
+   211|      <text x="830" y="362" text-anchor="middle" fill="#fbbf24" font-size="9">🧠 LLM Provider</text>
+   212|      <text x="830" y="378" text-anchor="middle" fill="#64748b" font-size="7">DeepSeek / Anthropic / OpenAI</text>
+   213|
+   214|      <!-- ═══ EVENT ENGINE ═══ -->
+   215|      <rect x="40" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+   216|      <rect x="40" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+   217|      <text x="180" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">⚡ Event Bus</text>
+   218|      <text x="180" y="496" text-anchor="middle" fill="#64748b" font-size="7">6 Domain Events · Pub/Sub</text>
+   219|
+   220|      <rect x="350" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+   221|      <rect x="350" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+   222|      <text x="490" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">🔔 Notification Engine</text>
+   223|      <text x="490" y="496" text-anchor="middle" fill="#64748b" font-size="7">Role-based Notifications</text>
+   224|
+   225|      <rect x="660" y="460" width="280" height="44" rx="6" fill="#0f172a" stroke="#fb923c" stroke-width="1.5"/>
+   226|      <rect x="660" y="460" width="280" height="44" rx="6" fill="rgba(251,146,60,0.3)" stroke="none"/>
+   227|      <text x="800" y="480" text-anchor="middle" fill="#fb923c" font-size="10" font-weight="600">👤 Role Configuration</text>
+   228|      <text x="800" y="496" text-anchor="middle" fill="#64748b" font-size="7">6 Roles · Widget Config</text>
+   229|
+   230|      <!-- ═══ DATA LAYER ═══ -->
+   231|      <!-- Database clusters by module -->
+   232|      <rect x="50" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   233|      <rect x="50" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   234|      <text x="115" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📦 Inventory</text>
+   235|      <text x="115" y="643" text-anchor="middle" fill="#64748b" font-size="6">parts / inventory</text>
+   236|      <text x="115" y="655" text-anchor="middle" fill="#64748b" font-size="6">inv_transactions</text>
+   237|      <text x="115" y="667" text-anchor="middle" fill="#64748b" font-size="6">audit_logs</text>
+   238|
+   239|      <rect x="195" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   240|      <rect x="195" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   241|      <text x="260" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📋 Purchase</text>
+   242|      <text x="260" y="643" text-anchor="middle" fill="#64748b" font-size="6">suppliers</text>
+   243|      <text x="260" y="655" text-anchor="middle" fill="#64748b" font-size="6">purchase_orders</text>
+   244|      <text x="260" y="667" text-anchor="middle" fill="#64748b" font-size="6">po_items</text>
+   245|
+   246|      <rect x="340" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   247|      <rect x="340" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   248|      <text x="405" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">📐 BOM</text>
+   249|      <text x="405" y="643" text-anchor="middle" fill="#64748b" font-size="6">products</text>
+   250|      <text x="405" y="655" text-anchor="middle" fill="#64748b" font-size="6">bom_items</text>
+   251|
+   252|      <rect x="485" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   253|      <rect x="485" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   254|      <text x="550" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">⚙️ Dispatch</text>
+   255|      <text x="550" y="643" text-anchor="middle" fill="#64748b" font-size="6">work_centers</text>
+   256|      <text x="550" y="655" text-anchor="middle" fill="#64748b" font-size="6">prod_orders / ops</text>
+   257|      <text x="550" y="667" text-anchor="middle" fill="#64748b" font-size="6">dispatch_logs</text>
+   258|
+   259|      <rect x="630" y="610" width="130" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   260|      <rect x="630" y="610" width="130" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   261|      <text x="695" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">✅ Quality</text>
+   262|      <text x="695" y="643" text-anchor="middle" fill="#64748b" font-size="6">inspection_orders</text>
+   263|      <text x="695" y="655" text-anchor="middle" fill="#64748b" font-size="6">non_conformances</text>
+   264|      <text x="695" y="667" text-anchor="middle" fill="#64748b" font-size="6">capa_records</text>
+   265|
+   266|      <rect x="775" y="610" width="200" height="70" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="1"/>
+   267|      <rect x="775" y="610" width="200" height="70" rx="6" fill="rgba(76,29,149,0.4)" stroke="none"/>
+   268|      <text x="875" y="630" text-anchor="middle" fill="#c4b5fd" font-size="8" font-weight="600">💰 Accounting</text>
+   269|      <text x="875" y="643" text-anchor="middle" fill="#64748b" font-size="6">accounts / journal_entries</text>
+   270|      <text x="875" y="655" text-anchor="middle" fill="#64748b" font-size="6">journal_lines / ar</text>
+   271|      <text x="875" y="667" text-anchor="middle" fill="#64748b" font-size="6">month_end_closes</text>
+   272|
+   273|      <!-- Database bottom bar -->
+   274|      <rect x="50" y="695" width="925" height="28" rx="6" fill="#0f172a" stroke="#a78bfa" stroke-width="0.5" opacity="0.6"/>
+   275|      <text x="512" y="713" text-anchor="middle" fill="#64748b" font-size="8">SQLAlchemy ORM · SQLite (dev) / PostgreSQL (prod) · 22 Tables</text>
+   276|
+   277|      <!-- ═══ LEGEND ═══ -->
+   278|      <rect x="840" y="12" width="180" height="155" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+   279|      <text x="855" y="30" fill="#94a3b8" font-size="8" font-weight="600">Legend</text>
+   280|      <rect x="855" y="38" width="10" height="10" rx="2" fill="rgba(8,51,68,0.5)" stroke="#22d3ee" stroke-width="1"/>
+   281|      <text x="873" y="47" fill="#64748b" font-size="7">Presentation</text>
+   282|      <rect x="855" y="53" width="10" height="10" rx="2" fill="rgba(6,78,59,0.5)" stroke="#34d399" stroke-width="1"/>
+   283|      <text x="873" y="62" fill="#64748b" font-size="7">Application</text>
+   284|      <rect x="855" y="68" width="10" height="10" rx="2" fill="rgba(251,146,60,0.3)" stroke="#fb923c" stroke-width="1"/>
+   285|      <text x="873" y="77" fill="#64748b" font-size="7">Event Engine</text>
+   286|      <rect x="855" y="83" width="10" height="10" rx="2" fill="rgba(76,29,149,0.4)" stroke="#a78bfa" stroke-width="1"/>
+   287|      <text x="873" y="92" fill="#64748b" font-size="7">Database</text>
+   288|      <rect x="855" y="98" width="10" height="10" rx="2" fill="rgba(136,19,55,0.4)" stroke="#fb7185" stroke-width="1"/>
+   289|      <text x="873" y="107" fill="#64748b" font-size="7">Constraint / Security</text>
+   290|      <line x1="855" y1="120" x2="873" y2="120" stroke="#fbbf24" stroke-width="1.5"/>
+   291|      <text x="878" y="123" fill="#64748b" font-size="7">Dashboard / LLM API</text>
+   292|      <line x1="855" y1="133" x2="873" y2="133" stroke="#475569" stroke-width="1" stroke-dasharray="3,2"/>
+   293|      <text x="878" y="136" fill="#64748b" font-size="7">Direct DB Access</text>
+   294|      <line x1="855" y1="146" x2="873" y2="146" stroke="#475569" stroke-width="1.5"/>
+   295|      <text x="878" y="149" fill="#64748b" font-size="7">Arrow / Data Flow</text>
+   296|    </svg>
