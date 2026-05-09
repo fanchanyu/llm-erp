@@ -1485,5 +1485,3 @@ function AARList() {
   }))
   return <InsightPanel title="🔄 事後回顧 (AAR)" items={items} />
 }
-
-export default App
