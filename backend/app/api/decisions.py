@@ -79,60 +79,6 @@ async def create_decision(
     )
 
 
-@router.get("/{decision_id}", response_model=DecisionLogResponse)
-async def get_decision(
-    decision_id: int,
-    db: AsyncSession = Depends(get_db),
-):
-    decision = await svc.get_decision(db, decision_id)
-    if not decision:
-        raise HTTPException(404, f"Decision log not found: {decision_id}")
-    return DecisionLogResponse(
-        id=decision.id,
-        decision_type=decision.decision_type,
-        description=decision.description,
-        department=decision.department,
-        actor=decision.actor,
-        role=decision.role,
-        context_data=decision.context_data,
-        alternatives=decision.alternatives,
-        outcome_summary=decision.outcome_summary,
-        status=decision.status,
-        created_at=decision.created_at,
-    )
-
-
-@router.patch("/{decision_id}", response_model=DecisionLogResponse)
-async def update_decision(
-    decision_id: int,
-    data: DecisionLogUpdate,
-    db: AsyncSession = Depends(get_db),
-):
-    decision = await svc.update_decision_outcome(
-        db,
-        decision_id,
-        outcome_summary=data.outcome_summary,
-        status=data.status,
-    )
-    if not decision:
-        raise HTTPException(404, f"Decision log not found: {decision_id}")
-    return DecisionLogResponse(
-        id=decision.id,
-        decision_type=decision.decision_type,
-        description=decision.description,
-        department=decision.department,
-        actor=decision.actor,
-        role=decision.role,
-        context_data=decision.context_data,
-        alternatives=decision.alternatives,
-        outcome_summary=decision.outcome_summary,
-        status=decision.status,
-        created_at=decision.created_at,
-    )
-
-
-# ─── AfterActionReview Endpoints ───────────────────────────────────
-
 @router.get("/aar", response_model=dict)
 async def list_aars(
     department: Optional[str] = Query(None),
@@ -284,3 +230,57 @@ async def update_aar(
         created_at=aar.created_at,
         updated_at=aar.updated_at,
     )
+@router.get("/{decision_id}", response_model=DecisionLogResponse)
+async def get_decision(
+    decision_id: int,
+    db: AsyncSession = Depends(get_db),
+):
+    decision = await svc.get_decision(db, decision_id)
+    if not decision:
+        raise HTTPException(404, f"Decision log not found: {decision_id}")
+    return DecisionLogResponse(
+        id=decision.id,
+        decision_type=decision.decision_type,
+        description=decision.description,
+        department=decision.department,
+        actor=decision.actor,
+        role=decision.role,
+        context_data=decision.context_data,
+        alternatives=decision.alternatives,
+        outcome_summary=decision.outcome_summary,
+        status=decision.status,
+        created_at=decision.created_at,
+    )
+
+
+@router.patch("/{decision_id}", response_model=DecisionLogResponse)
+async def update_decision(
+    decision_id: int,
+    data: DecisionLogUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    decision = await svc.update_decision_outcome(
+        db,
+        decision_id,
+        outcome_summary=data.outcome_summary,
+        status=data.status,
+    )
+    if not decision:
+        raise HTTPException(404, f"Decision log not found: {decision_id}")
+    return DecisionLogResponse(
+        id=decision.id,
+        decision_type=decision.decision_type,
+        description=decision.description,
+        department=decision.department,
+        actor=decision.actor,
+        role=decision.role,
+        context_data=decision.context_data,
+        alternatives=decision.alternatives,
+        outcome_summary=decision.outcome_summary,
+        status=decision.status,
+        created_at=decision.created_at,
+    )
+
+
+# ─── AfterActionReview Endpoints ───────────────────────────────────
+
