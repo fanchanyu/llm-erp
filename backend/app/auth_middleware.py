@@ -1,56 +1,42 @@
-"""Auth middleware — validates JWT tokens on all API routes except login/health."""
-from fastapi import Request, Response
+"""Auth middleware — validates session tokens on all API routes except login/health."""
+from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.auth import validate_token
+from app.session import session_manager
 
-# Routes that don't require auth
 PUBLIC_ROUTES = {
-    "/health",
-    "/api/org/login",
-    "/docs",
-    "/openapi.json",
-    "/redoc",
+    "/health", "/api/org/login", "/docs", "/openapi.json", "/redoc",
 }
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    """Validates Authorization header on protected routes. Sets request.state.user."""
+    """Validates Authorization header on protected routes.
+    Sets request.state.user with session info including IP and device."""
 
     async def dispatch(self, request: Request, call_next):
         request.state.user = {
-            "employee_id": None,
-            "username": "anonymous",
-            "roles": [],
-            "permissions": [],
-            "is_authenticated": False,
+            "employee_id": None, "username": "anonymous",
+            "roles": [], "permissions": [], "is_authenticated": False,
         }
 
         path = request.url.path
-
-        # Skip auth for public routes
         if path in PUBLIC_ROUTES or path.startswith(("/docs/", "/openapi", "/redoc")):
             return await call_next(request)
 
-        # Check Authorization header
         auth = request.headers.get("Authorization", "")
         if auth.startswith("Bearer "):
             token = auth[7:]
-            session = validate_token(token)
+            session = session_manager.validate_session(token)
             if session:
                 request.state.user = {
-                    "employee_id": session["employee_id"],
-                    "username": session["username"],
-                    "roles": session["roles"],
-                    "permissions": session["permissions"],
+                    "employee_id": session.employee_id,
+                    "username": session.username,
+                    "roles": session.roles,
+                    "permissions": session.permissions,
+                    "token": session.token,
+                    "ip_address": session.ip_address,
+                    "device": session.device_name,
                     "is_authenticated": True,
                 }
-                return await call_next(request)
 
-        # For development: allow anonymous access with read-only scope
-        # In production: uncomment below to block unauthenticated requests
-        # return JSONResponse(
-        #     status_code=401,
-        #     content={"detail": "Authentication required"},
-        # )
-
+        # Dev mode: allow anonymous read access
         return await call_next(request)

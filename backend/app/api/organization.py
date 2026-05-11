@@ -260,14 +260,25 @@ async def create_user(data: UserCreate, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=LoginResponse)
-async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(request: Request, data: LoginRequest, db: AsyncSession = Depends(get_db)):
     result = await svc.authenticate(db, data.username, data.password)
     if not result:
         raise HTTPException(401, "Invalid credentials or account locked")
 
     user = result["user"]
+
+    # Create auth session with IP/User-Agent tracking
+    from app.auth import create_session
+    token = create_session(
+        employee_id=str(user.employee_id),
+        username=user.username,
+        roles=result["roles"],
+        permissions=result["permissions"],
+        request=request,
+    )
+
     return LoginResponse(
-        token=result["token"],
+        token=token,
         user=UserResponse(
             id=str(user.id), username=user.username,
             employee_id=str(user.employee_id),
@@ -279,6 +290,57 @@ async def login(data: LoginRequest, db: AsyncSession = Depends(get_db)):
         roles=result["roles"],
         permissions=result["permissions"],
     )
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ─── SESSION MANAGEMENT ──────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════
+
+@router.get("/sessions/{emp_id}", response_model=dict)
+async def list_sessions(emp_id: str):
+    """List all active sessions for a user (for VPN session management)."""
+    from app.session import session_manager
+    sessions = session_manager.get_user_sessions(emp_id)
+    items = [
+        {
+            "token": s.token[:12] + "...",  # partial for security
+            "ip_address": s.ip_address,
+            "device": s.device_name,
+            "user_agent": s.user_agent[:60] if s.user_agent else "",
+            "created_at": s.created_at.isoformat(),
+            "last_active_at": s.last_active_at.isoformat(),
+            "expires_at": s.expires_at.isoformat(),
+        }
+        for s in sessions
+    ]
+    return {"sessions": items, "total": len(items), "max_concurrent": 3}
+
+
+@router.post("/sessions/logout", response_model=dict)
+async def logout(token: str = Query(..., description="Full token to invalidate")):
+    """Logout: invalidate a specific session."""
+    from app.session import session_manager
+    ok = session_manager.force_logout(token)
+    return {"success": ok, "message": "Logged out" if ok else "Session not found"}
+
+
+@router.post("/sessions/force-logout/{emp_id}", response_model=dict)
+async def force_logout_all(emp_id: str):
+    """Admin: force logout all sessions for a user."""
+    from app.session import session_manager
+    count = session_manager.force_logout_all(emp_id)
+    return {"success": True, "sessions_terminated": count, "message": f"{count} session(s) terminated"}
+
+
+@router.get("/sessions/stats", response_model=dict)
+async def session_stats():
+    """Get global session statistics."""
+    from app.session import session_manager
+    return {
+        "active_sessions": session_manager.get_active_session_count(),
+        "max_concurrent_per_user": 3,
+        "session_expiry_hours": 24,
+    }
 
 
 # ═══════════════════════════════════════════════════════════════════

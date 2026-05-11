@@ -1,131 +1,71 @@
 """
-Auth module — JWT token creation, validation, and FastAPI dependency.
-Provides authentication & authorization for all API endpoints.
+Auth module — session-based authentication with VPN-aware session management.
+Uses SessionManager for concurrent login control, IP tracking, force logout.
 """
-import uuid
-import secrets
-from datetime import datetime, timedelta
-from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.ext.asyncio import AsyncSession
-from app.database import get_db
+from app.session import session_manager, SessionInfo
 
-# Simple token-based auth (upgrade to JWT with python-jose for production)
-# We use the model's token stored in a memory/session cache
-
-TOKEN_STORE: dict[str, dict] = {}  # token -> {employee_id, username, roles, permissions, expires_at}
-TOKEN_EXPIRY_HOURS = 24
 security = HTTPBearer(auto_error=False)
 
 
-def create_session_token(employee_id: uuid.UUID, username: str,
-                          roles: list[dict], permissions: list[dict]) -> str:
-    """Create a session token and store it."""
-    token = secrets.token_hex(32)
-    TOKEN_STORE[token] = {
-        "employee_id": str(employee_id),
-        "username": username,
-        "roles": roles,
-        "permissions": permissions,
-        "created_at": datetime.utcnow(),
-        "expires_at": datetime.utcnow() + timedelta(hours=TOKEN_EXPIRY_HOURS),
-    }
-    return token
+def create_session(employee_id: str, username: str,
+                   roles: list, permissions: list,
+                   request: Request = None) -> str:
+    """Create a session from request context. Captures IP and User-Agent."""
+    ip = request.client.host if request and request.client else ""
+    ua = request.headers.get("User-Agent", "") if request else ""
+    device = _guess_device(ua)
+    return session_manager.create_session(
+        employee_id=employee_id, username=username,
+        roles=roles, permissions=permissions,
+        ip_address=ip, user_agent=ua, device_name=device,
+    )
 
 
-def validate_token(token: str) -> Optional[dict]:
-    """Validate a token and return user session data."""
-    session = TOKEN_STORE.get(token)
-    if not session:
-        return None
-    if session["expires_at"] < datetime.utcnow():
-        del TOKEN_STORE[token]
-        return None
-    return session
-
-
-def invalidate_token(token: str):
-    """Logout: remove token from store."""
-    TOKEN_STORE.pop(token, None)
+def _guess_device(ua: str) -> str:
+    ua_lower = ua.lower()
+    if "mobile" in ua_lower or "android" in ua_lower or "iphone" in ua_lower:
+        return "mobile"
+    if "tablet" in ua_lower or "ipad" in ua_lower:
+        return "tablet"
+    if "windows" in ua_lower or "mac" in ua_lower or "linux" in ua_lower:
+        return "desktop"
+    return "unknown"
 
 
 async def get_current_user(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> dict:
-    """
-    FastAPI dependency: extract and validate current user from Authorization header.
-    Usage: add `current_user: dict = Depends(get_current_user)` to any route.
-    """
+    """FastAPI dependency: extract current user from Authorization header."""
     if credentials is None:
-        # For development: allow anonymous with basic read permissions
         return {
-            "employee_id": None,
-            "username": "anonymous",
-            "roles": [],
-            "permissions": [],
-            "is_authenticated": False,
+            "employee_id": None, "username": "anonymous",
+            "roles": [], "permissions": [], "is_authenticated": False,
         }
-
-    session = validate_token(credentials.credentials)
+    session = session_manager.validate_session(credentials.credentials)
     if not session:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-        )
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
     return {
-        "employee_id": session["employee_id"],
-        "username": session["username"],
-        "roles": session["roles"],
-        "permissions": session["permissions"],
+        "employee_id": session.employee_id,
+        "username": session.username,
+        "roles": session.roles,
+        "permissions": session.permissions,
+        "token": session.token,
         "is_authenticated": True,
     }
 
 
 def require_auth(current_user: dict = Depends(get_current_user)) -> dict:
-    """FastAPI dependency: require authenticated user."""
     if not current_user["is_authenticated"]:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required",
-        )
+        raise HTTPException(status_code=401, detail="Authentication required")
     return current_user
 
 
 def require_permission(module: str, action: str):
-    """
-    FastAPI dependency factory: require a specific permission.
-    Usage: `require_permission("inventory", "read")` as a dependency.
-    """
     async def _check(current_user: dict = Depends(require_auth)):
-        perms = current_user.get("permissions", [])
-        has_perm = False
-        for p in perms:
+        for p in current_user.get("permissions", []):
             if p.get("module") == module and p.get("action") == action:
-                scope = p.get("scope", "self")
-                # TODO: check scope against data context in actual route handlers
-                has_perm = True
-                break
-        if not has_perm:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: {module}/{action}",
-            )
-        return current_user
-    return _check
-
-
-def require_role(role_code: str):
-    """
-    FastAPI dependency factory: require a specific role.
-    Usage: `require_role("admin")` as a dependency.
-    """
-    async def _check(current_user: dict = Depends(require_auth)):
-        roles = current_user.get("roles", [])
-        if not any(r.get("role_code") == role_code for r in roles):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Role required: {role_code}",
-            )
-        return current_user
+                return current_user
+        raise HTTPException(status_code=403, detail=f"Permission denied: {module}/{action}")
     return _check
