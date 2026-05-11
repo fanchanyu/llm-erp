@@ -71,11 +71,17 @@ class ProductionOrder(Base):
     product_no = Column(String(50), nullable=False)       # 對應 Product.product_no
     product_name = Column(String(200), default="")
     quantity = Column(Float, nullable=False)
+    completed_qty = Column(Float, default=0)               # ✅ 已完工數量
+    scrapped_qty = Column(Float, default=0)                # ✅ 報廢數量
+    so_id = Column(String(32), nullable=True, index=True)  # ✅ FK to sales_orders.id
+    so_no = Column(String(50), nullable=True)              # ✅ 對應銷售訂單號
     due_date = Column(Date, nullable=False, index=True)
     priority = Column(Integer, default=3)                 # 1=最急 ~ 5=最低
     status = Column(String(20), default=OrderStatus.DRAFT.value, index=True)
     notes = Column(Text, default="")
     created_by = Column(String(100), default="")
+    started_at = Column(DateTime, nullable=True)           # ✅ 實際開工時間
+    completed_at = Column(DateTime, nullable=True)         # ✅ 實際完工時間
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
@@ -96,6 +102,9 @@ class Operation(Base):
     setup_time_min = Column(Float, default=0)             # 設定時間 (分鐘)
     cycle_time_min = Column(Float, default=0)             # 每件循環時間 (分鐘)
     total_time_min = Column(Float, default=0)             # 總工時 (setup + qty * cycle)
+    completed_qty = Column(Float, default=0)              # ✅ 此工序已完工數量
+    operator_id = Column(String(32), nullable=True)       # ✅ 操作人員 (FK to employees.id)
+    operator_name = Column(String(100), default="")       # ✅ 操作人員姓名 (denormalized)
     status = Column(String(20), default=OpStatus.PENDING.value, index=True)
 
     scheduled_start = Column(DateTime, nullable=True)
