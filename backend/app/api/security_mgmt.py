@@ -55,8 +55,9 @@ async def list_all_users(
 @router.post("/users/{user_id}/disable", response_model=dict)
 async def disable_user(user_id: str, db: AsyncSession = Depends(get_db)):
     """Admin: disable a user account (e.g., employee resigned)."""
+    import uuid
     from app.models.organization import User
-    user = await db.get(User, user_id)
+    user = await db.get(User, uuid.UUID(user_id))
     if not user:
         raise HTTPException(404, "User not found")
     user.status = "disabled"
@@ -69,8 +70,9 @@ async def disable_user(user_id: str, db: AsyncSession = Depends(get_db)):
 @router.post("/users/{user_id}/enable", response_model=dict)
 async def enable_user(user_id: str, db: AsyncSession = Depends(get_db)):
     """Admin: re-enable a disabled user account."""
+    import uuid
     from app.models.organization import User
-    user = await db.get(User, user_id)
+    user = await db.get(User, uuid.UUID(user_id))
     if not user:
         raise HTTPException(404, "User not found")
     user.status = "active"
@@ -91,8 +93,9 @@ async def reset_password(
     if not valid:
         raise HTTPException(400, f"Password policy violation: {reason}")
 
+    import uuid
     from app.models.organization import User
-    user = await db.get(User, user_id)
+    user = await db.get(User, uuid.UUID(user_id))
     if not user:
         raise HTTPException(404, "User not found")
 

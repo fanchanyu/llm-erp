@@ -64,8 +64,9 @@ async def get_unified_events(
 
     # 3. Approval records
     from app.models.organization import ApprovalRecord, ApprovalRequest, Employee
+    from sqlalchemy.orm import selectinload
     q = select(ApprovalRecord).options(
-        __import__("sqlalchemy.orm").selectinload(ApprovalRecord.approver)
+        selectinload(ApprovalRecord.approver)
     ).order_by(desc(ApprovalRecord.created_at)).limit(limit)
     r = await db.execute(q)
     for rec in r.scalars().all():

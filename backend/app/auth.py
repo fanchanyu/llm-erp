@@ -2,6 +2,7 @@
 Auth module — session-based authentication with VPN-aware session management.
 Uses SessionManager for concurrent login control, IP tracking, force logout.
 """
+from typing import Optional
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.session import session_manager, SessionInfo
