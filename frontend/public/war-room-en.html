@@ -1,501 +1,517 @@
-     1|<!DOCTYPE html>
-     2|<html lang="en">
-     3|<head>
-     4|<meta charset="UTF-8">
-     5|<meta name="viewport" content="width=device-width, initial-scale=1.0">
-     6|<title>LLM-ERP War Room · Value Stream</title>
-     7|<style>
-     8|* { margin: 0; padding: 0; box-sizing: border-box; }
-     9|body { background: #020617; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #e2e8f0; }
-    10|
-    11|/* Grid background */
-    12|.bg-grid {
-    13|  position: fixed; inset: 0;
-    14|  background-image:
-    15|    linear-gradient(rgba(30,41,59,0.3) 1px, transparent 1px),
-    16|    linear-gradient(90deg, rgba(30,41,59,0.3) 1px, transparent 1px);
-    17|  background-size: 60px 60px;
-    18|  z-index: 0;
-    19|}
-    20|
-    21|/* Header */
-    22|.header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-    23|  padding: 16px 40px; display: flex; align-items: center; justify-content: space-between;
-    24|  background: linear-gradient(180deg, #020617 0%, transparent 100%);
-    25|}
-    26|.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-    27|.header h1 span { color: #22d3ee; }
-    28|.dot-live { width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
-    29|@keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
-    30|.header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
-    31|.header .meta strong { color: #94a3b8; }
-    32|
-    33|/* Flow container */
-    34|.flow { position: fixed; inset: 75px 40px 100px; z-index: 1; display: flex; align-items: center; justify-content: center; }
-    35|svg { width: 100%; height: 100%; }
-    36|
-    37|/* Stage node */
-    38|.stage-box { transition: all 0.3s; cursor: pointer; }
-    39|.stage-box:hover { filter: brightness(1.3); }
-    40|.stage-box.glow-suppliers > rect:first-of-type { filter: url(#glow-orange); }
-    41|.stage-box.glow-purchase > rect:first-of-type { filter: url(#glow-blue); }
-    42|.stage-box.glow-inventory > rect:first-of-type { filter: url(#glow-green); }
-    43|.stage-box.glow-dispatch > rect:first-of-type { filter: url(#glow-red); }
-    44|.stage-box.glow-quality > rect:first-of-type { filter: url(#glow-pink); }
-    45|.stage-box.glow-accounting > rect:first-of-type { filter: url(#glow-yellow); }
-    46|
-    47|.count-label { font-size: 20px; font-weight: 700; }
-    48|.sub-label { font-size: 9px; opacity: 0.6; }
-    49|
-    50|/* Animated data dot */
-    51|.data-dot { animation: flowParticle 2.5s ease-in-out infinite; }
-    52|
-    53|/* Floating event card */
-    54|.event-card {
-    55|  position: fixed;
-    56|  z-index: 20;
-    57|  pointer-events: none;
-    58|  padding: 4px 10px;
-    59|  border-radius: 6px;
-    60|  font-size: 9px;
-    61|  font-weight: 600;
-    62|  white-space: nowrap;
-    63|  opacity: 0;
-    64|  transition: none;
-    65|  box-shadow: 0 0 12px rgba(0,0,0,0.5);
-    66|}
-    67|.event-card.mat { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); color: #34d399; }
-    68|.event-card.pur { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #60a5fa; }
-    69|.event-card.prod { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); color: #f87171; }
-    70|.event-card.qual { background: rgba(244,63,94,0.2); border: 1px solid rgba(244,63,94,0.5); color: #fb7185; }
-    71|.event-card.fin { background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; }
-    72|.event-card.crit { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; color: #fca5a5; }
-    73|
-    74|/* Event stream (bottom) */
-    75|.event-stream {
-    76|  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-    77|  height: 92px;
-    78|  background: linear-gradient(0deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.6) 100%);
-    79|  padding: 10px 40px;
-    80|  overflow: hidden;
-    81|}
-    82|.event-stream .label {
-    83|  font-size: 9px; color: #64748b; margin-bottom: 6px; letter-spacing: 1px;
-    84|}
-    85|.event-items {
-    86|  display: flex; flex-direction: column; gap: 3px;
-    87|  max-height: 60px; overflow-y: auto;
-    88|  scrollbar-width: thin; scrollbar-color: #1e293b transparent;
-    89|}
-    90|.event-item {
-    91|  display: flex; align-items: center; gap: 6px;
-    92|  font-size: 10px; padding: 2px 8px;
-    93|  border-radius: 4px;
-    94|  animation: slideIn 0.3s ease-out;
-    95|  background: rgba(15,23,42,0.6);
-    96|}
-    97|@keyframes slideIn {
-    98|  from { opacity: 0; transform: translateX(-20px); }
-    99|  to { opacity: 1; transform: translateX(0); }
-   100|}
-   101|.event-item .sev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-   102|.event-item .sev-info { background: #22d3ee; }
-   103|.event-item .sev-warning { background: #fbbf24; }
-   104|.event-item .sev-critical { background: #ef4444; }
-   105|.event-item .ev-time { color: #475569; font-size: 8px; }
-   106|.event-item .ev-type { color: #64748b; font-size: 8px; }
-   107|.event-item .ev-summary { color: #cbd5e1; }
-   108|
-   109|/* Sim button */
-   110|.sim-btn {
-   111|  position: fixed; right: 40px; bottom: 102px;
-   112|  z-index: 20;
-   113|  background: rgba(34,211,238,0.1);
-   114|  border: 1px solid rgba(34,211,238,0.3);
-   115|  color: #22d3ee;
-   116|  padding: 4px 12px;
-   117|  border-radius: 4px;
-   118|  font-size: 9px;
-   119|  cursor: pointer;
-   120|  transition: all 0.2s;
-   121|}
-   122|.sim-btn:hover { background: rgba(34,211,238,0.2); }
-   123|
-   124|/* Loading */
-   125|.loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-   126|  background: #020617; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
-   127|.loading.hide { opacity: 0; pointer-events: none; }
-   128|</style>
-   129|</head>
-   130|<body>
-   131|<div class="loading" id="loading">Loading live data…</div>
-   132|<div class="bg-grid"></div>
-   133|
-   134|<div class="header">
-   135|  <h1><span class="dot-live"></span> LLM-ERP <span>War Room</span></h1>
-   136|  <div class="meta">
-   137|    <span>🔄 <strong id="live-orders">—</strong> 在線工單</span>
-   138|    <span>📦 <strong id="live-stock">—</strong> Stock Items</span>
-   139|    <span>💰 <strong id="live-ar">—</strong> 應收帳款</span>
-   140|    <span id="live-clock" style="color:#475569">—</span>
-   141|    <span id="event-count" style="color:#475569">📡 — 事件</span>
-   142|  </div>
-   143|</div>
-   144|
-   145|<div class="flow">
-   146|  <svg viewBox="0 0 1200 520" id="flow-svg">
-   147|    <defs>
-   148|      <filter id="glow-g"><feGaussianBlur stdDeviation="4"/></filter>
-   149|      <filter id="glow-orange"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   150|      <filter id="glow-blue"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   151|      <filter id="glow-green"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   152|      <filter id="glow-red"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   153|      <filter id="glow-pink"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   154|      <filter id="glow-yellow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-   155|      <marker id="arr-mat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-   156|        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#34d399"/>
-   157|      </marker>
-   158|      <marker id="arr-fin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-   159|        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fbbf24"/>
-   160|      </marker>
-   161|      <marker id="arr-nc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-   162|        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb7185"/>
-   163|      </marker>
-   164|    </defs>
-   165|
-   166|    <text x="130" y="68" text-anchor="middle" fill="#f59e0b" font-size="10" opacity="0.3" font-weight="600">Procurement</text>
-   167|    <text x="370" y="68" text-anchor="middle" fill="#3b82f6" font-size="10" opacity="0.3" font-weight="600">計劃段</text>
-   168|    <text x="610" y="68" text-anchor="middle" fill="#10b981" font-size="10" opacity="0.3" font-weight="600">倉儲段</text>
-   169|    <text x="850" y="68" text-anchor="middle" fill="#ef4444" font-size="10" opacity="0.3" font-weight="600">製造段</text>
-   170|    <text x="1050" y="68" text-anchor="middle" fill="#f43f5e" font-size="10" opacity="0.3" font-weight="600">檢驗段</text>
-   171|
-   172|    <!-- Material flow arrows -->
-   173|    <line x1="230" y1="140" x2="310" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-   174|    <line x1="470" y1="140" x2="550" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-   175|    <line x1="710" y1="140" x2="790" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-   176|    <line x1="950" y1="140" x2="990" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-   177|
-   178|    <!-- Finance flow arrow -->
-   179|    <line x1="1100" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-fin)" opacity="0.5"/>
-   180|    <!-- NC flow arrow (dispatch -> quality) -->
-   181|    <line x1="950" y1="170" x2="990" y2="170" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-nc)" opacity="0.4"/>
-   182|
-   183|    <!-- Finance cross-cut lines -->
-   184|    <line x1="280" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
-   185|    <line x1="520" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
-   186|
-   187|    <!-- ═══ STAGE 1: SUPPLIERS ═══ -->
-   188|    <g class="stage-box" id="node-suppliers">
-   189|      <rect x="60" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
-   190|      <rect x="60" y="100" width="170" height="80" rx="12" fill="rgba(245,158,11,0.08)"/>
-   191|      <text x="145" y="128" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">Procurement</text>
-   192|      <text x="70" y="150" font-size="24">🏭</text>
-   193|      <text x="100" y="150" fill="#f1f5f9" font-size="16" font-weight="700">Suppliers</text>
-   194|      <text x="145" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers">—</tspan> 家</text>
-   195|    </g>
-   196|
-   197|    <!-- ═══ STAGE 2: PURCHASE ═══ -->
-   198|    <g class="stage-box" id="node-purchase">
-   199|      <rect x="310" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
-   200|      <rect x="310" y="100" width="160" height="80" rx="12" fill="rgba(59,130,246,0.08)"/>
-   201|      <text x="390" y="128" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">計劃段</text>
-   202|      <text x="320" y="150" font-size="24">📋</text>
-   203|      <text x="350" y="150" fill="#f1f5f9" font-size="16" font-weight="700">Purchase</text>
-   204|      <text x="390" y="170" text-anchor="middle" fill="#64748b" font-size="10">PO <tspan id="count-pos" fill="#3b82f6" font-weight="600">—</tspan></text>
-   205|    </g>
-   206|
-   207|    <!-- ═══ STAGE 3: INVENTORY ═══ -->
-   208|    <g class="stage-box" id="node-inventory">
-   209|      <rect x="550" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
-   210|      <rect x="550" y="100" width="160" height="80" rx="12" fill="rgba(16,185,129,0.08)"/>
-   211|      <text x="630" y="128" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">倉儲段</text>
-   212|      <text x="560" y="150" font-size="24">📦</text>
-   213|      <text x="590" y="150" fill="#f1f5f9" font-size="16" font-weight="700">Inventory</text>
-   214|      <text x="630" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
-   215|    </g>
-   216|
-   217|    <!-- ═══ STAGE 4: DISPATCH ═══ -->
-   218|    <g class="stage-box" id="node-dispatch">
-   219|      <rect x="790" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#ef4444" stroke-width="2"/>
-   220|      <rect x="790" y="100" width="160" height="80" rx="12" fill="rgba(239,68,68,0.08)"/>
-   221|      <text x="870" y="128" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">製造段</text>
-   222|      <text x="800" y="150" font-size="24">⚙️</text>
-   223|      <text x="830" y="150" fill="#f1f5f9" font-size="16" font-weight="700">Dispatch</text>
-   224|      <text x="870" y="170" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
-   225|    </g>
-   226|
-   227|    <!-- ═══ STAGE 5: QUALITY ═══ -->
-   228|    <g class="stage-box" id="node-quality">
-   229|      <rect x="990" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
-   230|      <rect x="990" y="100" width="170" height="80" rx="12" fill="rgba(244,63,94,0.08)"/>
-   231|      <text x="1075" y="128" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600">檢驗段</text>
-   232|      <text x="1000" y="150" font-size="24">✅</text>
-   233|      <text x="1030" y="150" fill="#f1f5f9" font-size="16" font-weight="700">品檢</text>
-   234|      <text x="1075" y="170" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
-   235|    </g>
-   236|
-   237|    <!-- ═══ STAGE 6: ACCOUNTING ═══ -->
-   238|    <g class="stage-box" id="node-accounting">
-   239|      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
-   240|      <rect x="1000" y="290" width="170" height="80" rx="12" fill="rgba(251,191,36,0.08)"/>
-   241|      <text x="1085" y="318" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">財務段</text>
-   242|      <text x="1010" y="340" font-size="24">💰</text>
-   243|      <text x="1040" y="340" fill="#f1f5f9" font-size="16" font-weight="700">Accounting</text>
-   244|      <text x="1085" y="360" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
-   245|    </g>
-   246|
-   247|    <text x="960" y="240" fill="#fbbf24" font-size="8" opacity="0.4" font-weight="600">💰 金流橫切</text>
-   248|
-   249|    <!-- Background decorative particles -->
-   250|    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-   251|      <animateMotion dur="3s" repeatCount="indefinite" path="M230,140 L310,140"/>
-   252|    </circle>
-   253|    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-   254|      <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s" path="M470,140 L550,140"/>
-   255|    </circle>
-   256|    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-   257|      <animateMotion dur="3s" repeatCount="indefinite" begin="0.8s" path="M710,140 L790,140"/>
-   258|    </circle>
-   259|    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-   260|      <animateMotion dur="3s" repeatCount="indefinite" begin="2s" path="M950,140 L990,140"/>
-   261|    </circle>
-   262|    <circle r="3" fill="#fbbf24" opacity="0.6" class="data-dot">
-   263|      <animateMotion dur="4s" repeatCount="indefinite" path="M1100,170 L1100,310"/>
-   264|    </circle>
-   265|  </svg>
-   266|
-   267|  <!-- Floating event cards container -->
-   268|  <div id="event-layer" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
-   269|</div>
-   270|
-   271|<!-- Event stream at bottom -->
-   272|<div class="event-stream">
-   273|  <div style="display:flex;justify-content:space-between;align-items:center;">
-   274|    <div class="label">📡 Event Stream (Live)</div>
-   275|    <div style="display:flex;gap:8px;">
-   276|      <span style="font-size:9px;color:#475569;">🟢<span style="color:#64748b;margin-left:3px;">料物流</span></span>
-   277|      <span style="font-size:9px;color:#475569;">🔵<span style="color:#64748b;margin-left:3px;">Purchase流</span></span>
-   278|      <span style="font-size:9px;color:#475569;">🔴<span style="color:#64748b;margin-left:3px;">生產流</span></span>
-   279|      <span style="font-size:9px;color:#475569;">🟡<span style="color:#64748b;margin-left:3px;">金流</span></span>
-   280|      <span style="font-size:9px;color:#475569;">🩷<span style="color:#64748b;margin-left:3px;">Quality</span></span>
-   281|    </div>
-   282|    <button class="sim-btn" onclick="simulateRandomEvent()">▶ Simulate Event</button>
-   283|  </div>
-   284|  <div class="event-items" id="event-items"></div>
-   285|</div>
-   286|
-   287|<script>
-   288|// ─── SVG Flow Paths (from SVG coordinates) ───
-   289|const FLOW_PATHS = {
-   290|  'supplier-to-purchase':    { from: [230,140], to: [310,140], cls:'pur' },
-   291|  'purchase-to-inventory':   { from: [470,140], to: [550,140], cls:'mat' },
-   292|  'inventory-to-dispatch':   { from: [710,140], to: [790,140], cls:'mat' },
-   293|  'dispatch-to-quality':     { from: [950,140], to: [990,140], cls:'qual' },
-   294|  'dispatch-to-accounting':  { from: [1100,170], to:[1100,310], cls:'fin' },
-   295|};
-   296|
-   297|// Map event types to flow paths
-   298|const EVENT_FLOW_MAP = {
-   299|  'purchase_order.created':       { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
-   300|  'purchase_order.approved':      { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
-   301|  'material.received':            { path:'purchase-to-inventory', stage:'inventory',   icon:'📦' },
-   302|  'material.issued':              { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
-   303|  'work_order.released':          { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
-   304|  'work_order.completed':         { path:'dispatch-to-quality',   stage:'quality',     icon:'✅' },
-   305|  'non_conformance.created':      { path:'dispatch-to-quality',   stage:'quality',     icon:'⚠️' },
-   306|  'payment.due':                  { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
-   307|  'receivable.overdue':           { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
-   308|  'payment.received':             { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
-   309|};
-   310|
-   311|// ─── Event Flow Animation ───
-   312|function animateEventFlow(ev) {
-   313|  const flow = EVENT_FLOW_MAP[ev.event_type] || EVENT_FLOW_MAP['purchase_order.created'];
-   314|  const pathData = FLOW_PATHS[flow.path];
-   315|  if (!pathData) return;
-   316|
-   317|  const layer = document.getElementById('event-layer');
-   318|
-   319|  // Create floating card
-   320|  const card = document.createElement('div');
-   321|  card.className = `event-card ${pathData.cls}`;
-   322|  const label = ev.summary || `${flow.icon} ${ev.event_type.split('.').pop()}`;
-   323|  card.textContent = label.length > 40 ? label.slice(0, 40) + '…' : label;
-   324|  layer.appendChild(card);
-   325|
-   326|  // Position at start
-   327|  const flowEl = document.querySelector('.flow');
-   328|  const flowRect = flowEl.getBoundingClientRect();
-   329|  const svgW = 1200, svgH = 520;
-   330|
-   331|  const startX = flowRect.left + (pathData.from[0] / svgW) * flowRect.width;
-   332|  const startY = flowRect.top + 75 + (pathData.from[1] / svgH) * (flowRect.height - 120);
-   333|  const endX = flowRect.left + (pathData.to[0] / svgW) * flowRect.width;
-   334|  const endY = flowRect.top + 75 + (pathData.to[1] / svgH) * (flowRect.height - 120);
-   335|
-   336|  card.style.left = startX + 'px';
-   337|  card.style.top = startY + 'px';
-   338|  card.style.opacity = '0';
-   339|
-   340|  // Fade in, move, fade out
-   341|  requestAnimationFrame(() => {
-   342|    card.style.transition = 'opacity 0.3s';
-   343|    card.style.opacity = '1';
-   344|  });
-   345|
-   346|  // Glow target stage
-   347|  const stageId = 'node-' + flow.stage;
-   348|  const stageEl = document.getElementById(stageId);
-   349|  if (stageEl) stageEl.classList.add('glow-' + flow.stage);
-   350|
-   351|  setTimeout(() => {
-   352|    card.style.transition = `left 2.5s ease-in-out, top 2.5s ease-in-out`;
-   353|    card.style.left = endX + 'px';
-   354|    card.style.top = endY + 'px';
-   355|  }, 400);
-   356|
-   357|  setTimeout(() => {
-   358|    card.style.transition = 'opacity 0.5s';
-   359|    card.style.opacity = '0';
-   360|  }, 2600);
-   361|
-   362|  setTimeout(() => {
-   363|    if (stageEl) stageEl.classList.remove('glow-' + flow.stage);
-   364|    card.remove();
-   365|  }, 3200);
-   366|}
-   367|
-   368|// ─── Add event to stream ───
-   369|function addEventToStream(ev) {
-   370|  const container = document.getElementById('event-items');
-   371|  const sevClass = ev.severity === 'critical' ? 'sev-critical' : ev.severity === 'warning' ? 'sev-warning' : 'sev-info';
-   372|  const time = ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString('zh-TW', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : new Date().toLocaleTimeString('zh-TW', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
-   373|
-   374|  const item = document.createElement('div');
-   375|  item.className = 'event-item';
-   376|  item.innerHTML = `
-   377|    <span class="sev-dot ${sevClass}"></span>
-   378|    <span class="ev-time">${time}</span>
-   379|    <span class="ev-type">${ev.event_type}</span>
-   380|    <span class="ev-summary">${ev.summary || ''}</span>
-   381|  `;
-   382|  container.prepend(item);
-   383|
-   384|  // Keep max 30 items
-   385|  while (container.children.length > 30) container.removeChild(container.lastChild);
-   386|}
-   387|
-   388|// ─── Simulate a random event ───
-   389|async function simulateRandomEvent() {
-   390|  const types = ['material.received','material.issued','purchase_order.created','work_order.released','non_conformance.created'];
-   391|  const type = types[Math.floor(Math.random() * types.length)];
-   392|  try {
-   393|    const res = await fetch('/api/events/simulate/' + type, { method: 'POST' });
-   394|    if (res.ok) {
-   395|      const data = await res.json();
-   396|      console.log('Simulated:', data);
-   397|      refreshEvents();
-   398|    }
-   399|  } catch(e) { console.error('Sim error:', e); }
-   400|}
-   401|
-   402|// ─── Fetch events from activity API ───
-   403|let lastEventCount = 0;
-   404|async function refreshEvents() {
-   405|  try {
-   406|    const res = await fetch('/api/events/activity?limit=20');
-   407|    if (!res.ok) return;
-   408|    const data = await res.json();
-   409|    const events = data.events || [];
-   410|    document.getElementById('event-count').textContent = `📡 ${events.length} 事件`;
-   411|
-   412|    // Animate new events
-   413|    if (events.length > lastEventCount) {
-   414|      const newEvents = events.slice(0, events.length - lastEventCount);
-   415|      newEvents.forEach(ev => {
-   416|        addEventToStream(ev);
-   417|        animateEventFlow(ev);
-   418|      });
-   419|    } else if (events.length > 0) {
-   420|      // First load: show latest 3 events as flow animation
-   421|      const recent = events.slice(0, 3);
-   422|      recent.forEach(ev => {
-   423|        addEventToStream(ev);
-   424|        animateEventFlow(ev);
-   425|      });
-   426|    }
-   427|    lastEventCount = events.length;
-   428|
-   429|    // If no events exist, simulate some demo events
-   430|    if (events.length === 0) {
-   431|      setTimeout(() => {
-   432|        simulateRandomEvent();
-   433|      }, 2000);
-   434|    }
-   435|  } catch(e) { console.error('Events fetch error:', e); }
-   436|}
-   437|
-   438|// ─── Fetch dashboard data (existing) ───
-   439|async function fetchData() {
-   440|  try {
-   441|    const [health, stockRes, poRes, woRes, ncRes, arRes, supRes] = await Promise.allSettled([
-   442|      fetch('/health').then(r => r.json()),
-   443|      fetch('/api/inventory/stock').then(r => r.json()),
-   444|      fetch('/api/purchase/orders').then(r => r.json()),
-   445|      fetch('/api/dispatch/orders').then(r => r.json()),
-   446|      fetch('/api/quality/ncs').then(r => r.json()),
-   447|      fetch('/api/accounting/ar').then(r => r.json()),
-   448|      fetch('/api/purchase/suppliers').then(r => r.json()),
-   449|    ])
-   450|
-   451|    if (stockRes.status === 'fulfilled') {
-   452|      const d = stockRes.value
-   453|      const count = d?.total ?? (Array.isArray(d) ? d.length : 0)
-   454|      document.getElementById('count-stock').textContent = count
-   455|      document.getElementById('live-stock').textContent = count
-   456|    }
-   457|
-   458|    if (poRes.status === 'fulfilled') {
-   459|      document.getElementById('count-pos').textContent = poRes.value?.total ?? 0
-   460|    }
-   461|
-   462|    if (woRes.status === 'fulfilled') {
-   463|      const d = woRes.value
-   464|      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0
-   465|      document.getElementById('count-orders').textContent = active
-   466|      document.getElementById('live-orders').textContent = active
-   467|    }
-   468|
-   469|    if (ncRes.status === 'fulfilled') {
-   470|      const d = ncRes.value
-   471|      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0
-   472|      document.getElementById('count-ncs').textContent = count
-   473|    }
-   474|
-   475|    if (arRes.status === 'fulfilled') {
-   476|      const d = arRes.value
-   477|      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0
-   478|      document.getElementById('live-ar').textContent = `NT$${Intl.NumberFormat('zh-TW').format(d?.items?.[0]?.amount || 0)}`
-   479|    }
-   480|
-   481|    if (supRes.status === 'fulfilled') {
-   482|      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0
-   483|    }
-   484|
-   485|    if (health.status === 'fulfilled' && health.value?.status === 'ok') {
-   486|      document.querySelector('.dot-live').style.background = '#22d3ee'
-   487|    }
-   488|
-   489|    document.getElementById('last-refresh').textContent = `更新 ${new Date().toLocaleTimeString('zh-TW')}`
-   490|  } catch(e) { console.error('Fetch error:', e) }
-   491|  document.getElementById('loading').classList.add('hide')
-   492|}
-   493|
-   494|// ─── Clock ───
-   495|function updateClock() {
-   496|  document.getElementById('live-clock').textContent = new Date().toLocaleString('zh-TW', {
-   497|    year: 'numeric', month: '2-digit', day: '2-digit',
-   498|    hour: '2-digit', minute: '2-digit', second: '2-digit'
-   499|  })
-   500|}
-   501|
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM-ERP War Room · Value Stream</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #334155; }
+
+/* Grid background */
+.bg-grid {
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+/* Header */
+.header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+  padding: 16px 40px; display: flex; align-items: center; justify-content: space-between;
+  background: linear-gradient(180deg, #f0f4f8 0%, transparent 100%);
+}
+.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: #1e293b; }
+.header h1 span { color: #0891b2; }
+.dot-live { width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
+.header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
+.header .meta strong { color: #475569; }
+
+/* Flow container */
+.flow { position: fixed; inset: 75px 40px 100px; z-index: 1; display: flex; align-items: center; justify-content: center; }
+svg { width: 100%; height: 100%; }
+
+/* Stage node */
+.stage-box { transition: all 0.3s; cursor: pointer; }
+.stage-box:hover { filter: brightness(1.3); }
+.stage-box.glow-suppliers > rect:first-of-type { filter: url(#glow-orange); }
+.stage-box.glow-purchase > rect:first-of-type { filter: url(#glow-blue); }
+.stage-box.glow-inventory > rect:first-of-type { filter: url(#glow-green); }
+.stage-box.glow-dispatch > rect:first-of-type { filter: url(#glow-red); }
+.stage-box.glow-quality > rect:first-of-type { filter: url(#glow-pink); }
+.stage-box.glow-accounting > rect:first-of-type { filter: url(#glow-yellow); }
+
+.count-label { font-size: 20px; font-weight: 700; }
+.sub-label { font-size: 9px; opacity: 0.6; }
+
+/* Animated data dot */
+.data-dot { animation: flowParticle 2.5s ease-in-out infinite; }
+
+/* Floating event card */
+.event-card {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 9px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  transition: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.event-card.mat { background: rgba(16,185,129,0.95); border: none; color: #ffffff; }
+.event-card.pur { background: rgba(59,130,246,0.95); border: none; color: #ffffff; }
+.event-card.prod { background: rgba(239,68,68,0.95); border: none; color: #ffffff; }
+.event-card.qual { background: rgba(244,63,94,0.95); border: none; color: #ffffff; }
+.event-card.fin { background: rgba(251,191,36,0.95); border: none; color: #1e293b; }
+.event-card.crit { background: #ef4444; border: none; color: #ffffff; }
+
+/* Event stream (bottom) */
+.event-stream {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
+  height: 92px;
+  background: linear-gradient(0deg, rgba(240,244,248,0.97) 0%, rgba(240,244,248,0.7) 100%);
+  padding: 10px 40px;
+  overflow: hidden;
+  border-top: 1px solid #e2e8f0;
+}
+.event-stream .label {
+  font-size: 9px; color: #94a3b8; margin-bottom: 6px; letter-spacing: 1px;
+}
+.event-items {
+  display: flex; flex-direction: column; gap: 3px;
+  max-height: 60px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
+}
+.event-item {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; padding: 2px 8px;
+  border-radius: 4px;
+  animation: slideIn 0.3s ease-out;
+  background: #ffffff; border: 1px solid #e2e8f0;
+}
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.event-item .sev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.event-item .sev-info { background: #22d3ee; }
+.event-item .sev-warning { background: #fbbf24; }
+.event-item .sev-critical { background: #ef4444; }
+.event-item .ev-time { color: #475569; font-size: 8px; }
+.event-item .ev-type { color: #64748b; font-size: 8px; }
+.event-item .ev-summary { color: #475569; }
+
+/* Sim button */
+.sim-btn {
+  position: fixed; right: 40px; bottom: 102px;
+  z-index: 20;
+  background: #ffffff; border: 1px solid #e2e8f0;
+  color: #475569;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sim-btn:hover { background: #f1f5f9; }
+
+/* Loading */
+.loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: #f0f4f8; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
+.loading.hide { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="loading" id="loading">Loading real-time data⋯</div>
+<div class="bg-grid"></div>
+
+<div class="header">
+  <h1><span class="dot-live"></span> LLM-ERP <span>War Room</span></h1>
+  <div class="meta">
+    <span>🔄 <strong id="live-orders">—</strong> Active Orders</span>
+    <span>📦 <strong id="live-stock">—</strong> Stock Items</span>
+    <span>💰 <strong id="live-ar">—</strong> AR Receivable</span>
+    <span id="live-clock" style="color:#64748b">—</span>
+    <span id="event-count" style="color:#64748b">📡 — Events</span>
+    <a href="/war-room" style="color:#0891b2;font-size:11px;text-decoration:none;margin-left:4px;">🌐 中文</a>
+  </div>
+</div>
+
+<div class="flow">
+  <svg viewBox="0 0 1200 520" id="flow-svg">
+    <defs>
+      <filter id="glow-g"><feGaussianBlur stdDeviation="4"/></filter>
+      <filter id="glow-orange"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-blue"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-green"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-red"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-pink"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="glow-yellow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="arr-mat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#34d399"/>
+      </marker>
+      <marker id="arr-fin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fbbf24"/>
+      </marker>
+      <marker id="arr-nc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb7185"/>
+      </marker>
+    </defs>
+
+    <text x="130" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">Sourcing</text>
+    <text x="370" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">Planning</text>
+    <text x="610" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">Warehousing</text>
+    <text x="850" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">Manufacturing</text>
+    <text x="1050" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">Inspection</text>
+
+    <!-- Material flow arrows -->
+    <line x1="230" y1="140" x2="310" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="470" y1="140" x2="550" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="710" y1="140" x2="790" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <line x1="950" y1="140" x2="990" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+
+    <!-- Finance flow arrow -->
+    <line x1="1100" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-fin)" opacity="0.5"/>
+    <!-- NC flow arrow (dispatch -> quality) -->
+    <line x1="950" y1="170" x2="990" y2="170" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-nc)" opacity="0.4"/>
+
+    <!-- Finance cross-cut lines -->
+    <line x1="280" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
+    <line x1="520" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
+
+    <!-- ═══ STAGE 1: SUPPLIERS ═══ -->
+    <g class="stage-box" id="node-suppliers">
+      <rect x="60" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
+      <rect x="60" y="100" width="170" height="80" rx="12" fill="rgba(245,158,11,0.08)"/>
+      <text x="145" y="128" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">Sourcing</text>
+      <text x="70" y="150" font-size="24">🏭</text>
+      <text x="100" y="150" fill="#1e293b" font-size="16" font-weight="700">Suppliers</text>
+      <text x="145" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers">—</tspan> vendors</text>
+    </g>
+
+    <!-- ═══ STAGE 2: PURCHASE ═══ -->
+    <g class="stage-box" id="node-purchase">
+      <rect x="310" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
+      <rect x="310" y="100" width="160" height="80" rx="12" fill="rgba(59,130,246,0.08)"/>
+      <text x="390" y="128" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">Planning</text>
+      <text x="320" y="150" font-size="24">📋</text>
+      <text x="350" y="150" fill="#1e293b" font-size="16" font-weight="700">Purchase</text>
+      <text x="390" y="170" text-anchor="middle" fill="#64748b" font-size="10">PO <tspan id="count-pos" fill="#3b82f6" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 3: INVENTORY ═══ -->
+    <g class="stage-box" id="node-inventory">
+      <rect x="550" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+      <rect x="550" y="100" width="160" height="80" rx="12" fill="rgba(16,185,129,0.08)"/>
+      <text x="630" y="128" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">Warehousing</text>
+      <text x="560" y="150" font-size="24">📦</text>
+      <text x="590" y="150" fill="#1e293b" font-size="16" font-weight="700">Inventory</text>
+      <text x="630" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> items</text>
+    </g>
+
+    <!-- ═══ STAGE 4: DISPATCH ═══ -->
+    <g class="stage-box" id="node-dispatch">
+      <rect x="790" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
+      <rect x="790" y="100" width="160" height="80" rx="12" fill="rgba(239,68,68,0.08)"/>
+      <text x="870" y="128" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">Manufacturing</text>
+      <text x="800" y="150" font-size="24">⚙️</text>
+      <text x="830" y="150" fill="#1e293b" font-size="16" font-weight="700">Dispatch</text>
+      <text x="870" y="170" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 5: QUALITY ═══ -->
+    <g class="stage-box" id="node-quality">
+      <rect x="990" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
+      <rect x="990" y="100" width="170" height="80" rx="12" fill="rgba(244,63,94,0.08)"/>
+      <text x="1075" y="128" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600">Inspection</text>
+      <text x="1000" y="150" font-size="24">✅</text>
+      <text x="1030" y="150" fill="#1e293b" font-size="16" font-weight="700">Quality</text>
+      <text x="1075" y="170" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- ═══ STAGE 6: ACCOUNTING ═══ -->
+    <g class="stage-box" id="node-accounting">
+      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#ffffff" stroke="#fbbf24" stroke-width="2"/>
+      <rect x="1000" y="290" width="170" height="80" rx="12" fill="rgba(251,191,36,0.08)"/>
+      <text x="1085" y="318" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">Finance</text>
+      <text x="1010" y="340" font-size="24">💰</text>
+      <text x="1040" y="340" fill="#1e293b" font-size="16" font-weight="700">Accounting</text>
+      <text x="1085" y="360" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
+    </g>
+
+    <text x="960" y="240" fill="#fbbf24" font-size="8" opacity="0.4" font-weight="600">💰 Cash Flow Cross-cut</text>
+
+    <!-- Background decorative particles -->
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" path="M230,140 L310,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s" path="M470,140 L550,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="0.8s" path="M710,140 L790,140"/>
+    </circle>
+    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
+      <animateMotion dur="3s" repeatCount="indefinite" begin="2s" path="M950,140 L990,140"/>
+    </circle>
+    <circle r="3" fill="#fbbf24" opacity="0.6" class="data-dot">
+      <animateMotion dur="4s" repeatCount="indefinite" path="M1100,170 L1100,310"/>
+    </circle>
+  </svg>
+
+  <!-- Floating event cards container -->
+  <div id="event-layer" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
+</div>
+
+<!-- Event stream at bottom -->
+<div class="event-stream">
+  <div style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="label">📡 Event Stream (Live)</div>
+    <div style="display:flex;gap:8px;">
+      <span style="font-size:9px;color:#64748b;">🟢<span style="color:#64748b;margin-left:3px;">Material</span></span>
+      <span style="font-size:9px;color:#64748b;">🔵<span style="color:#64748b;margin-left:3px;">Purchase Flow</span></span>
+      <span style="font-size:9px;color:#64748b;">🔴<span style="color:#64748b;margin-left:3px;">Production Flow</span></span>
+      <span style="font-size:9px;color:#64748b;">🟡<span style="color:#64748b;margin-left:3px;">Cash Flow</span></span>
+      <span style="font-size:9px;color:#64748b;">🩷<span style="color:#64748b;margin-left:3px;">Quality Flow</span></span>
+    </div>
+    <button class="sim-btn" onclick="simulateRandomEvent()">▶ Simulate Event</button>
+  </div>
+  <div class="event-items" id="event-items"></div>
+</div>
+
+<script>
+// ─── SVG Flow Paths (from SVG coordinates) ───
+const FLOW_PATHS = {
+  'supplier-to-purchase':    { from: [230,140], to: [310,140], cls:'pur' },
+  'purchase-to-inventory':   { from: [470,140], to: [550,140], cls:'mat' },
+  'inventory-to-dispatch':   { from: [710,140], to: [790,140], cls:'mat' },
+  'dispatch-to-quality':     { from: [950,140], to: [990,140], cls:'qual' },
+  'dispatch-to-accounting':  { from: [1100,170], to:[1100,310], cls:'fin' },
+};
+
+// Map event types to flow paths
+const EVENT_FLOW_MAP = {
+  'purchase_order.created':       { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
+  'purchase_order.approved':      { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
+  'material.received':            { path:'purchase-to-inventory', stage:'inventory',   icon:'📦' },
+  'material.issued':              { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
+  'work_order.released':          { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
+  'work_order.completed':         { path:'dispatch-to-quality',   stage:'quality',     icon:'✅' },
+  'non_conformance.created':      { path:'dispatch-to-quality',   stage:'quality',     icon:'⚠️' },
+  'payment.due':                  { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+  'receivable.overdue':           { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+  'payment.received':             { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+};
+
+// ─── Event Flow Animation ───
+function animateEventFlow(ev) {
+  const flow = EVENT_FLOW_MAP[ev.event_type] || EVENT_FLOW_MAP['purchase_order.created'];
+  const pathData = FLOW_PATHS[flow.path];
+  if (!pathData) return;
+
+  const layer = document.getElementById('event-layer');
+
+  // Create floating card
+  const card = document.createElement('div');
+  card.className = `event-card ${pathData.cls}`;
+  const label = ev.summary || `${flow.icon} ${ev.event_type.split('.').pop()}`;
+  card.textContent = label.length > 40 ? label.slice(0, 40) + '…' : label;
+  layer.appendChild(card);
+
+  // Position at start
+  const flowEl = document.querySelector('.flow');
+  const flowRect = flowEl.getBoundingClientRect();
+  const svgW = 1200, svgH = 520;
+
+  const startX = flowRect.left + (pathData.from[0] / svgW) * flowRect.width;
+  const startY = flowRect.top + 75 + (pathData.from[1] / svgH) * (flowRect.height - 120);
+  const endX = flowRect.left + (pathData.to[0] / svgW) * flowRect.width;
+  const endY = flowRect.top + 75 + (pathData.to[1] / svgH) * (flowRect.height - 120);
+
+  card.style.left = startX + 'px';
+  card.style.top = startY + 'px';
+  card.style.opacity = '0';
+
+  // Fade in, move, fade out
+  requestAnimationFrame(() => {
+    card.style.transition = 'opacity 0.3s';
+    card.style.opacity = '1';
+  });
+
+  // Glow target stage
+  const stageId = 'node-' + flow.stage;
+  const stageEl = document.getElementById(stageId);
+  if (stageEl) stageEl.classList.add('glow-' + flow.stage);
+
+  setTimeout(() => {
+    card.style.transition = `left 2.5s ease-in-out, top 2.5s ease-in-out`;
+    card.style.left = endX + 'px';
+    card.style.top = endY + 'px';
+  }, 400);
+
+  setTimeout(() => {
+    card.style.transition = 'opacity 0.5s';
+    card.style.opacity = '0';
+  }, 2600);
+
+  setTimeout(() => {
+    if (stageEl) stageEl.classList.remove('glow-' + flow.stage);
+    card.remove();
+  }, 3200);
+}
+
+// ─── Add event to stream ───
+function addEventToStream(ev) {
+  const container = document.getElementById('event-items');
+  const sevClass = ev.severity === 'critical' ? 'sev-critical' : ev.severity === 'warning' ? 'sev-warning' : 'sev-info';
+  const time = ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit'}) : new Date().toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  const item = document.createElement('div');
+  item.className = 'event-item';
+  item.innerHTML = `
+    <span class="sev-dot ${sevClass}"></span>
+    <span class="ev-time">${time}</span>
+    <span class="ev-type">${ev.event_type}</span>
+    <span class="ev-summary">${ev.summary || ''}</span>
+  `;
+  container.prepend(item);
+
+  // Keep max 30 items
+  while (container.children.length > 30) container.removeChild(container.lastChild);
+}
+
+// ─── Simulate a random event ───
+async function simulateRandomEvent() {
+  const types = ['material.received','material.issued','purchase_order.created','work_order.released','non_conformance.created'];
+  const type = types[Math.floor(Math.random() * types.length)];
+  try {
+    const res = await fetch('/api/events/simulate/' + type, { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      console.log('Simulated:', data);
+      refreshEvents();
+    }
+  } catch(e) { console.error('Sim error:', e); }
+}
+
+// ─── Fetch events from activity API ───
+let lastEventCount = 0;
+async function refreshEvents() {
+  try {
+    const res = await fetch('/api/events/activity?limit=20');
+    if (!res.ok) return;
+    const data = await res.json();
+    const events = data.events || [];
+    document.getElementById('event-count').textContent = `📡 ${events.length} Events`;
+
+    // Animate new events
+    if (events.length > lastEventCount) {
+      const newEvents = events.slice(0, events.length - lastEventCount);
+      newEvents.forEach(ev => {
+        addEventToStream(ev);
+        animateEventFlow(ev);
+      });
+    } else if (events.length > 0) {
+      // First load: show latest 3 events as flow animation
+      const recent = events.slice(0, 3);
+      recent.forEach(ev => {
+        addEventToStream(ev);
+        animateEventFlow(ev);
+      });
+    }
+    lastEventCount = events.length;
+
+    // If no events exist, simulate some demo events
+    if (events.length === 0) {
+      setTimeout(() => {
+        simulateRandomEvent();
+      }, 2000);
+    }
+  } catch(e) { console.error('Events fetch error:', e); }
+}
+
+// ─── Fetch dashboard data (existing) ───
+async function fetchData() {
+  try {
+    const [health, stockRes, poRes, woRes, ncRes, arRes, supRes] = await Promise.allSettled([
+      fetch('/health').then(r => r.json()),
+      fetch('/api/inventory/stock').then(r => r.json()),
+      fetch('/api/purchase/orders').then(r => r.json()),
+      fetch('/api/dispatch/orders').then(r => r.json()),
+      fetch('/api/quality/ncs').then(r => r.json()),
+      fetch('/api/accounting/ar').then(r => r.json()),
+      fetch('/api/purchase/suppliers').then(r => r.json()),
+    ])
+
+    if (stockRes.status === 'fulfilled') {
+      const d = stockRes.value
+      const count = d?.total ?? (Array.isArray(d) ? d.length : 0)
+      document.getElementById('count-stock').textContent = count
+      document.getElementById('live-stock').textContent = count
+    }
+
+    if (poRes.status === 'fulfilled') {
+      document.getElementById('count-pos').textContent = poRes.value?.total ?? 0
+    }
+
+    if (woRes.status === 'fulfilled') {
+      const d = woRes.value
+      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0
+      document.getElementById('count-orders').textContent = active
+      document.getElementById('live-orders').textContent = active
+    }
+
+    if (ncRes.status === 'fulfilled') {
+      const d = ncRes.value
+      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0
+      document.getElementById('count-ncs').textContent = count
+    }
+
+    if (arRes.status === 'fulfilled') {
+      const d = arRes.value
+      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0
+      document.getElementById('live-ar').textContent = `$${Intl.NumberFormat('en-US').format(d?.items?.[0]?.amount || 0)}`
+    }
+
+    if (supRes.status === 'fulfilled') {
+      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0
+    }
+
+    if (health.status === 'fulfilled' && health.value?.status === 'ok') {
+      document.querySelector('.dot-live').style.background = '#22d3ee'
+    }
+
+    document.getElementById('last-refresh').textContent = `Updated ${new Date().toLocaleTimeString('en-US')}`
+  } catch(e) { console.error('Fetch error:', e) }
+  document.getElementById('loading').classList.add('hide')
+}
+
+// ─── Clock ───
+function updateClock() {
+  document.getElementById('live-clock').textContent = new Date().toLocaleString('en-US', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  })
+}
+
+// ─── Init ───
+fetchData()
+refreshEvents()
+updateClock()
+setInterval(fetchData, 15000)
+setInterval(refreshEvents, 10000)
+setInterval(updateClock, 1000)
+// Auto-simulate every 25 seconds
+setInterval(simulateRandomEvent, 25000)
+
+// Expose for button
+window.simulateRandomEvent = simulateRandomEvent
+</script>
+</body>
+</html>

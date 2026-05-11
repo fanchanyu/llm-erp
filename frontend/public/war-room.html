@@ -6,14 +6,14 @@
 <title>LLM-ERP 戰情室 · 價值流</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { background: #020617; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #e2e8f0; }
+body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #334155; }
 
 /* Grid background */
 .bg-grid {
   position: fixed; inset: 0;
   background-image:
-    linear-gradient(rgba(30,41,59,0.3) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(30,41,59,0.3) 1px, transparent 1px);
+    linear-gradient(rgba(148,163,184,0.15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,184,0.15) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
 }
@@ -21,14 +21,14 @@ body { background: #020617; font-family: 'Segoe UI', system-ui, sans-serif; over
 /* Header */
 .header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
   padding: 16px 40px; display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(180deg, #020617 0%, transparent 100%);
+  background: linear-gradient(180deg, #f0f4f8 0%, transparent 100%);
 }
-.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-.header h1 span { color: #22d3ee; }
+.header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: #1e293b; }
+.header h1 span { color: #0891b2; }
 .dot-live { width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
 .header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
-.header .meta strong { color: #94a3b8; }
+.header .meta strong { color: #475569; }
 
 /* Flow container */
 .flow { position: fixed; inset: 75px 40px 100px; z-index: 1; display: flex; align-items: center; justify-content: center; }
@@ -62,37 +62,38 @@ svg { width: 100%; height: 100%; }
   white-space: nowrap;
   opacity: 0;
   transition: none;
-  box-shadow: 0 0 12px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-.event-card.mat { background: rgba(16,185,129,0.2); border: 1px solid rgba(16,185,129,0.5); color: #34d399; }
-.event-card.pur { background: rgba(59,130,246,0.2); border: 1px solid rgba(59,130,246,0.5); color: #60a5fa; }
-.event-card.prod { background: rgba(239,68,68,0.2); border: 1px solid rgba(239,68,68,0.5); color: #f87171; }
-.event-card.qual { background: rgba(244,63,94,0.2); border: 1px solid rgba(244,63,94,0.5); color: #fb7185; }
-.event-card.fin { background: rgba(251,191,36,0.2); border: 1px solid rgba(251,191,36,0.5); color: #fbbf24; }
-.event-card.crit { background: rgba(239,68,68,0.3); border: 1px solid #ef4444; color: #fca5a5; }
+.event-card.mat { background: rgba(16,185,129,0.95); border: none; color: #ffffff; }
+.event-card.pur { background: rgba(59,130,246,0.95); border: none; color: #ffffff; }
+.event-card.prod { background: rgba(239,68,68,0.95); border: none; color: #ffffff; }
+.event-card.qual { background: rgba(244,63,94,0.95); border: none; color: #ffffff; }
+.event-card.fin { background: rgba(251,191,36,0.95); border: none; color: #1e293b; }
+.event-card.crit { background: #ef4444; border: none; color: #ffffff; }
 
 /* Event stream (bottom) */
 .event-stream {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
   height: 92px;
-  background: linear-gradient(0deg, rgba(2,6,23,0.95) 0%, rgba(2,6,23,0.6) 100%);
+  background: linear-gradient(0deg, rgba(240,244,248,0.97) 0%, rgba(240,244,248,0.7) 100%);
   padding: 10px 40px;
   overflow: hidden;
+  border-top: 1px solid #e2e8f0;
 }
 .event-stream .label {
-  font-size: 9px; color: #64748b; margin-bottom: 6px; letter-spacing: 1px;
+  font-size: 9px; color: #94a3b8; margin-bottom: 6px; letter-spacing: 1px;
 }
 .event-items {
   display: flex; flex-direction: column; gap: 3px;
   max-height: 60px; overflow-y: auto;
-  scrollbar-width: thin; scrollbar-color: #1e293b transparent;
+  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
 }
 .event-item {
   display: flex; align-items: center; gap: 6px;
   font-size: 10px; padding: 2px 8px;
   border-radius: 4px;
   animation: slideIn 0.3s ease-out;
-  background: rgba(15,23,42,0.6);
+  background: #ffffff; border: 1px solid #e2e8f0;
 }
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(-20px); }
@@ -104,26 +105,25 @@ svg { width: 100%; height: 100%; }
 .event-item .sev-critical { background: #ef4444; }
 .event-item .ev-time { color: #475569; font-size: 8px; }
 .event-item .ev-type { color: #64748b; font-size: 8px; }
-.event-item .ev-summary { color: #cbd5e1; }
+.event-item .ev-summary { color: #475569; }
 
 /* Sim button */
 .sim-btn {
   position: fixed; right: 40px; bottom: 102px;
   z-index: 20;
-  background: rgba(34,211,238,0.1);
-  border: 1px solid rgba(34,211,238,0.3);
-  color: #22d3ee;
+  background: #ffffff; border: 1px solid #e2e8f0;
+  color: #475569;
   padding: 4px 12px;
   border-radius: 4px;
   font-size: 9px;
   cursor: pointer;
   transition: all 0.2s;
 }
-.sim-btn:hover { background: rgba(34,211,238,0.2); }
+.sim-btn:hover { background: #f1f5f9; }
 
 /* Loading */
 .loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
-  background: #020617; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
+  background: #f0f4f8; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
 .loading.hide { opacity: 0; pointer-events: none; }
 </style>
 </head>
@@ -137,8 +137,9 @@ svg { width: 100%; height: 100%; }
     <span>🔄 <strong id="live-orders">—</strong> 在線工單</span>
     <span>📦 <strong id="live-stock">—</strong> 庫存品項</span>
     <span>💰 <strong id="live-ar">—</strong> 應收帳款</span>
-    <span id="live-clock" style="color:#475569">—</span>
-    <span id="event-count" style="color:#475569">📡 — 事件</span>
+    <span id="live-clock" style="color:#64748b">—</span>
+    <span id="event-count" style="color:#64748b">📡 — 事件</span>
+    <a href="/war-room-en" style="color:#0891b2;font-size:11px;text-decoration:none;margin-left:4px;">🌐 EN</a>
   </div>
 </div>
 
@@ -163,11 +164,11 @@ svg { width: 100%; height: 100%; }
       </marker>
     </defs>
 
-    <text x="130" y="68" text-anchor="middle" fill="#f59e0b" font-size="10" opacity="0.3" font-weight="600">採購段</text>
-    <text x="370" y="68" text-anchor="middle" fill="#3b82f6" font-size="10" opacity="0.3" font-weight="600">計劃段</text>
-    <text x="610" y="68" text-anchor="middle" fill="#10b981" font-size="10" opacity="0.3" font-weight="600">倉儲段</text>
-    <text x="850" y="68" text-anchor="middle" fill="#ef4444" font-size="10" opacity="0.3" font-weight="600">製造段</text>
-    <text x="1050" y="68" text-anchor="middle" fill="#f43f5e" font-size="10" opacity="0.3" font-weight="600">檢驗段</text>
+    <text x="130" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">採購段</text>
+    <text x="370" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">計劃段</text>
+    <text x="610" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">倉儲段</text>
+    <text x="850" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">製造段</text>
+    <text x="1050" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">檢驗段</text>
 
     <!-- Material flow arrows -->
     <line x1="230" y1="140" x2="310" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
@@ -186,61 +187,61 @@ svg { width: 100%; height: 100%; }
 
     <!-- ═══ STAGE 1: SUPPLIERS ═══ -->
     <g class="stage-box" id="node-suppliers">
-      <rect x="60" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+      <rect x="60" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
       <rect x="60" y="100" width="170" height="80" rx="12" fill="rgba(245,158,11,0.08)"/>
       <text x="145" y="128" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">採購段</text>
       <text x="70" y="150" font-size="24">🏭</text>
-      <text x="100" y="150" fill="#f1f5f9" font-size="16" font-weight="700">供應商</text>
+      <text x="100" y="150" fill="#1e293b" font-size="16" font-weight="700">供應商</text>
       <text x="145" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers">—</tspan> 家</text>
     </g>
 
     <!-- ═══ STAGE 2: PURCHASE ═══ -->
     <g class="stage-box" id="node-purchase">
-      <rect x="310" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#3b82f6" stroke-width="2"/>
+      <rect x="310" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
       <rect x="310" y="100" width="160" height="80" rx="12" fill="rgba(59,130,246,0.08)"/>
       <text x="390" y="128" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">計劃段</text>
       <text x="320" y="150" font-size="24">📋</text>
-      <text x="350" y="150" fill="#f1f5f9" font-size="16" font-weight="700">採購</text>
+      <text x="350" y="150" fill="#1e293b" font-size="16" font-weight="700">採購</text>
       <text x="390" y="170" text-anchor="middle" fill="#64748b" font-size="10">PO <tspan id="count-pos" fill="#3b82f6" font-weight="600">—</tspan></text>
     </g>
 
     <!-- ═══ STAGE 3: INVENTORY ═══ -->
     <g class="stage-box" id="node-inventory">
-      <rect x="550" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+      <rect x="550" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
       <rect x="550" y="100" width="160" height="80" rx="12" fill="rgba(16,185,129,0.08)"/>
       <text x="630" y="128" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">倉儲段</text>
       <text x="560" y="150" font-size="24">📦</text>
-      <text x="590" y="150" fill="#f1f5f9" font-size="16" font-weight="700">庫存</text>
+      <text x="590" y="150" fill="#1e293b" font-size="16" font-weight="700">庫存</text>
       <text x="630" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
     </g>
 
     <!-- ═══ STAGE 4: DISPATCH ═══ -->
     <g class="stage-box" id="node-dispatch">
-      <rect x="790" y="100" width="160" height="80" rx="12" fill="#0f172a" stroke="#ef4444" stroke-width="2"/>
+      <rect x="790" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
       <rect x="790" y="100" width="160" height="80" rx="12" fill="rgba(239,68,68,0.08)"/>
       <text x="870" y="128" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">製造段</text>
       <text x="800" y="150" font-size="24">⚙️</text>
-      <text x="830" y="150" fill="#f1f5f9" font-size="16" font-weight="700">派工</text>
+      <text x="830" y="150" fill="#1e293b" font-size="16" font-weight="700">派工</text>
       <text x="870" y="170" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
     </g>
 
     <!-- ═══ STAGE 5: QUALITY ═══ -->
     <g class="stage-box" id="node-quality">
-      <rect x="990" y="100" width="170" height="80" rx="12" fill="#0f172a" stroke="#f43f5e" stroke-width="2"/>
+      <rect x="990" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
       <rect x="990" y="100" width="170" height="80" rx="12" fill="rgba(244,63,94,0.08)"/>
       <text x="1075" y="128" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600">檢驗段</text>
       <text x="1000" y="150" font-size="24">✅</text>
-      <text x="1030" y="150" fill="#f1f5f9" font-size="16" font-weight="700">品檢</text>
+      <text x="1030" y="150" fill="#1e293b" font-size="16" font-weight="700">品檢</text>
       <text x="1075" y="170" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
     </g>
 
     <!-- ═══ STAGE 6: ACCOUNTING ═══ -->
     <g class="stage-box" id="node-accounting">
-      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#0f172a" stroke="#fbbf24" stroke-width="2"/>
+      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#ffffff" stroke="#fbbf24" stroke-width="2"/>
       <rect x="1000" y="290" width="170" height="80" rx="12" fill="rgba(251,191,36,0.08)"/>
       <text x="1085" y="318" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">財務段</text>
       <text x="1010" y="340" font-size="24">💰</text>
-      <text x="1040" y="340" fill="#f1f5f9" font-size="16" font-weight="700">會計</text>
+      <text x="1040" y="340" fill="#1e293b" font-size="16" font-weight="700">會計</text>
       <text x="1085" y="360" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
     </g>
 
@@ -273,11 +274,11 @@ svg { width: 100%; height: 100%; }
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <div class="label">📡 事件流 (即時)</div>
     <div style="display:flex;gap:8px;">
-      <span style="font-size:9px;color:#475569;">🟢<span style="color:#64748b;margin-left:3px;">料物流</span></span>
-      <span style="font-size:9px;color:#475569;">🔵<span style="color:#64748b;margin-left:3px;">採購流</span></span>
-      <span style="font-size:9px;color:#475569;">🔴<span style="color:#64748b;margin-left:3px;">生產流</span></span>
-      <span style="font-size:9px;color:#475569;">🟡<span style="color:#64748b;margin-left:3px;">金流</span></span>
-      <span style="font-size:9px;color:#475569;">🩷<span style="color:#64748b;margin-left:3px;">品質流</span></span>
+      <span style="font-size:9px;color:#64748b;">🟢<span style="color:#64748b;margin-left:3px;">料物流</span></span>
+      <span style="font-size:9px;color:#64748b;">🔵<span style="color:#64748b;margin-left:3px;">採購流</span></span>
+      <span style="font-size:9px;color:#64748b;">🔴<span style="color:#64748b;margin-left:3px;">生產流</span></span>
+      <span style="font-size:9px;color:#64748b;">🟡<span style="color:#64748b;margin-left:3px;">金流</span></span>
+      <span style="font-size:9px;color:#64748b;">🩷<span style="color:#64748b;margin-left:3px;">品質流</span></span>
     </div>
     <button class="sim-btn" onclick="simulateRandomEvent()">▶ 模擬事件</button>
   </div>

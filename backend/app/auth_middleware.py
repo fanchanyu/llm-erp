@@ -4,7 +4,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from app.session import session_manager
 
 PUBLIC_ROUTES = {
-    "/health", "/api/org/login", "/docs", "/openapi.json", "/redoc",
+    "/health", "/war-room", "/war-room.html", "/war-room-en", "/api/org/login", "/docs", "/openapi.json", "/redoc",
 }
 
 

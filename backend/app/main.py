@@ -1,6 +1,8 @@
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
 from app.config import settings
 from app.database import init_db
 from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events, factory, leads, opportunities, contracts, decisions, organization, production, warehouse, compliance, security_mgmt
@@ -66,3 +68,20 @@ app.include_router(security_mgmt.router, prefix="/api", tags=["security"])
 @app.get("/health")
 async def health():
     return {"status": "ok", "app": settings.app_name}
+
+@app.get("/war-room", response_class=HTMLResponse)
+@app.get("/war-room.html", response_class=HTMLResponse)
+async def war_room():
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "war-room.html")
+    if os.path.isfile(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>war-room.html not found</h1>", status_code=404)
+
+@app.get("/war-room-en", response_class=HTMLResponse)
+async def war_room_en():
+    path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "war-room-en.html")
+    if os.path.isfile(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read()
+    return HTMLResponse("<h1>war-room-en.html not found</h1>", status_code=404)

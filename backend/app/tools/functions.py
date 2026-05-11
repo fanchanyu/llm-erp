@@ -632,6 +632,171 @@ async def check_cash_position() -> dict:
     }
 
 
+# ═══════════════════════════════════════════════════════════════════
+# V2 NEW TOOL FUNCTIONS — Org / Warehouse / Security / Compliance
+# ═══════════════════════════════════════════════════════════════════
+
+async def query_parts(keyword: str = "", category: str = "") -> list:
+    """查詢零件主檔。"""
+    async with async_session() as db:
+        result = await inventory_service.query_stock(db, part_no=keyword if keyword else None)
+    return result
+
+
+async def check_reorder() -> dict:
+    """檢查所有需要補貨的物料。"""
+    from app.services.warehouse_service import check_reorder_needs
+    async with async_session() as db:
+        items = await check_reorder_needs(db)
+    return {"items_needing_reorder": items, "total": len(items)}
+
+
+async def query_gantt() -> list:
+    """查詢生產甘特圖資料。"""
+    from app.services.production_service import get_gantt_data
+    async with async_session() as db:
+        return await get_gantt_data(db)
+
+
+async def query_shop_floor() -> dict:
+    """查詢現場控制面板。"""
+    from app.services.production_service import get_shop_floor_dashboard
+    async with async_session() as db:
+        return await get_shop_floor_dashboard(db)
+
+
+async def query_mps() -> list:
+    """查詢主生產排程彙總。"""
+    from app.services.production_service import get_mps_summary
+    async with async_session() as db:
+        return await get_mps_summary(db)
+
+
+async def query_organization_chart() -> dict:
+    """查詢組織架構樹。"""
+    from app.services.organization_service import get_department_tree
+    async with async_session() as db:
+        tree = await get_department_tree(db)
+        return {"departments": tree, "total": len(tree)}
+
+
+async def query_employees(department: str = "", title: str = "", name: str = "") -> list:
+    """查詢員工列表。"""
+    from app.services.organization_service import list_employees
+    async with async_session() as db:
+        emps = await list_employees(db, dept_name=department, title=title, name=name)
+        return [{"id": str(e.id), "no": e.employee_no, "name": e.name,
+                 "title": e.title, "department": getattr(e, "department_name", ""),
+                 "status": e.status} for e in emps]
+
+
+async def query_my_permissions(user_id: str = "", employee_id: str = "",
+                                roles: list = None, permissions: list = None) -> dict:
+    """查詢當前使用者的角色與權限。"""
+    return {"roles": roles or [], "permissions": permissions or [],
+            "message": "您的權限涵蓋以上所有模組的操作權限"}
+
+
+async def query_approval_flows(module: str = "") -> list:
+    """查詢簽核流程定義。"""
+    from app.services.organization_service import list_approval_flows
+    async with async_session() as db:
+        flows = await list_approval_flows(db, module=module)
+        return [{"id": str(f.id), "name": f.name, "module": f.module,
+                 "trigger": f.trigger_event, "steps": f.steps} for f in flows]
+
+
+async def query_pending_approvals(employee_id: str = "") -> list:
+    """查詢待簽核請求。"""
+    from app.services.organization_service import get_pending_approvals
+    async with async_session() as db:
+        return await get_pending_approvals(db, employee_id)
+
+
+async def query_zones(zone_type: str = "") -> list:
+    """查詢倉儲區域/庫別。"""
+    from app.services.warehouse_service import list_zones
+    async with async_session() as db:
+        return await list_zones(db, zone_type=zone_type)
+
+
+async def query_transfers(status: str = "", part_no: str = "") -> list:
+    """查詢庫存調撥記錄。"""
+    from app.services.warehouse_service import list_transfers
+    async with async_session() as db:
+        return await list_transfers(db, status=status, part_no=part_no)
+
+
+async def query_pick_tasks(status: str = "") -> list:
+    """查詢揀貨任務。"""
+    from app.services.warehouse_service import list_pick_tasks
+    async with async_session() as db:
+        return await list_pick_tasks(db, status=status)
+
+
+async def query_cycle_counts() -> list:
+    """查詢盤點記錄。"""
+    from app.services.warehouse_service import list_cycle_counts
+    async with async_session() as db:
+        return await list_cycle_counts(db)
+
+
+async def query_system_users(search: str = "") -> dict:
+    """查詢系統使用者帳號。"""
+    from app.services.organization_service import list_users
+    async with async_session() as db:
+        users = await list_users(db, search=search)
+        return {"users": users, "total": len(users)}
+
+
+async def query_suspicious_activity() -> list:
+    """偵測可疑登入活動。"""
+    from app.services.organization_service import detect_suspicious_activity
+    async with async_session() as db:
+        return await detect_suspicious_activity(db)
+
+
+async def query_security_settings() -> dict:
+    """查詢安全策略設定。"""
+    from app.security import security_settings
+    return {"min_password_length": security_settings.get("min_length", 8),
+            "require_uppercase": security_settings.get("require_uppercase", True),
+            "require_digit": security_settings.get("require_digit", True),
+            "max_login_attempts": security_settings.get("max_attempts", 5),
+            "lockout_minutes": security_settings.get("lockout_minutes", 15),
+            "session_timeout_minutes": security_settings.get("session_timeout", 60),
+            "max_concurrent_sessions": security_settings.get("max_sessions", 3),
+            "password_expiry_days": security_settings.get("password_expiry", 90)}
+
+
+async def query_compliance_anomalies() -> dict:
+    """執行合規異常偵測。"""
+    from app.services.compliance_service import detect_anomalies
+    async with async_session() as db:
+        findings = await detect_anomalies(db)
+        return {"anomalies": findings, "total": len(findings),
+                "critical": len([f for f in findings if f.get("severity") == "critical"]),
+                "warnings": len([f for f in findings if f.get("severity") == "warning"])}
+
+
+async def query_compliance_rules() -> dict:
+    """查詢合規規則與法規對照。"""
+    from app.services.compliance_service import ERROR_RULES
+    return {"rules": [{"code": r["code"], "name": r["name"],
+                       "severity": r["severity"], "regulation": r.get("regulation", "")}
+                      for r in ERROR_RULES],
+            "total": len(ERROR_RULES)}
+
+
+async def query_audit_log(user: str = "", days: int = 7, module: str = "") -> dict:
+    """查詢操作稽核日誌。"""
+    from app.services.compliance_service import get_unified_events
+    async with async_session() as db:
+        events = await get_unified_events(db, user=user if user else None,
+                                           days=days, limit=100)
+        return {"events": events, "total": len(events)}
+
+
 # Tool name -> function mapping
 TOOL_FUNCTIONS = {
     "query_inventory": query_inventory,
@@ -681,4 +846,25 @@ TOOL_FUNCTIONS = {
     # ── Analysis ──
     "evaluate_rush_order": evaluate_rush_order,
     "check_cash_position": check_cash_position,
+    # ── V2 New Tools ──
+    "query_parts": query_parts,
+    "check_reorder": check_reorder,
+    "query_gantt": query_gantt,
+    "query_shop_floor": query_shop_floor,
+    "query_mps": query_mps,
+    "query_organization_chart": query_organization_chart,
+    "query_employees": query_employees,
+    "query_my_permissions": query_my_permissions,
+    "query_approval_flows": query_approval_flows,
+    "query_pending_approvals": query_pending_approvals,
+    "query_zones": query_zones,
+    "query_transfers": query_transfers,
+    "query_pick_tasks": query_pick_tasks,
+    "query_cycle_counts": query_cycle_counts,
+    "query_system_users": query_system_users,
+    "query_suspicious_activity": query_suspicious_activity,
+    "query_security_settings": query_security_settings,
+    "query_compliance_anomalies": query_compliance_anomalies,
+    "query_compliance_rules": query_compliance_rules,
+    "query_audit_log": query_audit_log,
 }

@@ -2,7 +2,7 @@
 
 > Talk to your ERP. Let AI handle the rest.
 
-An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. Manage your factory floor and customer relationships through **natural language** — no menu clicking, no T-codes to memorize.
+An open-source, LLM-powered Enterprise Resource Planning system with 16+ modules. Manage your factory floor and customer relationships through **natural language** — no menu clicking, no T-codes to memorize.
 
 **English** | [中文](./README-zh.md)
 
@@ -11,7 +11,7 @@ An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. 
 | | Feature | Description |
 |---|---------|-------------|
 | 🗣️ | **Bilingual Natural Language** | Chinese OR English. The system auto-detects your language. |
-|| 🧠 | **12+ Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / CRM / War Room / Leads / Opportunities / Contracts / Decision AAR |
+|| 🧠 | **16+ Modules** | Inventory / Purchasing / BOM / Dispatch / Quality / Accounting / CRM / War Room / Leads / Opportunities / Contracts / Decision AAR |
 || 🔒 | **25 Constraint Rules** | Service-Enforcer Pattern — validate every write before execution |
 || ⚡ | **Event-Driven Engine** | Pub/Sub architecture with role-based real-time notifications |
 || 📊 | **War Room Dashboard** | SVG value-stream visualization with live event animations |
@@ -21,7 +21,13 @@ An open-source, LLM-powered Enterprise Resource Planning system with 8 modules. 
 || 👥 | **3 Factory Types** | MTO (make-to-order), MTS (make-to-stock), ETO (engineer-to-order) — configurable pipeline, forms, and cash flow rules |
 || 💰 | **Cash Flow Constraints** | Cash position check before PO creation, rush order financial assessment, AR-blocked shipment |
 || 📋 | **Decision Audit + AAR** | Every major decision logged, After Action Review cycle with lessons learned |
-|| 📈 | **75-Test Benchmark** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
+|| 🏢 | **Organization** | Departments, RBAC, two-tier approval engine, session management |
+|| 🏭 | **Production** | MPS aggregation, Shop Floor console, Gantt chart, production reporting |
+|| 📦 | **Warehouse** | Zone/bin management, transfers, pick tasks, cycle counting, auto-replenishment |
+|| 🔍 | **Compliance** | Unified Event Stream, anomaly detection, rule engine |
+|| 🔒 | **Security** | IP whitelist, brute-force detection, account enable/disable |
+|| 🤖 | **V2 Multi-Agent** | 10 Domain Agents + Intent Router |
+|| 📈 | **112+ API endpoints, 10 Domain Agents** | 60 Chinese + 15 English, DeepSeek 90% / Gemma4 local 83% |
 
 ---
 
@@ -74,7 +80,7 @@ This adjusts:
 - **Cash flow rules** — MTO needs down payment tracking; MTS needs volume discount; ETO needs milestone billing + retention
 - **Dashboard widgets** — Each role sees factory-type-relevant data
 
-### 📋 New in v0.1.0 (2026-05-09)
+### 📋 New in v0.2.0 (2026-05-11)
 
 | Area | Feature | What It Does |
 |------|---------|-------------|

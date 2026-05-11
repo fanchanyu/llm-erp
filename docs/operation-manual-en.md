@@ -1,7 +1,7 @@
 # LLM-ERP Operation Manual
 
 > LLM-Powered Enterprise Resource Planning System  
-> Version: v0.1.0 | Updated: 2026-05-07
+> Version: v0.2.0 | Updated: 2026-05-11
 
 ---
 
@@ -815,4 +815,149 @@ System → "Engineering KPI updated: Add 'Design Review Completion Rate' metric.
 
 ---
 
-*This manual corresponds to LLM-ERP v0.1.0. Updated: 2026-05-07.*
+---
+
+## 11. V2 Features (v0.2.0)
+
+### 11.1 Organization & HR Management
+
+LLM-ERP V2 introduces a comprehensive HR and organizational management layer with 9 new tables:
+
+| Table | Description |
+|-------|-------------|
+| `departments` | Organizational hierarchy (e.g., Production, Sales, QA) |
+| `employees` | Employee master records with job titles and contact info |
+| `users` | System login accounts linked to employees |
+| `roles` | Role definitions (6 pre-built roles) |
+| `role_permissions` | 65+ granular permissions across all modules |
+| `employee_roles` | Many-to-many relationship between employees and roles |
+| `approval_flows` | Two-tier approval workflow definitions |
+| `approval_requests` | Pending approval items with status tracking |
+| `approval_records` | Audit trail of all approval actions |
+
+**RBAC (Role-Based Access Control):**
+- 6 pre-built roles: Plant Manager, Production Planner, Warehouse, Purchasing, QA, Accounting
+- 65+ permissions covering every tool and API endpoint
+- Multi-device session limit enforced (max 3 concurrent sessions)
+
+**Two-Tier Approval Engine:**
+- Auto-routing: Approval requests are automatically routed based on the approval flow configuration
+- Dynamic approver assignment: The system assigns the appropriate approver based on the request type, amount, or department
+- Supports sequential and parallel approval chains
+
+**Sample LLM Queries:**
+| English Query | Description |
+|---------------|-------------|
+| "Create a new user for John in Production" | Add system login |
+| "Show my pending approvals" | List approval requests for current user |
+| "Approve PR-20260511-001" | Process an approval request |
+
+### 11.2 Production Management
+
+Extended production capabilities beyond V1 dispatch:
+
+| Feature | Description |
+|---------|-------------|
+| **MPS Aggregation** | Master Production Schedule — aggregates demand from SO, forecast, and safety stock |
+| **Auto WO Creation** | Work orders automatically generated when SO is confirmed (MPS-driven) |
+| **Start / Report / Close** | Shop floor operations: start production, report progress, close completed WOs |
+| **Gantt Chart API** | REST endpoint returning structured Gantt chart data for frontend visualization |
+| **Shop Floor Console** | Real-time machine status monitor, WIP tracking across work centers, operator load balancing view |
+
+**Sample LLM Queries:**
+| English Query | Description |
+|---------------|-------------|
+| "Show the MPS for this week" | View Master Production Schedule |
+| "Start WO-20260511-001 on CNC-01" | Begin production on a work order |
+| "Report 50 units completed for WO-20260511-001" | Report progress on an active WO |
+| "Close WO-20260511-001" | Finalize a completed work order |
+| "Show the Gantt chart for today" | Get scheduling visualization data |
+| "Which operators are overloaded?" | Check operator load on the shop floor |
+
+### 11.3 Warehouse & Logistics Management
+
+New warehouse management capabilities:
+
+| Feature | Description |
+|---------|-------------|
+| **Warehouse Zones & Bins** | Define warehouse zones (e.g., Raw Materials, WIP, Finished Goods) and bin locations within zones |
+| **Inventory Transfers** | Move stock between bins, zones, or warehouses with full audit trail |
+| **Pick Tasks** | Generate picking lists for work orders or shipments; track pick completion |
+| **Cycle Counting** | Scheduled inventory counts by zone/bin, variance detection and adjustment |
+| **Supplier Evaluation** | 4-dimension scoring: Quality (weight 40%), Delivery (25%), Price (20%), Service (15%) |
+| **Auto-Replenishment Engine** | Reorder rules with safety stock triggers; auto-generate purchase requisitions when stock falls below threshold |
+
+**Sample LLM Queries:**
+| English Query | Description |
+|---------------|-------------|
+| "Create a bin A-01 in Raw Materials zone" | Set up warehouse location |
+| "Transfer 100 bearings from Bin A-01 to Bin B-02" | Move inventory between bins |
+| "Generate pick list for WO-20260511-001" | Create picking tasks |
+| "Start cycle count for Zone RM-01" | Initiate scheduled counting |
+| "Show supplier score for DaMing Screws" | View 4-dimension supplier evaluation |
+| "Check which items need replenishment" | Run auto-replenishment check |
+
+### 11.4 Compliance & Audit Engine
+
+Unified compliance monitoring and auditing framework:
+
+| Feature | Description |
+|---------|-------------|
+| **Unified Event Stream** | Merges audit_logs with all module operations into a single queryable event timeline |
+| **Anomaly Detection** | Identifies unusual patterns (e.g., abnormal inventory movements, irregular approval chains) |
+| **Compliance Rule Engine** | Define and enforce compliance rules (e.g., "PO over $10K requires 2 approvals") |
+| **Auto-Generated Reports** | Scheduled or on-demand compliance reports (PDF/CSV) covering audit trails and rule violations |
+
+**Sample LLM Queries:**
+| English Query | Description |
+|---------------|-------------|
+| "Show me the event log for last 24 hours" | Query unified event stream |
+| "Detect anomalies in inventory this week" | Run anomaly detection |
+| "Create compliance rule: PO over $5K needs manager approval" | Add a compliance rule |
+| "Generate the monthly compliance report" | Auto-generate compliance PDF |
+
+### 11.5 Security Management
+
+Enterprise-grade security controls:
+
+| Feature | Description |
+|---------|-------------|
+| **IP Whitelist** | Restrict system access to specified IP addresses or ranges |
+| **Brute-Force Detection** | Account lockout after N consecutive failed login attempts (configurable threshold) |
+| **Suspicious Activity Monitoring** | Detect unusual login patterns, off-hours access, rapid-fire API calls |
+| **Account Enable/Disable** | Administrators can enable or disable user accounts without deleting them |
+| **Security Settings Management** | Centralized dashboard for password policy, session timeout, MFA toggle |
+
+**Sample LLM Queries:**
+| English Query | Description |
+|---------------|-------------|
+| "Add 192.168.1.0/24 to the IP whitelist" | Configure network access |
+| "Show failed login attempts for today" | Monitor brute-force attempts |
+| "Disable user account for terminated employee" | Deactivate an account |
+| "Set password expiry to 90 days" | Update security policy |
+
+### 11.6 V2 Multi-Agent Chat
+
+The original single-agent chat is replaced with a **multi-agent architecture** for better accuracy and reduced prompt noise:
+
+| Component | Description |
+|-----------|-------------|
+| **10 Domain Agents** | Inventory, Purchase, BOM, Dispatch, Quality, Accounting, CRM, Production, Warehouse, Compliance |
+| **Intent Router** | Classifies user intent and routes to the correct domain agent |
+| **Agent Tools** | Each agent has its own focused toolset (no more 37 tools in one prompt) |
+| **30+ Keyword Greedy Classifier** | Fast zero-LLM-overhead routing — keywords matched before any LLM call |
+
+**Architecture:**
+```
+User Input → Intent Router (keyword classifier) → Domain Agent (with focused tools) → DB / Response
+```
+
+**Benefits over V1 single-agent:**
+- ✅ Reduced prompt noise — each agent sees only relevant tools
+- ✅ Faster routing — keyword classifier has zero LLM overhead
+- ✅ Better accuracy — domain-specific system prompts for each agent
+- ✅ Scalable — new agents can be added without affecting existing ones
+
+---
+
+*This manual corresponds to LLM-ERP v0.2.0. Updated: 2026-05-11.*
