@@ -6,6 +6,7 @@ from app.database import init_db
 from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events, factory, leads, opportunities, contracts, decisions, organization, production, warehouse
 from app.event_engine import init_event_engine, get_notifications, count_unread
 from app.event_engine.role_config import Role
+from app.auth_middleware import AuthMiddleware
 
 
 @asynccontextmanager
@@ -16,7 +17,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title=settings.app_name, version="0.1.0", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, version="0.2.0", lifespan=lifespan)
+
+# Auth middleware — validates tokens on all API routes
+app.add_middleware(AuthMiddleware)
 
 app.add_middleware(
     CORSMiddleware,

@@ -9,6 +9,10 @@ from app.database import get_db
 from app.services import warehouse_service as svc
 from app.services import purchase_service as purchase_svc
 from app.schemas.warehouse import *
+from app.models.warehouse import ReorderRule
+from app.models.purchase import Supplier
+from app.models.inventory import Part
+from sqlalchemy import select
 
 router = APIRouter(prefix="/warehouse", tags=["warehouse"])
 
@@ -195,7 +199,7 @@ async def list_pricing(supplier: str = Query(""), part_no: str = Query(""),
     prices = await svc.list_supplier_prices(db, supplier, part_no)
     items = []
     for p in prices:
-        s = await db.get(__import__("app.models.purchase", fromlist=["Supplier"]).Supplier, p.supplier_id)
+        s = await db.get(Supplier, p.supplier_id)
         items.append({"id": str(p.id), "supplier": s.name if s else "",
                        "unit_price": p.unit_price, "currency": p.currency,
                        "effective_date": p.effective_date.isoformat() if p.effective_date else None,
@@ -203,7 +207,7 @@ async def list_pricing(supplier: str = Query(""), part_no: str = Query(""),
                        "moq": p.moq, "is_active": p.is_active})
     return {"prices": items, "total": len(items)}
 
-# ── REORDER RULES ────────────────────────────────────────────────
+# -- REORDER RULES --
 
 @router.post("/reorder-rules", status_code=201)
 async def set_reorder_rule(data: ReorderRuleCreate, db: AsyncSession = Depends(get_db)):
@@ -221,23 +225,15 @@ async def set_reorder_rule(data: ReorderRuleCreate, db: AsyncSession = Depends(g
 
 @router.get("/reorder-rules", response_model=dict)
 async def list_reorder_rules(db: AsyncSession = Depends(get_db)):
-    r = await db.execute(
-        __import__("sqlalchemy").select(
-            __import__("app.models.warehouse", fromlist=["ReorderRule"]).ReorderRule
-        )
-    )
+    r = await db.execute(select(ReorderRule))
     rules = list(r.scalars().all())
     items = []
     for rule in rules:
-        part_r = await db.execute(
-            __import__("sqlalchemy").select(
-                __import__("app.models.inventory", fromlist=["Part"]).Part
-            ).where(__import__("app.models.inventory", fromlist=["Part"]).Part.id == rule.part_id)
-        )
+        part_r = await db.execute(select(Part).where(Part.id == rule.part_id))
         part = part_r.scalar_one_or_none()
         supplier_name = ""
         if rule.preferred_supplier_id:
-            s = await db.get(__import__("app.models.purchase", fromlist=["Supplier"]).Supplier, rule.preferred_supplier_id)
+            s = await db.get(Supplier, rule.preferred_supplier_id)
             supplier_name = s.name if s else ""
         items.append({"id": str(rule.id), "part_no": part.part_no if part else "",
                        "safety_stock": rule.safety_stock, "reorder_qty": rule.reorder_qty,

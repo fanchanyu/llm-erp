@@ -252,8 +252,12 @@ async def authenticate(db: AsyncSession, username: str, password: str) -> Option
     roles = await get_employee_roles(db, user.employee_id)
     perms = await get_employee_permissions(db, user.employee_id)
 
+    # Create auth session token
+    from app.auth import create_session_token
+    token = create_session_token(user.employee_id, user.username, roles, perms)
+
     return {
-        "token": generate_token(),
+        "token": token,
         "user": user,
         "roles": roles,
         "permissions": perms,
