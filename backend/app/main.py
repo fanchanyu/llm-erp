@@ -7,6 +7,8 @@ from app.api import chat, inventory, purchase, bom, dispatch, events, accounting
 from app.event_engine import init_event_engine, get_notifications, count_unread
 from app.event_engine.role_config import Role
 from app.auth_middleware import AuthMiddleware
+from app.audit_middleware import AuditMiddleware
+from app.response import add_exception_handlers
 
 
 @asynccontextmanager
@@ -19,8 +21,13 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title=settings.app_name, version="0.2.0", lifespan=lifespan)
 
+# Global exception handlers — consistent error format
+add_exception_handlers(app)
+
 # Auth middleware — validates tokens on all API routes
 app.add_middleware(AuthMiddleware)
+# Audit middleware — logs all write operations
+app.add_middleware(AuditMiddleware)
 
 app.add_middleware(
     CORSMiddleware,
