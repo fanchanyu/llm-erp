@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title data-lang-zh="LLM-ERP V2 + LLM-Mobile · 完整系統拓樸圖" data-lang-en="LLM-ERP V2 + LLM-Mobile · Complete System Topology">LLM-ERP V2 + LLM-Mobile · 完整系統拓樸圖</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  background:#f0f4f8;color:#1e293b;padding:30px;display:flex;flex-direction:column;align-items:center
+}
+.container{max-width:1260px;width:100%}
+.header{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+.pulse{width:10px;height:10px;background:#0891b2;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%{opacity:1;box-shadow:0 0 0 0 rgba(8,145,178,0.4)}70%{opacity:1;box-shadow:0 0 0 10px rgba(8,145,178,0)}100%{opacity:1;box-shadow:0 0 0 0 rgba(8,145,178,0)}}
+h1{font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.3px}
+.lang-tabs{display:flex;border:2px solid #cbd5e1;border-radius:8px;overflow:hidden;margin-left:auto}
+.lang-tabs button{padding:5px 14px;font-size:12px;font-weight:500;cursor:pointer;border:none;background:transparent;color:#64748b;font-family:'Inter',sans-serif;transition:all .2s}
+.lang-tabs button.active{background:#0d9488;color:white}
+.lang-tabs button:not(.active):hover{background:#e2e8f0}
+.subtitle{color:#64748b;font-size:11px;margin-bottom:14px;display:flex;gap:16px;flex-wrap:wrap}
+.diagram-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:16px;padding:20px;overflow-x:auto;box-shadow:0 1px 3px rgba(0,0,0,0.04)}
+svg{width:100%;min-width:1150px;display:block}
+.footer{text-align:center;color:#94a3b8;font-size:9px;margin-top:16px;padding:12px;border-top:1px solid #e2e8f0}
+.info-cards{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+.info-card{background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;flex:1;min-width:240px;box-shadow:0 1px 2px rgba(0,0,0,0.03)}
+.info-card h3{font-size:12px;font-weight:600;color:#0f172a;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.info-card ul{list-style:none;font-size:10px;color:#475569;line-height:1.9}
+.info-card li{display:flex;align-items:center;gap:5px}
+.info-card li::before{content:'▹';color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="pulse"></div>
+  <h1 data-lang-zh="LLM-ERP V2 + LLM-Mobile · 完整系統拓樸圖" data-lang-en="LLM-ERP V2 + LLM-Mobile · Complete System Topology">LLM-ERP V2 + LLM-Mobile · 完整系統拓樸圖</h1>
+  <div class="lang-tabs">
+    <button onclick="switchLang('zh')" id="btn-zh" class="active">中文</button>
+    <button onclick="switchLang('en')" id="btn-en">EN</button>
+  </div>
+</div>
+<div class="subtitle">
+  <span>v2.0+mobile</span>
+  <span data-lang-zh="6 層架構 · 12 領域 Agent · 43+ 資料表 · 83+ APIs · SSE 即時推播" data-lang-en="6 Layers · 12 Domain Agents · 43+ Tables · 83+ APIs · SSE Real-time Push">6 層架構 · 12 領域 Agent · 43+ 資料表 · 83+ APIs · SSE 即時推播</span>
+</div>
+
+<div class="diagram-card">
+<svg viewBox="0 0 1180 1700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+    </pattern>
+    <filter id="shadow"><feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.08"/></filter>
+    <filter id="shadow-s"><feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.06"/></filter>
+    <!-- Arrow markers -->
+    <marker id="arr-gray" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker>
+    <marker id="arr-cyan" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#0891b2"/></marker>
+    <marker id="arr-amber" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#d97706"/></marker>
+    <marker id="arr-violet" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#7c3aed"/></marker>
+    <marker id="arr-emerald" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#059669"/></marker>
+    <marker id="arr-rose" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#e11d48"/></marker>
+    <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#2563eb"/></marker>
+    <marker id="arr-purple" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#9333ea"/></marker>
+    <marker id="arr-teal" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#0d9488"/></marker>
+    <marker id="arr-orange" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#ea580c"/></marker>
+    <marker id="arr-lime" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#65a30d"/></marker>
+    <marker id="arr-red" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#dc2626"/></marker>
+    <marker id="arr-sky" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#0891b2"/></marker>
+  </defs>
+
+  <rect width="1180" height="1700" fill="url(#grid)"/>
+
+  <!-- ═══ LAYER LABELS ═══ -->
+  <text x="16" y="55" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,55)">MOBILE</text>
+  <text x="16" y="155" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,155)">DESKTOP</text>
+  <text x="16" y="290" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,290)">API GATEWAY</text>
+  <text x="16" y="440" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,440)">LLM ORCHESTRATOR</text>
+  <text x="16" y="610" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,610)">DOMAIN MODULES</text>
+  <text x="16" y="780" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,780)">DATA & SERVICE</text>
+  <text x="16" y="1010" fill="#94a3b8" font-size="8" font-weight="600" transform="rotate(-90,16,1010)">DATABASE TABLES</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 1: MOBILE CLIENTS (新)                                  -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="12" width="1140" height="72" rx="10" fill="none" stroke="#0891b2" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="28" fill="#0891b2" font-size="9" font-weight="600" opacity="0.7" data-lang-zh="1. MOBILE CLIENTS (新) · LLM-Mobile · React Native Expo" data-lang-en="1. MOBILE CLIENTS (NEW) · LLM-Mobile · React Native Expo">1. MOBILE CLIENTS (新) · LLM-Mobile · React Native Expo</text>
+
+  <rect x="40" y="38" width="175" height="36" rx="6" fill="#ffffff" stroke="#0891b2" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="127" y="54" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📱 LLM-Mobile</text>
+  <text x="127" y="68" text-anchor="middle" fill="#64748b" font-size="6">Expo · Zustand · React Query</text>
+
+  <rect x="235" y="38" width="175" height="36" rx="6" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="322" y="54" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📱 Mobile Browser</text>
+  <text x="322" y="68" text-anchor="middle" fill="#64748b" font-size="6">PWA · Responsive</text>
+
+  <rect x="430" y="38" width="175" height="36" rx="6" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="517" y="54" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">🔔 Notifications</text>
+  <text x="517" y="68" text-anchor="middle" fill="#64748b" font-size="6">SSE · Push Alerts</text>
+
+  <rect x="625" y="38" width="175" height="36" rx="6" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="712" y="54" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">💬 AI Chat</text>
+  <text x="712" y="68" text-anchor="middle" fill="#64748b" font-size="6">Voice · Text · Intent</text>
+
+  <rect x="820" y="38" width="300" height="36" rx="6" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="970" y="54" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📊 Dashboard / KPI / Events</text>
+  <text x="970" y="68" text-anchor="middle" fill="#64748b" font-size="6">6 Screens · Real-time SSE</text>
+
+  <path d="M 127 74 L 127 100" stroke="#0891b2" stroke-width="1.2" marker-end="url(#arr-cyan)" fill="none"/>
+  <path d="M 322 74 L 322 100" stroke="#0891b2" stroke-width="1.2" marker-end="url(#arr-cyan)" fill="none"/>
+  <path d="M 517 74 L 517 100" stroke="#0891b2" stroke-width="1.2" marker-end="url(#arr-cyan)" fill="none"/>
+  <path d="M 712 74 L 712 100" stroke="#0891b2" stroke-width="1.2" marker-end="url(#arr-cyan)" fill="none"/>
+  <path d="M 970 74 L 970 100" stroke="#0891b2" stroke-width="1.2" marker-end="url(#arr-cyan)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 2: DESKTOP CLIENTS                                      -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="100" width="1140" height="72" rx="10" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="116" fill="#7c3aed" font-size="9" font-weight="600" opacity="0.7" data-lang-zh="2. DESKTOP CLIENTS · React + Vite + Tailwind" data-lang-en="2. DESKTOP CLIENTS · React + Vite + Tailwind">2. DESKTOP CLIENTS · React + Vite + Tailwind</text>
+
+  <rect x="40" y="126" width="180" height="36" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="130" y="142" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">💻 Web Desktop</text>
+  <text x="130" y="156" text-anchor="middle" fill="#64748b" font-size="6">React TS · i18n ZH/EN</text>
+
+  <rect x="240" y="126" width="180" height="36" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="330" y="142" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">💬 Telegram Bot</text>
+  <text x="330" y="156" text-anchor="middle" fill="#64748b" font-size="6">Hermes Bridge · Notify</text>
+
+  <rect x="440" y="126" width="180" height="36" rx="6" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="530" y="142" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📊 War Room</text>
+  <text x="530" y="156" text-anchor="middle" fill="#64748b" font-size="6">SVG Value Stream</text>
+
+  <rect x="640" y="126" width="240" height="36" rx="6" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="760" y="142" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📡 Live Event Stream</text>
+  <text x="760" y="156" text-anchor="middle" fill="#64748b" font-size="6">KPI · Alerts · SSE Push</text>
+
+  <rect x="900" y="126" width="210" height="36" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="1005" y="142" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">🔗 Topology Diagrams</text>
+  <text x="1005" y="156" text-anchor="middle" fill="#64748b" font-size="6">Interactive SVG</text>
+
+  <path d="M 130 162 L 130 188" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#arr-violet)" fill="none"/>
+  <path d="M 330 162 L 330 188" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#arr-violet)" fill="none"/>
+  <path d="M 530 162 L 530 188" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#arr-violet)" fill="none"/>
+  <path d="M 760 162 L 760 188" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#arr-violet)" fill="none"/>
+  <path d="M 1005 162 L 1005 188" stroke="#7c3aed" stroke-width="1.2" marker-end="url(#arr-violet)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 3: API GATEWAY                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="188" width="1140" height="130" rx="12" fill="none" stroke="#d97706" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="204" fill="#d97706" font-size="9" font-weight="600" opacity="0.7">3. API GATEWAY · FastAPI · Port 8000</text>
+
+  <!-- Auth / JWT -->
+  <rect x="40" y="216" width="175" height="45" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="127" y="234" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">🔐 JWT Auth</text>
+  <text x="127" y="250" text-anchor="middle" fill="#64748b" font-size="6">7 Roles · 65 Permissions</text>
+
+  <rect x="40" y="267" width="175" height="40" rx="6" fill="#ffffff" stroke="#dc2626" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="127" y="285" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📝 Audit Middleware</text>
+  <text x="127" y="300" text-anchor="middle" fill="#64748b" font-size="6">All requests logged</text>
+
+  <!-- CORS -->
+  <rect x="235" y="216" width="160" height="45" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="315" y="234" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">🌐 CORS</text>
+  <text x="315" y="250" text-anchor="middle" fill="#64748b" font-size="6">Mobile + Desktop origins</text>
+
+  <!-- SSE Proxy -->
+  <rect x="235" y="267" width="160" height="40" rx="6" fill="#ffffff" stroke="#0891b2" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="315" y="285" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📡 SSE Proxy</text>
+  <text x="315" y="300" text-anchor="middle" fill="#64748b" font-size="6">Event → All clients</text>
+
+  <!-- Session Manager -->
+  <rect x="415" y="216" width="175" height="45" rx="6" fill="#ffffff" stroke="#9333ea" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="502" y="234" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">🔑 Session Manager</text>
+  <text x="502" y="250" text-anchor="middle" fill="#64748b" font-size="6">Multi-device · IP tracking</text>
+
+  <!-- Unified Response -->
+  <rect x="415" y="267" width="175" height="40" rx="6" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="502" y="285" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600">📦 Unified Response</text>
+  <text x="502" y="300" text-anchor="middle" fill="#64748b" font-size="6">{success, data, meta, error}</text>
+
+  <!-- API Routers large box -->
+  <rect x="615" y="216" width="520" height="90" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="875" y="236" text-anchor="middle" fill="#059669" font-size="9" font-weight="600">🗂️ API Routers (83+ Endpoints)</text>
+  <text x="635" y="252" fill="#475569" font-size="7">V1: /api/inventory · /api/purchase · /api/dispatch · /api/quality</text>
+  <text x="635" y="264" fill="#475569" font-size="7">V1: /api/accounting · /api/bom · /api/crm · /api/reports · /api/events</text>
+  <text x="635" y="276" fill="#0891b2" font-size="7">V2: /api/org · /api/production · /api/warehouse · /api/compliance</text>
+  <text x="635" y="288" fill="#0891b2" font-size="7">V2: /api/security · /api/leads · /api/opportunities · /api/contracts</text>
+  <text x="635" y="300" fill="#64748b" font-size="6">X-Device Header · Role-based access · Rate limiting</text>
+
+  <path d="M 502 318 L 502 345" stroke="#d97706" stroke-width="1.2" marker-end="url(#arr-amber)" fill="none"/>
+  <path d="M 875 318 L 875 345" stroke="#d97706" stroke-width="1.2" marker-end="url(#arr-amber)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 4: LLM AGENT ORCHESTRATOR                               -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="345" width="1140" height="155" rx="12" fill="none" stroke="#059669" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="361" fill="#059669" font-size="9" font-weight="600" opacity="0.7">4. LLM AGENT ORCHESTRATOR · V2 Intent Router · 12 Domain Agents</text>
+
+  <!-- V2 Intent Router (centerpiece) -->
+  <rect x="40" y="375" width="280" height="115" rx="8" fill="rgba(8,145,178,0.10)" stroke="#0891b2" stroke-width="2" filter="url(#shadow)"/>
+  <text x="180" y="397" text-anchor="middle" fill="#0f172a" font-size="11" font-weight="700">🧠 V2 Intent Router</text>
+  <text x="180" y="415" text-anchor="middle" fill="#0891b2" font-size="8">Greedy Classifier (30+ kw)</text>
+  <text x="180" y="431" text-anchor="middle" fill="#64748b" font-size="7">Zero LLM overhead routing</text>
+  <text x="180" y="447" text-anchor="middle" fill="#64748b" font-size="7">Auto fallback → default agent</text>
+  <text x="180" y="463" text-anchor="middle" fill="#64748b" font-size="7">Session context preservation</text>
+  <text x="180" y="479" text-anchor="middle" fill="#64748b" font-size="7">Multi-turn conversation memory</text>
+
+  <!-- Arrow from Router to Agents -->
+  <path d="M 320 432 L 355 432" stroke="#0891b2" stroke-width="1.5" marker-end="url(#arr-cyan)" fill="none"/>
+
+  <!-- 12 Domain Agents - 3 rows of 4 -->
+  <g id="agents-grid">
+    <!-- Row 1 -->
+    <rect x="360" y="372" width="130" height="30" rx="5" fill="rgba(8,145,178,0.08)" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="425" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🏪 Inventory</text>
+
+    <rect x="500" y="372" width="130" height="30" rx="5" fill="rgba(217,119,6,0.08)" stroke="#d97706" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="565" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🛒 Purchase</text>
+
+    <rect x="640" y="372" width="130" height="30" rx="5" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="705" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">📐 BOM</text>
+
+    <rect x="780" y="372" width="130" height="30" rx="5" fill="rgba(5,150,105,0.08)" stroke="#059669" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="845" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">⚙️ Dispatch</text>
+
+    <rect x="920" y="372" width="130" height="30" rx="5" fill="rgba(225,29,72,0.08)" stroke="#e11d48" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="985" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">✅ Quality</text>
+
+    <rect x="1060" y="372" width="90" height="30" rx="5" fill="rgba(37,107,235,0.08)" stroke="#2563eb" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="1105" y="391" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">💰 Acct.</text>
+
+    <!-- Row 2 -->
+    <rect x="360" y="408" width="130" height="30" rx="5" fill="rgba(147,51,234,0.08)" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="425" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🤝 CRM</text>
+
+    <rect x="500" y="408" width="130" height="30" rx="5" fill="rgba(101,163,13,0.08)" stroke="#65a30d" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="565" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🏭 Production</text>
+
+    <rect x="640" y="408" width="130" height="30" rx="5" fill="rgba(234,88,12,0.08)" stroke="#ea580c" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="705" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">📦 Warehouse</text>
+
+    <rect x="780" y="408" width="130" height="30" rx="5" fill="rgba(13,148,136,0.08)" stroke="#0d9488" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="845" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🏢 Organization</text>
+
+    <rect x="920" y="408" width="130" height="30" rx="5" fill="rgba(8,145,178,0.08)" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="985" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🔍 Compliance</text>
+
+    <rect x="1060" y="408" width="90" height="30" rx="5" fill="rgba(220,38,38,0.08)" stroke="#dc2626" stroke-width="1" filter="url(#shadow-s)"/>
+    <text x="1105" y="427" text-anchor="middle" fill="#0f172a" font-size="8" font-weight="600">🔒 Security</text>
+
+    <!-- Router arrows to agents - Row 1 -->
+    <path d="M 360 387 L 350 387" stroke="#0891b2" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 500 387 L 490 387" stroke="#d97706" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 640 387 L 630 387" stroke="#7c3aed" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 780 387 L 770 387" stroke="#059669" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 920 387 L 910 387" stroke="#e11d48" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 1060 387 L 1050 387" stroke="#2563eb" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <!-- Row 2 -->
+    <path d="M 360 423 L 350 423" stroke="#9333ea" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 500 423 L 490 423" stroke="#65a30d" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 640 423 L 630 423" stroke="#ea580c" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 780 423 L 770 423" stroke="#0d9488" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 920 423 L 910 423" stroke="#0891b2" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+    <path d="M 1060 423 L 1050 423" stroke="#dc2626" stroke-width="0.8" stroke-dasharray="2,2" fill="none"/>
+  </g>
+
+  <!-- LLM Providers bar -->
+  <rect x="40" y="450" width="1110" height="40" rx="6" fill="rgba(217,119,6,0.06)" stroke="#d97706" stroke-width="1" stroke-dasharray="3,3" filter="url(#shadow-s)"/>
+  <text x="595" y="468" text-anchor="middle" fill="#d97706" font-size="8" font-weight="600" data-lang-zh="🔗 LLM Providers: DeepSeek · Anthropic Claude · OpenAI GPT · Ollama (Local) · OpenRouter (Multi-Provider)" data-lang-en="🔗 LLM Providers: DeepSeek · Anthropic Claude · OpenAI GPT · Ollama (Local) · OpenRouter (Multi-Provider)">🔗 LLM Providers: DeepSeek · Anthropic Claude · OpenAI GPT · Ollama (Local) · OpenRouter (Multi-Provider)</text>
+  <text x="595" y="482" text-anchor="middle" fill="#94a3b8" font-size="6">→ Intent Router routes to provider via Agent, tool calls execute domain logic, LLM generates response</text>
+
+  <path d="M 595 500 L 595 530" stroke="#059669" stroke-width="1.5" marker-end="url(#arr-emerald)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 5: DOMAIN MODULES                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="530" width="1140" height="160" rx="12" fill="none" stroke="#2563eb" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="546" fill="#2563eb" font-size="9" font-weight="600" opacity="0.7">5. DOMAIN MODULES · 7 V1 Core + 5 V2 New + Cross-Cut Services</text>
+
+  <!-- V1 Core -->
+  <rect x="40" y="558" width="270" height="122" rx="8" fill="rgba(5,150,105,0.06)" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="175" y="578" text-anchor="middle" fill="#059669" font-size="9" font-weight="600" data-lang-zh="V1 核心模組" data-lang-en="V1 Core Modules">V1 核心模組</text>
+  <text x="56" y="594" fill="#475569" font-size="7">📦 Inventory — Stock, Parts, Transfers</text>
+  <text x="56" y="608" fill="#475569" font-size="7">📋 Purchase — PO, Suppliers, Scoring</text>
+  <text x="56" y="622" fill="#475569" font-size="7">📐 BOM — Structure, Multi-level</text>
+  <text x="56" y="636" fill="#475569" font-size="7">⚙️ Dispatch — Scheduling, Reschedule</text>
+  <text x="56" y="650" fill="#475569" font-size="7">✅ Quality — Inspection, NC, CAPA</text>
+  <text x="56" y="664" fill="#475569" font-size="7">💰 Accounting — AR, Journal, Month-end</text>
+  <text x="56" y="678" fill="#475569" font-size="7">🤝 CRM — Customers, SO, Interaction</text>
+
+  <!-- V2 New -->
+  <rect x="335" y="558" width="420" height="122" rx="8" fill="rgba(8,145,178,0.07)" stroke="#0891b2" stroke-width="2" filter="url(#shadow)"/>
+  <text x="545" y="578" text-anchor="middle" fill="#0891b2" font-size="9" font-weight="600" data-lang-zh="V2 新增模組" data-lang-en="V2 New Modules">V2 新增模組</text>
+  <text x="350" y="594" fill="#0f172a" font-size="7">🏢 Organization — 9 tables, RBAC, Approval Engine</text>
+  <text x="350" y="608" fill="#0f172a" font-size="7">🏭 Production — MPS, Shop Floor, Gantt Charts</text>
+  <text x="350" y="622" fill="#0f172a" font-size="7">📦 Warehouse — Zones, Bins, Pick Tasks, Cycle Count</text>
+  <text x="350" y="636" fill="#0f172a" font-size="7">🔍 Compliance — Event Stream, Anomaly Detection</text>
+  <text x="350" y="650" fill="#0f172a" font-size="7">🔒 Security — IP Whitelist, Brute-force Detection</text>
+  <text x="350" y="664" fill="#0f172a" font-size="7">🎯 Leads / Opportunities — Source Tracking, Pipeline</text>
+  <text x="350" y="678" fill="#0f172a" font-size="7">📝 Contracts — Framework, Pricing, Renewal Alerts</text>
+
+  <!-- Cross-Cut -->
+  <rect x="780" y="558" width="370" height="122" rx="8" fill="rgba(217,119,6,0.05)" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,4" filter="url(#shadow)"/>
+  <text x="965" y="578" text-anchor="middle" fill="#d97706" font-size="9" font-weight="600" data-lang-zh="跨層服務" data-lang-en="Cross-Cut Services">跨層服務</text>
+  <text x="796" y="594" fill="#475569" font-size="7">⚡ Event Engine — Pub/Sub, 12 Event Types, Role Routing</text>
+  <text x="796" y="608" fill="#475569" font-size="7">🔒 Constraint Checker — 25 Business Rules, 6 Domains</text>
+  <text x="796" y="622" fill="#475569" font-size="7">💰 Cash Flow Forecast — AR/AP Aging, Monthly Projection</text>
+  <text x="796" y="636" fill="#475569" font-size="7">🏗️ Factory Config — MTO/MTS/ETO, Pipeline Stages</text>
+  <text x="796" y="650" fill="#475569" font-size="7">📡 Proactive Intelligence — Cron-driven Alerts</text>
+  <text x="796" y="664" fill="#475569" font-size="7">📱 Telegram Notifications — Hermes Bridge</text>
+  <text x="796" y="678" fill="#475569" font-size="7">🌍 Bilingual i18n — EN + ZH in UI, Docs, LLM Prompts</text>
+
+  <path d="M 175 690 L 175 718" stroke="#059669" stroke-width="1.5" marker-end="url(#arr-emerald)" fill="none"/>
+  <path d="M 545 690 L 545 718" stroke="#0891b2" stroke-width="1.5" marker-end="url(#arr-cyan)" fill="none"/>
+  <path d="M 965 690 L 965 718" stroke="#d97706" stroke-width="1.5" marker-end="url(#arr-amber)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- LAYER 6: DATA & SERVICE                                       -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="720" width="1140" height="115" rx="12" fill="none" stroke="#7c3aed" stroke-width="1" stroke-dasharray="6,3" opacity="0.35"/>
+  <text x="36" y="736" fill="#7c3aed" font-size="9" font-weight="600" opacity="0.7">6. DATA & SERVICE · 20 Service Files · 19 Model Files · Event Bus</text>
+
+  <!-- Service Layer -->
+  <rect x="40" y="746" width="280" height="80" rx="8" fill="rgba(5,150,105,0.06)" stroke="#059669" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="180" y="764" text-anchor="middle" fill="#0f172a" font-size="9" font-weight="600" data-lang-zh="Domain Service Layer (20 Files)" data-lang-en="Domain Service Layer (20 Files)">Domain Service Layer (20 Files)</text>
+  <text x="56" y="780" fill="#64748b" font-size="6">inventory_service · purchase_service · bom_service</text>
+  <text x="56" y="794" fill="#64748b" font-size="6">dispatch_service · quality_service · accounting_service</text>
+  <text x="56" y="808" fill="#64748b" font-size="6">crm_service · org · production · warehouse</text>
+  <text x="56" y="822" fill="#0891b2" font-size="6">compliance · security_mgmt · leads · contracts</text>
+
+  <!-- Event Engine -->
+  <rect x="340" y="746" width="200" height="80" rx="8" fill="rgba(217,119,6,0.06)" stroke="#d97706" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="440" y="766" text-anchor="middle" fill="#d97706" font-size="9" font-weight="600">⚡ Event Engine</text>
+  <text x="440" y="782" text-anchor="middle" fill="#64748b" font-size="7">Pub/Sub · 12 Event Types</text>
+  <text x="440" y="798" text-anchor="middle" fill="#64748b" font-size="7">Role-based Routing</text>
+  <text x="440" y="814" text-anchor="middle" fill="#64748b" font-size="7">SSE Broadcaster</text>
+
+  <!-- Database -->
+  <rect x="560" y="746" width="250" height="80" rx="8" fill="rgba(124,58,237,0.08)" stroke="#7c3aed" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="685" y="766" text-anchor="middle" fill="#7c3aed" font-size="9" font-weight="600">🗄️ Database</text>
+  <text x="685" y="782" text-anchor="middle" fill="#64748b" font-size="7">SQLite (dev) / PostgreSQL (prod)</text>
+  <text x="685" y="798" text-anchor="middle" fill="#64748b" font-size="7">34+ Tables · SQLAlchemy Async</text>
+  <text x="685" y="814" text-anchor="middle" fill="#64748b" font-size="7">Alembic Migrations · Audit Logs</text>
+
+  <!-- SSO / Provider Mesh -->
+  <rect x="830" y="746" width="310" height="80" rx="8" fill="rgba(147,51,234,0.06)" stroke="#9333ea" stroke-width="1.5" filter="url(#shadow-s)"/>
+  <text x="985" y="766" text-anchor="middle" fill="#9333ea" font-size="9" font-weight="600">🔗 SSO / Provider Mesh</text>
+  <text x="846" y="782" fill="#64748b" font-size="7">Multi-Provider LLM Integration</text>
+  <text x="846" y="798" fill="#64748b" font-size="7">Hermes Agent Bridge</text>
+  <text x="846" y="814" fill="#64748b" font-size="7">Mesh Network (Multi-site SSL VPN)</text>
+
+  <!-- Data flow arrows from modules to data layer -->
+  <path d="M 175 718 L 175 746" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,2" fill="none"/>
+  <path d="M 545 718 L 545 746" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,2" fill="none"/>
+  <path d="M 965 718 L 965 746" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,2" fill="none"/>
+
+  <!-- Arrow down to DB section -->
+  <path d="M 685 835 L 685 865" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#arr-violet)" fill="none"/>
+
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <!-- DATABASE TABLE RELATIONSHIP DIAGRAM                            -->
+  <!-- ═══════════════════════════════════════════════════════════════ -->
+  <rect x="26" y="870" width="1140" height="6" rx="3" fill="#7c3aed" opacity="0.3"/>
+
+  <!-- Domain cluster boxes for database tables -->
+  
+  <!-- 1. INVENTORY -->
+  <rect x="30" y="890" width="230" height="140" rx="8" fill="rgba(8,145,178,0.06)" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="145" y="910" text-anchor="middle" fill="#0891b2" font-size="10" font-weight="700">📦 INVENTORY</text>
+  <!-- Table boxes -->
+  <rect x="42" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="90" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Part</text>
+  <text x="90" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">part_no (PK)</text>
+
+  <rect x="148" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="196" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Inventory</text>
+  <text x="196" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">part_id (FK)</text>
+
+  <rect x="80" y="970" width="140" height="40" rx="4" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="150" y="985" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">InventoryTransaction</text>
+  <text x="150" y="998" text-anchor="middle" fill="#94a3b8" font-size="6">part_id (FK)</text>
+
+  <!-- Arrows -->
+  <line x1="138" y1="940" x2="148" y2="940" stroke="#0891b2" stroke-width="0.8" marker-end="url(#arr-cyan)"/>
+  <path d="M 130 960 L 90 970" stroke="#0891b2" stroke-width="0.8" fill="none" marker-end="url(#arr-cyan)"/>
+  <path d="M 196 960 L 220 980 L 220 990" stroke="#0891b2" stroke-width="0.8" fill="none" marker-end="url(#arr-cyan)"/>
+
+  <!-- 2. PURCHASE -->
+  <rect x="280" y="890" width="230" height="140" rx="8" fill="rgba(217,119,6,0.06)" stroke="#d97706" stroke-width="1.5"/>
+  <text x="395" y="910" text-anchor="middle" fill="#d97706" font-size="10" font-weight="700">📋 PURCHASE</text>
+  <rect x="292" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="340" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Supplier</text>
+  <text x="340" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">id (PK)</text>
+
+  <rect x="398" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="446" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">PurchaseOrder</text>
+  <text x="446" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">supplier_id (FK)</text>
+
+  <rect x="330" y="970" width="160" height="40" rx="4" fill="#ffffff" stroke="#d97706" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="410" y="985" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">PurchaseOrderItem</text>
+  <text x="410" y="998" text-anchor="middle" fill="#94a3b8" font-size="6">po_id (FK), part_id (FK)</text>
+
+  <line x1="388" y1="940" x2="398" y2="940" stroke="#d97706" stroke-width="0.8" marker-end="url(#arr-amber)"/>
+  <path d="M 446 960 L 410 960 L 410 970" stroke="#d97706" stroke-width="0.8" fill="none" marker-end="url(#arr-amber)"/>
+
+  <!-- 3. BOM -->
+  <rect x="530" y="890" width="230" height="140" rx="8" fill="rgba(124,58,237,0.06)" stroke="#7c3aed" stroke-width="1.5"/>
+  <text x="645" y="910" text-anchor="middle" fill="#7c3aed" font-size="10" font-weight="700">📐 BOM</text>
+  <rect x="542" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="590" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Product</text>
+  <text x="590" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">id (PK)</text>
+
+  <rect x="648" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="696" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">BOMItem</text>
+  <text x="696" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">product_id, part_id</text>
+
+  <rect x="580" y="970" width="140" height="40" rx="4" fill="#ffffff" stroke="#7c3aed" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="650" y="985" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Part (shared)</text>
+  <text x="650" y="998" text-anchor="middle" fill="#94a3b8" font-size="6">← cross-domain</text>
+
+  <line x1="638" y1="940" x2="648" y2="940" stroke="#7c3aed" stroke-width="0.8" marker-end="url(#arr-violet)"/>
+  <path d="M 696 960 L 650 960 L 650 970" stroke="#7c3aed" stroke-width="0.8" fill="none" marker-end="url(#arr-violet)"/>
+
+  <!-- 4. DISPATCH + PRODUCTION -->
+  <rect x="780" y="890" width="370" height="140" rx="8" fill="rgba(5,150,105,0.06)" stroke="#059669" stroke-width="1.5"/>
+  <text x="965" y="910" text-anchor="middle" fill="#059669" font-size="10" font-weight="700">⚙️ DISPATCH · 🏭 PRODUCTION</text>
+
+  <rect x="792" y="920" width="96" height="40" rx="4" fill="#ffffff" stroke="#059669" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="840" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">WorkCenter</text>
+  <text x="840" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">id (PK)</text>
+
+  <rect x="898" y="920" width="110" height="40" rx="4" fill="#ffffff" stroke="#65a30d" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="953" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">ProductionOrder</text>
+  <text x="953" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">so_id (FK)</text>
+
+  <rect x="1018" y="920" width="110" height="40" rx="4" fill="#ffffff" stroke="#059669" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="1073" y="935" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Operation</text>
+  <text x="1073" y="948" text-anchor="middle" fill="#94a3b8" font-size="6">order_id, wc_id</text>
+
+  <rect x="865" y="970" width="140" height="40" rx="4" fill="#ffffff" stroke="#65a30d" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="935" y="985" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">DispatchLog</text>
+  <text x="935" y="998" text-anchor="middle" fill="#94a3b8" font-size="6">order_id, op_id</text>
+
+  <line x1="888" y1="940" x2="898" y2="940" stroke="#65a30d" stroke-width="0.8" marker-end="url(#arr-lime)"/>
+  <line x1="1008" y1="940" x2="1018" y2="940" stroke="#059669" stroke-width="0.8" marker-end="url(#arr-emerald)"/>
+  <path d="M 953 960 L 935 970" stroke="#65a30d" stroke-width="0.8" fill="none" marker-end="url(#arr-lime)"/>
+
+  <!-- ═══ ROW 2: More domains ═══ -->
+  
+  <!-- 5. QUALITY -->
+  <rect x="30" y="1050" width="350" height="140" rx="8" fill="rgba(225,29,72,0.06)" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="205" y="1070" text-anchor="middle" fill="#e11d48" font-size="10" font-weight="700">✅ QUALITY</text>
+
+  <rect x="42" y="1080" width="110" height="40" rx="4" fill="#ffffff" stroke="#e11d48" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="97" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">InspectionOrder</text>
+  <text x="97" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">po_id, part_id</text>
+
+  <rect x="162" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#e11d48" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="210" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">InspResult</text>
+  <text x="210" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">inspection_id</text>
+
+  <rect x="270" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#e11d48" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="318" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">NonConf.</text>
+  <text x="318" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">inspection_id</text>
+
+  <rect x="120" y="1130" width="160" height="40" rx="4" fill="#ffffff" stroke="#e11d48" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="200" y="1145" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">CAPA Record</text>
+  <text x="200" y="1158" text-anchor="middle" fill="#94a3b8" font-size="6">nc_id (FK)</text>
+
+  <line x1="152" y1="1100" x2="162" y2="1100" stroke="#e11d48" stroke-width="0.8" marker-end="url(#arr-rose)"/>
+  <line x1="258" y1="1100" x2="270" y2="1100" stroke="#e11d48" stroke-width="0.8" marker-end="url(#arr-rose)"/>
+  <path d="M 318 1120 L 280 1130" stroke="#e11d48" stroke-width="0.8" fill="none" marker-end="url(#arr-rose)"/>
+
+  <!-- 6. ACCOUNTING -->
+  <rect x="400" y="1050" width="350" height="140" rx="8" fill="rgba(37,107,235,0.06)" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="575" y="1070" text-anchor="middle" fill="#2563eb" font-size="10" font-weight="700">💰 ACCOUNTING</text>
+
+  <rect x="412" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="460" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Account</text>
+  <text x="460" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">account_no (PK)</text>
+
+  <rect x="518" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="566" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">JournalEntry</text>
+  <text x="566" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">entry_no (PK)</text>
+
+  <rect x="624" y="1080" width="110" height="40" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="679" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">JournalLine</text>
+  <text x="679" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">entry_id, acct_id</text>
+
+  <rect x="465" y="1130" width="220" height="40" rx="4" fill="#ffffff" stroke="#2563eb" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="575" y="1145" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">AccountsReceivable · MonthEndClose</text>
+  <text x="575" y="1158" text-anchor="middle" fill="#94a3b8" font-size="6">AR aging · period close</text>
+
+  <line x1="508" y1="1100" x2="518" y2="1100" stroke="#2563eb" stroke-width="0.8" marker-end="url(#arr-blue)"/>
+  <line x1="614" y1="1100" x2="624" y2="1100" stroke="#2563eb" stroke-width="0.8" marker-end="url(#arr-blue)"/>
+
+  <!-- 7. CRM / LEADS -->
+  <rect x="770" y="1050" width="380" height="140" rx="8" fill="rgba(147,51,234,0.06)" stroke="#9333ea" stroke-width="1.5"/>
+  <text x="960" y="1070" text-anchor="middle" fill="#9333ea" font-size="10" font-weight="700">🤝 CRM · LEADS</text>
+
+  <rect x="782" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="830" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Customer</text>
+  <text x="830" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">customer_no</text>
+
+  <rect x="888" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="936" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Lead</text>
+  <text x="936" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">→ Customer</text>
+
+  <rect x="994" y="1080" width="96" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="1042" y="1095" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Opportunity</text>
+  <text x="1042" y="1108" text-anchor="middle" fill="#94a3b8" font-size="6">lead_id, cust_id</text>
+
+  <rect x="782" y="1130" width="130" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="847" y="1145" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Contract</text>
+  <text x="847" y="1158" text-anchor="middle" fill="#94a3b8" font-size="6">customer_id</text>
+
+  <rect x="922" y="1130" width="110" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="977" y="1145" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">SalesOrder</text>
+  <text x="977" y="1158" text-anchor="middle" fill="#94a3b8" font-size="6">customer_id</text>
+
+  <rect x="1042" y="1130" width="96" height="40" rx="4" fill="#ffffff" stroke="#9333ea" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="1090" y="1145" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">CrmEvent</text>
+  <text x="1090" y="1158" text-anchor="middle" fill="#94a3b8" font-size="6">customer_id</text>
+
+  <line x1="878" y1="1100" x2="888" y2="1100" stroke="#9333ea" stroke-width="0.8" marker-end="url(#arr-purple)"/>
+  <line x1="984" y1="1100" x2="994" y2="1100" stroke="#9333ea" stroke-width="0.8" marker-end="url(#arr-purple)"/>
+
+  <!-- ═══ ROW 3: Org, Warehouse, Compliance, Security ═══ -->
+
+  <!-- 8. ORGANIZATION -->
+  <rect x="30" y="1210" width="350" height="130" rx="8" fill="rgba(13,148,136,0.06)" stroke="#0d9488" stroke-width="1.5"/>
+  <text x="205" y="1230" text-anchor="middle" fill="#0d9488" font-size="10" font-weight="700">🏢 ORGANIZATION</text>
+
+  <rect x="42" y="1240" width="96" height="40" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="90" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Department</text>
+  <text x="90" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">parent_id</text>
+
+  <rect x="148" y="1240" width="96" height="40" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="196" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Employee</text>
+  <text x="196" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">dept_id</text>
+
+  <rect x="254" y="1240" width="110" height="40" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="309" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Role · User</text>
+  <text x="309" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">RBAC tables</text>
+
+  <rect x="80" y="1290" width="240" height="35" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="0.8" filter="url(#shadow-s)"/>
+  <text x="200" y="1308" text-anchor="middle" fill="#475569" font-size="7">role_permissions · approval_flows</text>
+  <text x="200" y="1320" text-anchor="middle" fill="#94a3b8" font-size="6">→ employees, roles, departments</text>
+
+  <line x1="138" y1="1260" x2="148" y2="1260" stroke="#0d9488" stroke-width="0.8" marker-end="url(#arr-teal)"/>
+
+  <!-- 9. WAREHOUSE -->
+  <rect x="400" y="1210" width="350" height="130" rx="8" fill="rgba(234,88,12,0.06)" stroke="#ea580c" stroke-width="1.5"/>
+  <text x="575" y="1230" text-anchor="middle" fill="#ea580c" font-size="10" font-weight="700">📦 WAREHOUSE</text>
+
+  <rect x="412" y="1240" width="96" height="40" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="460" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">WarehouseZone</text>
+  <text x="460" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">code (PK)</text>
+
+  <rect x="518" y="1240" width="96" height="40" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="566" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">BinLocation</text>
+  <text x="566" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">zone_id, part_id</text>
+
+  <rect x="624" y="1240" width="110" height="40" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="679" y="1255" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">InvTransfer</text>
+  <text x="679" y="1268" text-anchor="middle" fill="#94a3b8" font-size="6">part, from/to bin</text>
+
+  <rect x="470" y="1290" width="220" height="35" rx="4" fill="#ffffff" stroke="#ea580c" stroke-width="0.8" filter="url(#shadow-s)"/>
+  <text x="580" y="1308" text-anchor="middle" fill="#475569" font-size="7">PickTask · CycleCount → part_id, bin_id</text>
+
+  <line x1="508" y1="1260" x2="518" y2="1260" stroke="#ea580c" stroke-width="0.8" marker-end="url(#arr-orange)"/>
+
+  <!-- 10. COMPLIANCE + SECURITY -->
+  <rect x="770" y="1210" width="380" height="130" rx="8" fill="rgba(8,145,178,0.06)" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="960" y="1230" text-anchor="middle" fill="#0891b2" font-size="10" font-weight="700">🔍 COMPLIANCE · 🔒 SECURITY</text>
+
+  <rect x="782" y="1240" width="130" height="55" rx="4" fill="#ffffff" stroke="#0891b2" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="847" y="1258" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Compliance Tables</text>
+  <text x="847" y="1274" text-anchor="middle" fill="#94a3b8" font-size="6">Event Stream · Anomaly</text>
+  <text x="847" y="1290" text-anchor="middle" fill="#94a3b8" font-size="6">Decision Log · AAR</text>
+
+  <rect x="930" y="1240" width="130" height="55" rx="4" fill="#ffffff" stroke="#dc2626" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="995" y="1258" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Security Tables</text>
+  <text x="995" y="1274" text-anchor="middle" fill="#94a3b8" font-size="6">IP Whitelist</text>
+  <text x="995" y="1290" text-anchor="middle" fill="#94a3b8" font-size="6">Brute-force Log</text>
+
+  <rect x="1078" y="1240" width="56" height="55" rx="4" fill="#ffffff" stroke="#0d9488" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="1106" y="1256" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Factory</text>
+  <text x="1106" y="1272" text-anchor="middle" fill="#0f172a" font-size="7" font-weight="600">Config</text>
+  <text x="1106" y="1288" text-anchor="middle" fill="#94a3b8" font-size="6">MTO/MTS</text>
+
+  <rect x="820" y="1305" width="280" height="28" rx="4" fill="rgba(8,145,178,0.04)" stroke="#0891b2" stroke-width="0.8" stroke-dasharray="3,2"/>
+  <text x="960" y="1324" text-anchor="middle" fill="#64748b" font-size="7">Cross-cut: audit_logs · decision_logs · after_action_reviews · factory_config</text>
+
+  <!-- ═══ CROSS-DOMAIN DATA FLOW ARROWS ═══ -->
+  <!-- Customer Order → Sales Order → Production Order → Inventory → Purchase Order -->
+  <path d="M 830 1170 L 830 1190 L 830 1210" stroke="#9333ea" stroke-width="1" stroke-dasharray="4,3" fill="none" opacity="0.5"/>
+  <text x="835" y="1200" fill="#9333ea" font-size="6">Customer Order</text>
+
+  <!-- Quality → NonConformance → CAPA flow -->
+  <path d="M 318 1120 L 318 1130" stroke="#e11d48" stroke-width="0.8" fill="none" marker-end="url(#arr-rose)"/>
+
+  <!-- Events → SSE Push → All connected clients -->
+  <path d="M 590 1170 L 590 1200 L 1000 1200" stroke="#d97706" stroke-width="1" stroke-dasharray="4,3" fill="none" marker-end="url(#arr-amber)" opacity="0.6"/>
+  <text x="720" y="1195" fill="#d97706" font-size="6">Events → SSE Push → All Clients</text>
+
+  <!-- Business Process Flow -->
+  <path d="M 1050 1170 L 1100 1170 L 1100 1210 L 1100 1240" stroke="#2563eb" stroke-width="1" stroke-dasharray="5,3" fill="none" opacity="0.4"/>
+  <text x="1105" y="1180" fill="#2563eb" font-size="6" transform="rotate(90,1105,1180)">SO → ProdOrder → Inventory → PO</text>
+
+  <!-- ═══ LEGEND ═══ -->
+  <rect x="30" y="1350" width="1120" height="60" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1" filter="url(#shadow-s)"/>
+  <text x="50" y="1370" fill="#0f172a" font-size="10" font-weight="600" data-lang-zh="圖例" data-lang-en="Legend">Legend</text>
+
+  <rect x="50" y="1378" width="12" height="8" rx="2" fill="rgba(8,145,178,0.15)" stroke="#0891b2" stroke-width="1"/>
+  <text x="68" y="1386" fill="#475569" font-size="7" data-lang-zh="Mobile" data-lang-en="Mobile">Mobile</text>
+
+  <rect x="130" y="1378" width="12" height="8" rx="2" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="1"/>
+  <text x="148" y="1386" fill="#475569" font-size="7" data-lang-zh="Desktop" data-lang-en="Desktop">Desktop</text>
+
+  <rect x="210" y="1378" width="12" height="8" rx="2" fill="rgba(217,119,6,0.15)" stroke="#d97706" stroke-width="1"/>
+  <text x="228" y="1386" fill="#475569" font-size="7" data-lang-zh="API Gateway" data-lang-en="API Gateway">API Gateway</text>
+
+  <rect x="310" y="1378" width="12" height="8" rx="2" fill="rgba(5,150,105,0.15)" stroke="#059669" stroke-width="1"/>
+  <text x="328" y="1386" fill="#475569" font-size="7" data-lang-zh="LLM Agent" data-lang-en="LLM Agent">LLM Agent</text>
+
+  <rect x="400" y="1378" width="12" height="8" rx="2" fill="rgba(37,107,235,0.15)" stroke="#2563eb" stroke-width="1"/>
+  <text x="418" y="1386" fill="#475569" font-size="7" data-lang-zh="V1 Module" data-lang-en="V1 Module">V1 Module</text>
+
+  <rect x="490" y="1378" width="12" height="8" rx="2" fill="rgba(8,145,178,0.15)" stroke="#0891b2" stroke-width="1.5"/>
+  <text x="508" y="1386" fill="#475569" font-size="7" data-lang-zh="V2 Module" data-lang-en="V2 Module">V2 Module</text>
+
+  <rect x="580" y="1378" width="12" height="8" rx="2" fill="rgba(217,119,6,0.10)" stroke="#d97706" stroke-width="1" stroke-dasharray="3,2"/>
+  <text x="598" y="1386" fill="#475569" font-size="7" data-lang-zh="Cross-Cut" data-lang-en="Cross-Cut">Cross-Cut</text>
+
+  <rect x="670" y="1378" width="12" height="8" rx="2" fill="rgba(124,58,237,0.15)" stroke="#7c3aed" stroke-width="1"/>
+  <text x="688" y="1386" fill="#475569" font-size="7" data-lang-zh="Database" data-lang-en="Database">Database</text>
+
+  <line x1="760" y1="1382" x2="774" y2="1382" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="780" y="1386" fill="#475569" font-size="7" data-lang-zh="Data Flow / FK" data-lang-en="Data Flow / FK">Data Flow / FK</text>
+
+  <line x1="870" y1="1382" x2="884" y2="1382" stroke="#e11d48" stroke-width="1.5"/>
+  <text x="890" y="1386" fill="#475569" font-size="7" data-lang-zh="Business Process" data-lang-en="Business Process">Business Process</text>
+
+  <line x1="990" y1="1382" x2="1004" y2="1382" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="1010" y="1386" fill="#475569" font-size="7" data-lang-zh="SSE Push" data-lang-en="SSE Push">SSE Push</text>
+
+  <!-- Stats row -->
+  <rect x="30" y="1420" width="1120" height="24" rx="6" fill="rgba(13,148,136,0.04)" stroke="#0d9488" stroke-width="0.5"/>
+  <text x="595" y="1436" text-anchor="middle" fill="#475569" font-size="7" data-lang-zh="6 Layers | 12 Domain Agents | 43+ Tables | 83+ API Endpoints | 20+ Service Files | 12 Event Types | 25 Business Rule Constraints | SSE Real-time | Bilingual ZH/EN" data-lang-en="6 Layers | 12 Domain Agents | 43+ Tables | 83+ API Endpoints | 20+ Service Files | 12 Event Types | 25 Business Rule Constraints | SSE Real-time | Bilingual ZH/EN">6 Layers | 12 Domain Agents | 43+ Tables | 83+ API Endpoints | 20+ Service Files | 12 Event Types | 25 Business Rule Constraints | SSE Real-time | Bilingual ZH/EN</text>
+
+</svg>
+</div>
+
+<!-- Info Cards -->
+<div class="info-cards">
+  <div class="info-card">
+    <h3>📱 Mobile Layer</h3>
+    <ul>
+      <li data-lang-zh="React Native Expo · 6 主要畫面 (Dashboard/庫存/簽核/AI/通知/設定)" data-lang-en="React Native Expo · 6 Screens (Dashboard/Inventory/Approval/AI/Notifications/Settings)">React Native Expo · 6 主要畫面 (Dashboard/庫存/簽核/AI/通知/設定)</li>
+      <li data-lang-zh="Zustand + React Query · appStore.liveEvents 全域 SSE" data-lang-en="Zustand + React Query · appStore.liveEvents SSE">Zustand + React Query · appStore.liveEvents 全域 SSE</li>
+      <li data-lang-zh="SSE 即時推播 · JWT 統一認證 · X-Device Header" data-lang-en="SSE Real-time Push · JWT Auth · X-Device Header">SSE 即時推播 · JWT 統一認證 · X-Device Header</li>
+    </ul>
+  </div>
+  <div class="info-card">
+    <h3>🧠 LLM Architecture</h3>
+    <ul>
+      <li data-lang-zh="V2 Intent Router → 12 Domain Agents (無 LLM 路由開銷)" data-lang-en="V2 Intent Router → 12 Domain Agents (Zero LLM routing overhead)">V2 Intent Router → 12 Domain Agents (無 LLM 路由開銷)</li>
+      <li data-lang-zh="Multi-Provider: DeepSeek · Claude · GPT · Ollama · OpenRouter" data-lang-en="Multi-Provider: DeepSeek · Claude · GPT · Ollama · OpenRouter">Multi-Provider: DeepSeek · Claude · GPT · Ollama · OpenRouter</li>
+      <li data-lang-zh="25 業務規則約束 · 12 事件類型 · Role-based Event Routing" data-lang-en="25 Business Rule Constraints · 12 Event Types · Role-based Routing">25 業務規則約束 · 12 事件類型 · Role-based Event Routing</li>
+    </ul>
+  </div>
+  <div class="info-card">
+    <h3>🗄️ Data Layer</h3>
+    <ul>
+      <li data-lang-zh="43+ 資料表 · 11 領域 · SQLAlchemy Async ORM" data-lang-en="43+ Tables · 11 Domains · SQLAlchemy Async ORM">43+ 資料表 · 11 領域 · SQLAlchemy Async ORM</li>
+      <li data-lang-zh="SQLite (dev) / PostgreSQL (prod) · Alembic Migrations" data-lang-en="SQLite (dev) / PostgreSQL (prod) · Alembic Migrations">SQLite (dev) / PostgreSQL (prod) · Alembic Migrations</li>
+      <li data-lang-zh="Event Bus → SSE Broadcaster · 即時推播 Mobile + Desktop" data-lang-en="Event Bus → SSE Broadcaster · Real-time Push to Mobile + Desktop">Event Bus → SSE Broadcaster · 即時推播 Mobile + Desktop</li>
+    </ul>
+  </div>
+</div>
+
+<div class="footer">
+  <span data-lang-zh="LLM-ERP v0.2.0+mobile · fanchanyu/llm-erp · fanchanyu/llm-mobile · 更新: 2026-05-12" data-lang-en="LLM-ERP v0.2.0+mobile · fanchanyu/llm-erp · fanchanyu/llm-mobile · Updated: 2026-05-12">LLM-ERP v0.2.0+mobile · fanchanyu/llm-erp · fanchanyu/llm-mobile · 更新: 2026-05-12</span>
+</div>
+
+</div>
+
+<script>
+// ── Bilingual Toggle ────────────────────────────────────────────────
+const T = {
+  zh: {
+    'title': 'LLM-ERP V2 + LLM-Mobile · 完整系統拓樸圖',
+    'subtitle': '6 層架構 · 12 領域 Agent · 43+ 資料表 · 83+ APIs · SSE 即時推播',
+    '1. MOBILE CLIENTS (新) · LLM-Mobile · React Native Expo': '1. MOBILE CLIENTS (新) · LLM-Mobile · React Native Expo',
+    '2. DESKTOP CLIENTS · React + Vite + Tailwind': '2. DESKTOP CLIENTS · React + Vite + Tailwind',
+    '3. API GATEWAY · FastAPI · Port 8000': '3. API GATEWAY · FastAPI · Port 8000',
+    '4. LLM AGENT ORCHESTRATOR · V2 Intent Router · 12 Domain Agents': '4. LLM AGENT ORCHESTRATOR · V2 Intent Router · 12 Domain Agents',
+    '5. DOMAIN MODULES · 7 V1 Core + 5 V2 New + Cross-Cut Services': '5. DOMAIN MODULES · 7 V1 Core + 5 V2 New + Cross-Cut Services',
+    '6. DATA & SERVICE · 20 Service Files · 19 Model Files · Event Bus': '6. DATA & SERVICE · 20 Service Files · 19 Model Files · Event Bus',
+    '🔗 LLM Providers: DeepSeek · Anthropic Claude · OpenAI GPT · Ollama (Local) · OpenRouter (Multi-Provider)': '🔗 LLM Providers: DeepSeek · Anthropic Claude · OpenAI GPT · Ollama (Local) · OpenRouter (Multi-Provider)',
+    '→ Intent Router routes to provider via Agent, tool calls execute domain logic, LLM generates response': '→ Intent Router routes to provider via Agent, tool calls execute domain logic, LLM generates response',
+    'V1 Core Modules': 'V1 核心模組',
+    'V2 New Modules': 'V2 新增模組',
+    'Cross-Cut Services': '跨層服務',
+    'Domain Service Layer (20 Files)': 'Domain Service Layer (20 Files)',
+    'Legend': '圖例',
+    'Mobile': 'Mobile',
+    'Desktop': 'Desktop',
+    'API Gateway': 'API Gateway',
+    'LLM Agent': 'LLM Agent',
+    'V1 Module': 'V1 Module',
+    'V2 Module': 'V2 Module',
+    'Cross-Cut': 'Cross-Cut',
+    'Database': 'Database',
+    'Data Flow / FK': 'Data Flow / FK',
+    'Business Process': 'Business Process',
+    'SSE Push': 'SSE Push'
+  }
+};
+
+// Also mirror English with same keys
+T.en = {};
+for (const key in T.zh) {
+  T.en[key] = key; // English = key itself (already English)
+}
+
+let currentLang = 'zh';
+
+function switchLang(lang) {
+  currentLang = lang;
+  document.getElementById('btn-zh').className = lang === 'zh' ? 'active' : '';
+  document.getElementById('btn-en').className = lang === 'en' ? 'active' : '';
+  
+  const dict = T[lang];
+  
+  // Update title
+  const titleEl = document.querySelector('title');
+  if (titleEl) {
+    const attr = 'data-lang-' + lang;
+    if (titleEl.getAttribute(attr)) {
+      titleEl.textContent = titleEl.getAttribute(attr);
+    }
+  }
+  
+  // Update h1
+  const h1 = document.querySelector('h1');
+  if (h1) {
+    const attr = 'data-lang-' + lang;
+    if (h1.getAttribute(attr)) {
+      h1.textContent = h1.getAttribute(attr);
+    }
+  }
+  
+  // Update all elements with data-lang-* attributes
+  document.querySelectorAll('[data-lang-zh]').forEach(el => {
+    const attr = 'data-lang-' + lang;
+    if (el.getAttribute(attr)) {
+      el.textContent = el.getAttribute(attr);
+    }
+  });
+  
+  // Update SVG text elements with data-lang-zh/en
+  // Also match data-key attributes
+  document.querySelectorAll('text[data-lang-zh]').forEach(el => {
+    const attr = 'data-lang-' + lang;
+    if (el.getAttribute(attr)) {
+      el.textContent = el.getAttribute(attr);
+    }
+  });
+  
+  // Update info card items
+  document.querySelectorAll('.info-card li[data-lang-zh]').forEach(el => {
+    const attr = 'data-lang-' + lang;
+    if (el.getAttribute(attr)) {
+      el.textContent = el.getAttribute(attr);
+    }
+  });
+  
+  // Update legend items
+  document.querySelectorAll('.subtitle span[data-lang-zh]').forEach(el => {
+    const attr = 'data-lang-' + lang;
+    if (el.getAttribute(attr)) {
+      el.textContent = el.getAttribute(attr);
+    }
+  });
+  
+  // Update footer
+  document.querySelectorAll('.footer span[data-lang-zh]').forEach(el => {
+    const attr = 'data-lang-' + lang;
+    if (el.getAttribute(attr)) {
+      el.textContent = el.getAttribute(attr);
+    }
+  });
+}
+</script>
+
+</body>
+</html>
