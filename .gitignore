@@ -43,6 +43,11 @@ frontend/dist/
 # Logs
 *.log
 
+# Large data files
+*.csv
+*.xlsx
+*.xls
+
 # Python venv
 .venv/
 
