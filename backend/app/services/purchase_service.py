@@ -29,8 +29,10 @@ async def get_supplier(db: AsyncSession, supplier_id: uuid.UUID) -> Optional[Sup
 
 async def create_supplier(db: AsyncSession, name: str, contact: Optional[str] = None,
                           phone: Optional[str] = None, email: Optional[str] = None,
-                          score: float = 5.0) -> Supplier:
-    s = Supplier(name=name, contact=contact, phone=phone, email=email, score=score)
+                          score: float = 5.0, tier: str = "1",
+                          parent_supplier_id: Optional[uuid.UUID] = None) -> Supplier:
+    s = Supplier(name=name, contact=contact, phone=phone, email=email,
+                 score=score, tier=tier, parent_supplier_id=parent_supplier_id)
     db.add(s)
     await db.flush()
     return s

@@ -26,8 +26,12 @@ async def list_suppliers(
     suppliers, total = await svc.list_suppliers(db, search, skip, limit)
     return {
         "suppliers": [
-            SupplierResponse(id=str(s.id), name=s.name, contact=s.contact,
-                             phone=s.phone, email=s.email, score=s.score) for s in suppliers
+            SupplierResponse(
+                id=str(s.id), name=s.name, tier=s.tier or "1",
+                parent_supplier_name=s.parent_supplier.name if s.parent_supplier else None,
+                sub_supplier_count=len(s.sub_suppliers) if s.sub_suppliers else 0,
+                contact=s.contact, phone=s.phone, email=s.email, score=s.score
+            ) for s in suppliers
         ],
         "total": total,
     }
@@ -54,9 +58,19 @@ async def update_supplier_score(supplier_id: str, score: float,
 
 @router.post("/suppliers", response_model=SupplierResponse, status_code=201)
 async def create_supplier(data: SupplierCreate, db: AsyncSession = Depends(get_db)):
-    s = await svc.create_supplier(db, data.name, data.contact, data.phone, data.email)
-    return SupplierResponse(id=str(s.id), name=s.name, contact=s.contact,
-                            phone=s.phone, email=s.email)
+    parent_id = None
+    if data.parent_supplier_name:
+        parents, _ = await svc.list_suppliers(db, data.parent_supplier_name)
+        if parents:
+            parent_id = parents[0].id
+    s = await svc.create_supplier(db, data.name, data.contact, data.phone, data.email,
+                                   tier=data.tier, parent_supplier_id=parent_id)
+    return SupplierResponse(
+        id=str(s.id), name=s.name, tier=s.tier or "1",
+        parent_supplier_name=s.parent_supplier.name if s.parent_supplier else None,
+        sub_supplier_count=len(s.sub_suppliers) if s.sub_suppliers else 0,
+        contact=s.contact, phone=s.phone, email=s.email
+    )
 
 
 @router.get("/orders", response_model=dict)

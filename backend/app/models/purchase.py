@@ -10,11 +10,16 @@ class Supplier(Base):
 
     id = Column(Uuid, primary_key=True, default=uuid.uuid4)
     name = Column(String(200), nullable=False, index=True)
+    tier = Column(String(10), default="1")  # 1=一階, 2=二階, 3=三階
+    parent_supplier_id = Column(Uuid, ForeignKey("suppliers.id"), nullable=True, index=True)
     contact = Column(String(100), nullable=True)
     phone = Column(String(50), nullable=True)
     email = Column(String(200), nullable=True)
     score = Column(Float, default=5.0)  # 0-5 supplier rating
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Self-referential relationship for tiered supply chain
+    parent_supplier = relationship("Supplier", remote_side=[id], backref="sub_suppliers", foreign_keys=[parent_supplier_id])
 
 
 class PurchaseOrder(Base):

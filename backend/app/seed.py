@@ -61,12 +61,49 @@ async def seed():
             inv = Inventory(part_id=part_ids[pno], location=loc, quantity=qty)
             db.add(inv)
 
-        # ─── 供應商 ── ──────────────────────────────
-        supplier = Supplier(name="大明螺絲", contact="王大明", phone="02-1234-5678")
-        db.add(supplier)
-        supplier2 = Supplier(name="電機王", contact="陳電機", phone="02-8765-4321")
-        db.add(supplier2)
+        # ─── 供應商（多階層供應鏈） ────────────────────────────
+        # Tier-1: 直接供應商
+        supplier_t1_1 = Supplier(name="大明螺絲", tier="1", contact="王大明", phone="02-1234-5678", score=4.5)
+        db.add(supplier_t1_1)
+        supplier_t1_2 = Supplier(name="電機王", tier="1", contact="陳電機", phone="02-8765-4321", score=4.8)
+        db.add(supplier_t1_2)
+        supplier_t1_3 = Supplier(name="精密傳動", tier="1", contact="林傳動", phone="03-4567-8901", score=4.2)
+        db.add(supplier_t1_3)
+        supplier_t1_4 = Supplier(name="鈑金達人", tier="1", contact="張鈑金", phone="04-5678-9012", score=4.0)
+        db.add(supplier_t1_4)
         await db.flush()
+
+        # Tier-2: 原料/半成品供應商
+        supplier_t2_1 = Supplier(name="線材供應", tier="2", contact="李線材", phone="02-1111-2222",
+                                 parent_supplier_id=supplier_t1_2.id, score=3.8)
+        db.add(supplier_t2_1)
+        supplier_t2_2 = Supplier(name="鋼鐵原材", tier="2", contact="黃鋼鐵", phone="04-3333-4444",
+                                 parent_supplier_id=supplier_t1_4.id, score=4.1)
+        db.add(supplier_t2_2)
+        supplier_t2_3 = Supplier(name="軸承工廠", tier="2", contact="吳軸承", phone="03-5555-6666",
+                                 parent_supplier_id=supplier_t1_3.id, score=3.5)
+        db.add(supplier_t2_3)
+        supplier_t2_4 = Supplier(name="熱處理廠", tier="2", contact="劉熱處理", phone="04-7777-8888",
+                                 parent_supplier_id=supplier_t1_1.id, score=4.3)
+        db.add(supplier_t2_4)
+        await db.flush()
+
+        # Tier-3: 原材料開採/基礎加工
+        supplier_t3_1 = Supplier(name="鐵礦供應", tier="3", contact="蔡鐵礦", phone="04-9999-0000",
+                                 parent_supplier_id=supplier_t2_2.id, score=3.2)
+        db.add(supplier_t3_1)
+        supplier_t3_2 = Supplier(name="化工原料", tier="3", contact="周化工", phone="02-1212-3434",
+                                 parent_supplier_id=supplier_t2_1.id, score=3.0)
+        db.add(supplier_t3_2)
+        await db.flush()
+
+        suppliers = {
+            "大明螺絲": supplier_t1_1, "電機王": supplier_t1_2,
+            "精密傳動": supplier_t1_3, "鈑金達人": supplier_t1_4,
+            "線材供應": supplier_t2_1, "鋼鐵原材": supplier_t2_2,
+            "軸承工廠": supplier_t2_3, "熱處理廠": supplier_t2_4,
+            "鐵礦供應": supplier_t3_1, "化工原料": supplier_t3_2,
+        }
 
         # ─── 產品 & BOM ─────────────────────────
         # 產品A：自動鎖螺絲機基座
@@ -115,7 +152,7 @@ async def seed():
             db.add(b)
 
         # ─── 採購單測試 ─────────────────────────
-        po = PurchaseOrder(po_no="PO-20260505-001", supplier_id=supplier.id,
+        po = PurchaseOrder(po_no="PO-20260505-001", supplier_id=suppliers["大明螺絲"].id,
                           status="draft", ordered_by="seed", notes="測試採購單")
         db.add(po)
         await db.flush()
@@ -133,7 +170,7 @@ async def seed():
     print("✅ Seed data inserted!")
     print(f"   - {len(parts_data)} parts")
     print(f"   - {len(stock_data)} stock records")
-    print(f"   - 2 suppliers")
+    print(f"   - 10 suppliers (4 tiers: T1×4 + T2×4 + T3×2)")
     print(f"   - 2 products with BOM")
     print(f"   - 1 purchase order")
 

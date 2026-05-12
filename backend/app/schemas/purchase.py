@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field
 
 class SupplierCreate(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
+    tier: str = Field(default="1", pattern="^[123]$")
+    parent_supplier_name: Optional[str] = None
     contact: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
@@ -15,6 +17,9 @@ class SupplierCreate(BaseModel):
 class SupplierResponse(BaseModel):
     id: str
     name: str
+    tier: str = "1"
+    parent_supplier_name: Optional[str] = None
+    sub_supplier_count: int = 0
     contact: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None

@@ -1,0 +1,1471 @@
+{
+  "meta": {
+    "total": 60,
+    "factory_types": [
+      "MTO",
+      "MTS",
+      "ETO"
+    ],
+    "scenarios_per_type": 20,
+    "created_at": "2026-05-12T09:30:28.074539"
+  },
+  "factories": {
+    "MTO": {
+      "name": "Make-to-Order (接單生產)",
+      "desc": "高混線、低產量、多品種 — 如工具機、特殊設備",
+      "n_machines": [
+        50,
+        200
+      ],
+      "n_groups": [
+        6,
+        12
+      ],
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "n_orders": [
+        5,
+        20
+      ],
+      "due_date_window": [
+        7,
+        30
+      ],
+      "rush_pct": 0.15
+    },
+    "MTS": {
+      "name": "Make-to-Stock (庫存生產)",
+      "desc": "低混線、高產量、少品種 — 如螺絲、標準零件、包材",
+      "n_machines": [
+        30,
+        100
+      ],
+      "n_groups": [
+        4,
+        8
+      ],
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "n_orders": [
+        10,
+        50
+      ],
+      "due_date_window": [
+        14,
+        60
+      ],
+      "rush_pct": 0.05
+    },
+    "ETO": {
+      "name": "Engineer-to-Order (設計生產)",
+      "desc": "極度客製、專案式、高複雜度 — 如自動化設備、專用機",
+      "n_machines": [
+        80,
+        300
+      ],
+      "n_groups": [
+        8,
+        15
+      ],
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "n_orders": [
+        3,
+        10
+      ],
+      "due_date_window": [
+        30,
+        90
+      ],
+      "rush_pct": 0.25
+    }
+  },
+  "scenarios": [
+    {
+      "id": "MTO_01",
+      "factory_type": "MTO",
+      "scenario_name_en": "normal_load",
+      "scenario_name_zh": "正常負載",
+      "description": "一般生產排程，無特殊事件",
+      "machine_group_count": 6,
+      "total_machines": 50,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {},
+      "created_at": "2026-05-12T09:30:28.074412"
+    },
+    {
+      "id": "MTO_02",
+      "factory_type": "MTO",
+      "scenario_name_en": "high_load",
+      "scenario_name_zh": "高負載",
+      "description": "訂單量為正常 2 倍，產能緊繃",
+      "machine_group_count": 9,
+      "total_machines": 87,
+      "n_orders": 25,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "load_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074422"
+    },
+    {
+      "id": "MTO_03",
+      "factory_type": "MTO",
+      "scenario_name_en": "low_load",
+      "scenario_name_zh": "低負載",
+      "description": "訂單量為正常 50%，產能過剩",
+      "machine_group_count": 12,
+      "total_machines": 125,
+      "n_orders": 6,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "load_mult": 0.5
+      },
+      "created_at": "2026-05-12T09:30:28.074424"
+    },
+    {
+      "id": "MTO_04",
+      "factory_type": "MTO",
+      "scenario_name_en": "rush_orders",
+      "scenario_name_zh": "急單湧入",
+      "description": "大量急單穿插，需重新排程",
+      "machine_group_count": 6,
+      "total_machines": 162,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.45,
+      "special_conditions": {
+        "rush_pct_mult": 3.0
+      },
+      "created_at": "2026-05-12T09:30:28.074426"
+    },
+    {
+      "id": "MTO_05",
+      "factory_type": "MTO",
+      "scenario_name_en": "bottleneck_shift",
+      "scenario_name_zh": "瓶頸機台轉移",
+      "description": "主要瓶頸機台故障，負載轉移",
+      "machine_group_count": 9,
+      "total_machines": 200,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "bottleneck_fail_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074428"
+    },
+    {
+      "id": "MTO_06",
+      "factory_type": "MTO",
+      "scenario_name_en": "machine_breakdown",
+      "scenario_name_zh": "機台故障",
+      "description": "關鍵機台故障 3 天，產能損失",
+      "machine_group_count": 12,
+      "total_machines": 50,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "breakdown_days": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074430"
+    },
+    {
+      "id": "MTO_07",
+      "factory_type": "MTO",
+      "scenario_name_en": "material_shortage",
+      "scenario_name_zh": "原物料短缺",
+      "description": "關鍵物料延遲到貨 5 天",
+      "machine_group_count": 6,
+      "total_machines": 87,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "material_delay_days": 5
+      },
+      "created_at": "2026-05-12T09:30:28.074432"
+    },
+    {
+      "id": "MTO_08",
+      "factory_type": "MTO",
+      "scenario_name_en": "quality_hold",
+      "scenario_name_zh": "品質扣留",
+      "description": "批量產品 QC 不合格，全線扣留",
+      "machine_group_count": 9,
+      "total_machines": 125,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "qc_fail_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074439"
+    },
+    {
+      "id": "MTO_09",
+      "factory_type": "MTO",
+      "scenario_name_en": "supplier_late",
+      "scenario_name_zh": "供應商延遲",
+      "description": "T1 供應商全面延遲一週",
+      "machine_group_count": 12,
+      "total_machines": 162,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "supplier_delay_days": 7
+      },
+      "created_at": "2026-05-12T09:30:28.074442"
+    },
+    {
+      "id": "MTO_10",
+      "factory_type": "MTO",
+      "scenario_name_en": "labor_shortage",
+      "scenario_name_zh": "人力短缺",
+      "description": "產線人員不足，產能降載 30%",
+      "machine_group_count": 6,
+      "total_machines": 200,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "labor_factor": 0.7
+      },
+      "created_at": "2026-05-12T09:30:28.074445"
+    },
+    {
+      "id": "MTO_11",
+      "factory_type": "MTO",
+      "scenario_name_en": "seasonal_spike",
+      "scenario_name_zh": "季節性高峰",
+      "description": "旺季訂單量暴增 3 倍",
+      "machine_group_count": 9,
+      "total_machines": 50,
+      "n_orders": 37,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.3,
+      "special_conditions": {
+        "load_mult": 3.0,
+        "rush_pct_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074447"
+    },
+    {
+      "id": "MTO_12",
+      "factory_type": "MTO",
+      "scenario_name_en": "new_product_ramp",
+      "scenario_name_zh": "新產品導入",
+      "description": "新產品上線，良率不穩導致重工",
+      "machine_group_count": 12,
+      "total_machines": 87,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "rework_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074451"
+    },
+    {
+      "id": "MTO_13",
+      "factory_type": "MTO",
+      "scenario_name_en": "order_cancel",
+      "scenario_name_zh": "大量訂單取消",
+      "description": "客戶取消 30% 訂單，需調整排程",
+      "machine_group_count": 6,
+      "total_machines": 125,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "cancel_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074453"
+    },
+    {
+      "id": "MTO_14",
+      "factory_type": "MTO",
+      "scenario_name_en": "order_split",
+      "scenario_name_zh": "訂單分批出貨",
+      "description": "大單拆分為多批，每批間隔 2 天",
+      "machine_group_count": 9,
+      "total_machines": 162,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "split_batches": 3,
+        "split_gap_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074455"
+    },
+    {
+      "id": "MTO_15",
+      "factory_type": "MTO",
+      "scenario_name_en": "multi_priority",
+      "scenario_name_zh": "多級優先權",
+      "description": "訂單分 A/B/C 三級優先權」，A優先生産",
+      "machine_group_count": 12,
+      "total_machines": 200,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "priority_levels": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074456"
+    },
+    {
+      "id": "MTO_16",
+      "factory_type": "MTO",
+      "scenario_name_en": "engineering_change",
+      "scenario_name_zh": "設變通知",
+      "description": "客戶設變，已投產需調整 BOM",
+      "machine_group_count": 6,
+      "total_machines": 50,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "eco_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074458"
+    },
+    {
+      "id": "MTO_17",
+      "factory_type": "MTO",
+      "scenario_name_en": "expedite_all",
+      "scenario_name_zh": "全面趕工",
+      "description": "所有訂單提前一週交貨",
+      "machine_group_count": 9,
+      "total_machines": 87,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "expedite_days": -7
+      },
+      "created_at": "2026-05-12T09:30:28.074459"
+    },
+    {
+      "id": "MTO_18",
+      "factory_type": "MTO",
+      "scenario_name_en": "slow_period",
+      "scenario_name_zh": "淡季減產",
+      "description": "訂單量僅正常 30%",
+      "machine_group_count": 12,
+      "total_machines": 125,
+      "n_orders": 3,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "load_mult": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074461"
+    },
+    {
+      "id": "MTO_19",
+      "factory_type": "MTO",
+      "scenario_name_en": "mix_shift",
+      "scenario_name_zh": "產品組合轉換",
+      "description": "產品 A 急降 60%，產品 B 急增 200%",
+      "machine_group_count": 6,
+      "total_machines": 162,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "mix_shift_pct": 0.6
+      },
+      "created_at": "2026-05-12T09:30:28.074463"
+    },
+    {
+      "id": "MTO_20",
+      "factory_type": "MTO",
+      "scenario_name_en": "disaster_recovery",
+      "scenario_name_zh": "災後復原",
+      "description": "停電 2 天後復工，所有訂單延遲",
+      "machine_group_count": 9,
+      "total_machines": 200,
+      "n_orders": 12,
+      "ops_per_order": [
+        5,
+        15
+      ],
+      "due_date_window_days": [
+        7,
+        30
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "downtime_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074465"
+    },
+    {
+      "id": "MTS_01",
+      "factory_type": "MTS",
+      "scenario_name_en": "normal_load",
+      "scenario_name_zh": "正常負載",
+      "description": "一般生產排程，無特殊事件",
+      "machine_group_count": 4,
+      "total_machines": 30,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {},
+      "created_at": "2026-05-12T09:30:28.074467"
+    },
+    {
+      "id": "MTS_02",
+      "factory_type": "MTS",
+      "scenario_name_en": "high_load",
+      "scenario_name_zh": "高負載",
+      "description": "訂單量為正常 2 倍，產能緊繃",
+      "machine_group_count": 6,
+      "total_machines": 47,
+      "n_orders": 60,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "load_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074470"
+    },
+    {
+      "id": "MTS_03",
+      "factory_type": "MTS",
+      "scenario_name_en": "low_load",
+      "scenario_name_zh": "低負載",
+      "description": "訂單量為正常 50%，產能過剩",
+      "machine_group_count": 8,
+      "total_machines": 65,
+      "n_orders": 15,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "load_mult": 0.5
+      },
+      "created_at": "2026-05-12T09:30:28.074471"
+    },
+    {
+      "id": "MTS_04",
+      "factory_type": "MTS",
+      "scenario_name_en": "rush_orders",
+      "scenario_name_zh": "急單湧入",
+      "description": "大量急單穿插，需重新排程",
+      "machine_group_count": 4,
+      "total_machines": 82,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.15,
+      "special_conditions": {
+        "rush_pct_mult": 3.0
+      },
+      "created_at": "2026-05-12T09:30:28.074473"
+    },
+    {
+      "id": "MTS_05",
+      "factory_type": "MTS",
+      "scenario_name_en": "bottleneck_shift",
+      "scenario_name_zh": "瓶頸機台轉移",
+      "description": "主要瓶頸機台故障，負載轉移",
+      "machine_group_count": 6,
+      "total_machines": 100,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "bottleneck_fail_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074475"
+    },
+    {
+      "id": "MTS_06",
+      "factory_type": "MTS",
+      "scenario_name_en": "machine_breakdown",
+      "scenario_name_zh": "機台故障",
+      "description": "關鍵機台故障 3 天，產能損失",
+      "machine_group_count": 8,
+      "total_machines": 30,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "breakdown_days": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074477"
+    },
+    {
+      "id": "MTS_07",
+      "factory_type": "MTS",
+      "scenario_name_en": "material_shortage",
+      "scenario_name_zh": "原物料短缺",
+      "description": "關鍵物料延遲到貨 5 天",
+      "machine_group_count": 4,
+      "total_machines": 47,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "material_delay_days": 5
+      },
+      "created_at": "2026-05-12T09:30:28.074478"
+    },
+    {
+      "id": "MTS_08",
+      "factory_type": "MTS",
+      "scenario_name_en": "quality_hold",
+      "scenario_name_zh": "品質扣留",
+      "description": "批量產品 QC 不合格，全線扣留",
+      "machine_group_count": 6,
+      "total_machines": 65,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "qc_fail_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074480"
+    },
+    {
+      "id": "MTS_09",
+      "factory_type": "MTS",
+      "scenario_name_en": "supplier_late",
+      "scenario_name_zh": "供應商延遲",
+      "description": "T1 供應商全面延遲一週",
+      "machine_group_count": 8,
+      "total_machines": 82,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "supplier_delay_days": 7
+      },
+      "created_at": "2026-05-12T09:30:28.074481"
+    },
+    {
+      "id": "MTS_10",
+      "factory_type": "MTS",
+      "scenario_name_en": "labor_shortage",
+      "scenario_name_zh": "人力短缺",
+      "description": "產線人員不足，產能降載 30%",
+      "machine_group_count": 4,
+      "total_machines": 100,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "labor_factor": 0.7
+      },
+      "created_at": "2026-05-12T09:30:28.074484"
+    },
+    {
+      "id": "MTS_11",
+      "factory_type": "MTS",
+      "scenario_name_en": "seasonal_spike",
+      "scenario_name_zh": "季節性高峰",
+      "description": "旺季訂單量暴增 3 倍",
+      "machine_group_count": 6,
+      "total_machines": 30,
+      "n_orders": 90,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.1,
+      "special_conditions": {
+        "load_mult": 3.0,
+        "rush_pct_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074485"
+    },
+    {
+      "id": "MTS_12",
+      "factory_type": "MTS",
+      "scenario_name_en": "new_product_ramp",
+      "scenario_name_zh": "新產品導入",
+      "description": "新產品上線，良率不穩導致重工",
+      "machine_group_count": 8,
+      "total_machines": 47,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "rework_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074488"
+    },
+    {
+      "id": "MTS_13",
+      "factory_type": "MTS",
+      "scenario_name_en": "order_cancel",
+      "scenario_name_zh": "大量訂單取消",
+      "description": "客戶取消 30% 訂單，需調整排程",
+      "machine_group_count": 4,
+      "total_machines": 65,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "cancel_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074489"
+    },
+    {
+      "id": "MTS_14",
+      "factory_type": "MTS",
+      "scenario_name_en": "order_split",
+      "scenario_name_zh": "訂單分批出貨",
+      "description": "大單拆分為多批，每批間隔 2 天",
+      "machine_group_count": 6,
+      "total_machines": 82,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "split_batches": 3,
+        "split_gap_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074492"
+    },
+    {
+      "id": "MTS_15",
+      "factory_type": "MTS",
+      "scenario_name_en": "multi_priority",
+      "scenario_name_zh": "多級優先權",
+      "description": "訂單分 A/B/C 三級優先權」，A優先生産",
+      "machine_group_count": 8,
+      "total_machines": 100,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "priority_levels": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074493"
+    },
+    {
+      "id": "MTS_16",
+      "factory_type": "MTS",
+      "scenario_name_en": "engineering_change",
+      "scenario_name_zh": "設變通知",
+      "description": "客戶設變，已投產需調整 BOM",
+      "machine_group_count": 4,
+      "total_machines": 30,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "eco_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074495"
+    },
+    {
+      "id": "MTS_17",
+      "factory_type": "MTS",
+      "scenario_name_en": "expedite_all",
+      "scenario_name_zh": "全面趕工",
+      "description": "所有訂單提前一週交貨",
+      "machine_group_count": 6,
+      "total_machines": 47,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "expedite_days": -7
+      },
+      "created_at": "2026-05-12T09:30:28.074496"
+    },
+    {
+      "id": "MTS_18",
+      "factory_type": "MTS",
+      "scenario_name_en": "slow_period",
+      "scenario_name_zh": "淡季減產",
+      "description": "訂單量僅正常 30%",
+      "machine_group_count": 8,
+      "total_machines": 65,
+      "n_orders": 9,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "load_mult": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074497"
+    },
+    {
+      "id": "MTS_19",
+      "factory_type": "MTS",
+      "scenario_name_en": "mix_shift",
+      "scenario_name_zh": "產品組合轉換",
+      "description": "產品 A 急降 60%，產品 B 急增 200%",
+      "machine_group_count": 4,
+      "total_machines": 82,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "mix_shift_pct": 0.6
+      },
+      "created_at": "2026-05-12T09:30:28.074499"
+    },
+    {
+      "id": "MTS_20",
+      "factory_type": "MTS",
+      "scenario_name_en": "disaster_recovery",
+      "scenario_name_zh": "災後復原",
+      "description": "停電 2 天後復工，所有訂單延遲",
+      "machine_group_count": 6,
+      "total_machines": 100,
+      "n_orders": 30,
+      "ops_per_order": [
+        3,
+        8
+      ],
+      "due_date_window_days": [
+        14,
+        60
+      ],
+      "rush_order_pct": 0.05,
+      "special_conditions": {
+        "downtime_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074500"
+    },
+    {
+      "id": "ETO_01",
+      "factory_type": "ETO",
+      "scenario_name_en": "normal_load",
+      "scenario_name_zh": "正常負載",
+      "description": "一般生產排程，無特殊事件",
+      "machine_group_count": 8,
+      "total_machines": 80,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {},
+      "created_at": "2026-05-12T09:30:28.074504"
+    },
+    {
+      "id": "ETO_02",
+      "factory_type": "ETO",
+      "scenario_name_en": "high_load",
+      "scenario_name_zh": "高負載",
+      "description": "訂單量為正常 2 倍，產能緊繃",
+      "machine_group_count": 11,
+      "total_machines": 135,
+      "n_orders": 13,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "load_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074506"
+    },
+    {
+      "id": "ETO_03",
+      "factory_type": "ETO",
+      "scenario_name_en": "low_load",
+      "scenario_name_zh": "低負載",
+      "description": "訂單量為正常 50%，產能過剩",
+      "machine_group_count": 15,
+      "total_machines": 190,
+      "n_orders": 3,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "load_mult": 0.5
+      },
+      "created_at": "2026-05-12T09:30:28.074508"
+    },
+    {
+      "id": "ETO_04",
+      "factory_type": "ETO",
+      "scenario_name_en": "rush_orders",
+      "scenario_name_zh": "急單湧入",
+      "description": "大量急單穿插，需重新排程",
+      "machine_group_count": 8,
+      "total_machines": 245,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.75,
+      "special_conditions": {
+        "rush_pct_mult": 3.0
+      },
+      "created_at": "2026-05-12T09:30:28.074510"
+    },
+    {
+      "id": "ETO_05",
+      "factory_type": "ETO",
+      "scenario_name_en": "bottleneck_shift",
+      "scenario_name_zh": "瓶頸機台轉移",
+      "description": "主要瓶頸機台故障，負載轉移",
+      "machine_group_count": 11,
+      "total_machines": 300,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "bottleneck_fail_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074511"
+    },
+    {
+      "id": "ETO_06",
+      "factory_type": "ETO",
+      "scenario_name_en": "machine_breakdown",
+      "scenario_name_zh": "機台故障",
+      "description": "關鍵機台故障 3 天，產能損失",
+      "machine_group_count": 15,
+      "total_machines": 80,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "breakdown_days": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074513"
+    },
+    {
+      "id": "ETO_07",
+      "factory_type": "ETO",
+      "scenario_name_en": "material_shortage",
+      "scenario_name_zh": "原物料短缺",
+      "description": "關鍵物料延遲到貨 5 天",
+      "machine_group_count": 8,
+      "total_machines": 135,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "material_delay_days": 5
+      },
+      "created_at": "2026-05-12T09:30:28.074514"
+    },
+    {
+      "id": "ETO_08",
+      "factory_type": "ETO",
+      "scenario_name_en": "quality_hold",
+      "scenario_name_zh": "品質扣留",
+      "description": "批量產品 QC 不合格，全線扣留",
+      "machine_group_count": 11,
+      "total_machines": 190,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "qc_fail_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074516"
+    },
+    {
+      "id": "ETO_09",
+      "factory_type": "ETO",
+      "scenario_name_en": "supplier_late",
+      "scenario_name_zh": "供應商延遲",
+      "description": "T1 供應商全面延遲一週",
+      "machine_group_count": 15,
+      "total_machines": 245,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "supplier_delay_days": 7
+      },
+      "created_at": "2026-05-12T09:30:28.074518"
+    },
+    {
+      "id": "ETO_10",
+      "factory_type": "ETO",
+      "scenario_name_en": "labor_shortage",
+      "scenario_name_zh": "人力短缺",
+      "description": "產線人員不足，產能降載 30%",
+      "machine_group_count": 8,
+      "total_machines": 300,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "labor_factor": 0.7
+      },
+      "created_at": "2026-05-12T09:30:28.074519"
+    },
+    {
+      "id": "ETO_11",
+      "factory_type": "ETO",
+      "scenario_name_en": "seasonal_spike",
+      "scenario_name_zh": "季節性高峰",
+      "description": "旺季訂單量暴增 3 倍",
+      "machine_group_count": 11,
+      "total_machines": 80,
+      "n_orders": 19,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.5,
+      "special_conditions": {
+        "load_mult": 3.0,
+        "rush_pct_mult": 2.0
+      },
+      "created_at": "2026-05-12T09:30:28.074521"
+    },
+    {
+      "id": "ETO_12",
+      "factory_type": "ETO",
+      "scenario_name_en": "new_product_ramp",
+      "scenario_name_zh": "新產品導入",
+      "description": "新產品上線，良率不穩導致重工",
+      "machine_group_count": 15,
+      "total_machines": 135,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "rework_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074525"
+    },
+    {
+      "id": "ETO_13",
+      "factory_type": "ETO",
+      "scenario_name_en": "order_cancel",
+      "scenario_name_zh": "大量訂單取消",
+      "description": "客戶取消 30% 訂單，需調整排程",
+      "machine_group_count": 8,
+      "total_machines": 190,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "cancel_pct": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074526"
+    },
+    {
+      "id": "ETO_14",
+      "factory_type": "ETO",
+      "scenario_name_en": "order_split",
+      "scenario_name_zh": "訂單分批出貨",
+      "description": "大單拆分為多批，每批間隔 2 天",
+      "machine_group_count": 11,
+      "total_machines": 245,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "split_batches": 3,
+        "split_gap_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074528"
+    },
+    {
+      "id": "ETO_15",
+      "factory_type": "ETO",
+      "scenario_name_en": "multi_priority",
+      "scenario_name_zh": "多級優先權",
+      "description": "訂單分 A/B/C 三級優先權」，A優先生産",
+      "machine_group_count": 15,
+      "total_machines": 300,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "priority_levels": 3
+      },
+      "created_at": "2026-05-12T09:30:28.074529"
+    },
+    {
+      "id": "ETO_16",
+      "factory_type": "ETO",
+      "scenario_name_en": "engineering_change",
+      "scenario_name_zh": "設變通知",
+      "description": "客戶設變，已投產需調整 BOM",
+      "machine_group_count": 8,
+      "total_machines": 80,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "eco_pct": 0.2
+      },
+      "created_at": "2026-05-12T09:30:28.074531"
+    },
+    {
+      "id": "ETO_17",
+      "factory_type": "ETO",
+      "scenario_name_en": "expedite_all",
+      "scenario_name_zh": "全面趕工",
+      "description": "所有訂單提前一週交貨",
+      "machine_group_count": 11,
+      "total_machines": 135,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "expedite_days": -7
+      },
+      "created_at": "2026-05-12T09:30:28.074532"
+    },
+    {
+      "id": "ETO_18",
+      "factory_type": "ETO",
+      "scenario_name_en": "slow_period",
+      "scenario_name_zh": "淡季減產",
+      "description": "訂單量僅正常 30%",
+      "machine_group_count": 15,
+      "total_machines": 190,
+      "n_orders": 3,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "load_mult": 0.3
+      },
+      "created_at": "2026-05-12T09:30:28.074534"
+    },
+    {
+      "id": "ETO_19",
+      "factory_type": "ETO",
+      "scenario_name_en": "mix_shift",
+      "scenario_name_zh": "產品組合轉換",
+      "description": "產品 A 急降 60%，產品 B 急增 200%",
+      "machine_group_count": 8,
+      "total_machines": 245,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "mix_shift_pct": 0.6
+      },
+      "created_at": "2026-05-12T09:30:28.074535"
+    },
+    {
+      "id": "ETO_20",
+      "factory_type": "ETO",
+      "scenario_name_en": "disaster_recovery",
+      "scenario_name_zh": "災後復原",
+      "description": "停電 2 天後復工，所有訂單延遲",
+      "machine_group_count": 11,
+      "total_machines": 300,
+      "n_orders": 6,
+      "ops_per_order": [
+        10,
+        30
+      ],
+      "due_date_window_days": [
+        30,
+        90
+      ],
+      "rush_order_pct": 0.25,
+      "special_conditions": {
+        "downtime_days": 2
+      },
+      "created_at": "2026-05-12T09:30:28.074537"
+    }
+  ]
+}
