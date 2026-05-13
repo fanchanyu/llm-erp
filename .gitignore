@@ -1,4 +1,4 @@
-# Python
+# ─── Python ──────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,14 +6,39 @@ dist/
 build/
 .eggs/
 
-# Environment
+# ─── Environment ──────────────────────────────────
 .env
 .env.local
+.env.example
 *.env
-# Python venv
-.venv/
 
-# Paper & journal (NOT for public repo)
+# ─── Virtual Environment ──────────────────────────
+.venv/
+venv/
+
+# ─── IDE / Editor ─────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.bak
+
+# ─── OS ────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── Project: Data & Logs ─────────────────────────
+*.db
+*.sqlite3
+*.log
+backend/reports/
+
+# ─── Large data files ─────────────────────────────
+*.csv
+*.xlsx
+*.xls
+
+# ─── Paper & research (NOT for public repo) ───────
 paper/
 PAPER_OUTLINE.md
 REFERENCES.md
@@ -24,49 +49,21 @@ sketches/
 work-logs/
 evaluation/provider-comparison.md
 evaluation/results*.json
-.vscode/
-.idea/
-*.swp
-*.swo
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Project
-backend/alembic/versions/*.pyc
+# ─── Project: Build artifacts ──────────────────────
 frontend/node_modules/
 frontend/dist/
-*.db
-*.sqlite3
+backend/alembic/versions/*.pyc
 
-# Logs
-*.log
-
-# Large data files
-*.csv
-*.xlsx
-*.xls
-
-# Python venv
-.venv/
-
-# Backup files
-*.bak
-
-# OS files
-Thumbs.db
-.DS_Store
-paper/
-backend/reports/
-backend/app/data_import.py
+# ─── Sales: Pricing & customer data (機密) ────────
 sales/*.pdf
-sales/cjk-print.css
-
-# 客戶資料（機密）
-sales/LLM-ERP客戶潛在名單.xlsx
-sales/missing_emails_high_potential.*
 sales/*.csv
+sales/*.json
+sales/cjk-print.css
+sales/LLM-ERP客戶潛在名單.xlsx
 sales/batch_find_emails.py
 sales/progress.json
 sales/found_emails.json
+
+# ─── Misc ──────────────────────────────────────────
+backend/app/data_import.py
