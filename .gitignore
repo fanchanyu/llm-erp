@@ -55,6 +55,14 @@ backend/alembic/versions/*.pyc
 
 # Sales: no customer data, only strategy docs
 sales/pricing_and_strategy.md
+sales/*.pdf
+sales/*.csv
+sales/*.json
+sales/*.py
+sales/cjk-print.css
+sales/LLM-ERP客户潜在名单.xlsx
+sales/progress.json
+sales/found_emails.json
 
 # Misc
 backend/app/data_import.py
