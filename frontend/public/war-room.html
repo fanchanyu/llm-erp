@@ -154,39 +154,38 @@ svg { width: 100%; height: 100%; }
     <!-- EDGES (drawn first so they're behind nodes) -->
     <!-- ════════════════════════════════════════ -->
 
+    <!-- Top Row: Planning layer (straight horizontal) -->
     <!-- 1. CRM → MPS (info: demand forecast) -->
-    <path class="topo-edge info" d="M 260,105 Q 320,70 420,105" marker-end="url(#arr-info)"/>
+    <path class="topo-edge info" d="M 260,105 L 345,105" marker-end="url(#arr-info)"/>
     <!-- 2. MPS → MRP (info: planned orders) -->
-    <path class="topo-edge info" d="M 520,105 Q 580,70 680,105" marker-end="url(#arr-info)"/>
+    <path class="topo-edge info" d="M 490,105 L 555,105" marker-end="url(#arr-info)"/>
     <!-- 3. MRP → CRP (info: material reqs) -->
-    <path class="topo-edge info" d="M 780,105 Q 840,70 940,105" marker-end="url(#arr-info)"/>
+    <path class="topo-edge info" d="M 700,105 L 775,105" marker-end="url(#arr-info)"/>
 
-    <!-- 4. CRP → SFC/Shop Floor (info: dispatch list) -->
-    <path class="topo-edge info" d="M 1040,145 Q 1080,210 1040,280" marker-end="url(#arr-info)"/>
+    <!-- 4. CRP → SFC/Shop Floor (L-shape down-right) -->
+    <path class="topo-edge info" d="M 920,140 L 920,170 L 1040,170 L 1040,195" marker-end="url(#arr-info)"/>
     <text class="topo-edge-label"><textPath href="#edge-crp-sfc" startOffset="50%">派工指令</textPath></text>
 
-    <!-- 5. SFC → Quality (info: NC reports) -->
-    <path class="topo-edge quality" d="M 1000,350 Q 900,390 780,350" marker-end="url(#arr-qual)"/>
-
-    <!-- 6. Quality → WMS (info: RMA, material return) -->
-    <path class="topo-edge quality" d="M 700,350 Q 620,390 520,350" marker-end="url(#arr-qual)"/>
-
-    <!-- 7. WMS → Supplier (material: replenish PO) -->
-    <path class="topo-edge material" d="M 420,350 Q 360,390 260,350" marker-end="url(#arr-mat)"/>
+    <!-- 5. SFC → Quality (L-shape left-down) -->
+    <path class="topo-edge quality" d="M 960,240 L 960,275 L 880,275 L 880,305" marker-end="url(#arr-qual)"/>
+    <!-- 6. Quality → WMS (straight left) -->
+    <path class="topo-edge quality" d="M 720,310 L 565,310" marker-end="url(#arr-qual)"/>
+    <!-- 7. WMS → Supplier PO (straight left) -->
+    <path class="topo-edge material" d="M 400,310 L 265,310" marker-end="url(#arr-mat)"/>
     <text class="topo-edge-label"><textPath href="#edge-wms-supplier" startOffset="50%">補貨</textPath></text>
 
-    <!-- 8. Supplier → WMS (material: received goods) -->
-    <path class="topo-edge material" d="M 220,280 Q 260,210 420,280" marker-end="url(#arr-mat)"/>
-    <!-- 8b. Supplier → Finance (cash outflow) -->
-    <path class="topo-edge finance" d="M 180,180 Q 280,120 420,180" marker-end="url(#arr-fin)"/>
+    <!-- 8. Supplier → WMS received (straight right, above lane 7) -->
+    <path class="topo-edge material" d="M 260,285 L 395,285" marker-end="url(#arr-mat)"/>
 
-    <!-- 9. Finance cross: AR connects via bottom -->
-    <path class="topo-edge finance" d="M 180,350 Q 180,430 420,430 Q 600,430 700,370" marker-end="url(#arr-fin)"/>
-    <path class="topo-edge finance" d="M 700,370 Q 800,390 1040,350" marker-end="url(#arr-fin)"/>
+    <!-- 9. Supplier → Finance cash outflow (straight right) -->
+    <path class="topo-edge finance" d="M 180,180 L 415,180" marker-end="url(#arr-fin)"/>
 
-    <!-- Edge path definitions for labels -->
-    <path id="edge-crp-sfc" class="topo-edge info" d="M 1040,145 Q 1080,210 1040,280" style="stroke:none"/>
-    <path id="edge-wms-supplier" class="topo-edge material" d="M 420,350 Q 360,390 260,350" style="stroke:none"/>
+    <!-- 10. Finance AR wrap: under all nodes → up into accounting -->
+    <path class="topo-edge finance" d="M 180,350 L 180,420 L 1040,420 L 1040,365" marker-end="url(#arr-fin)"/>
+
+    <!-- Edge path definitions for labels (invisible, for textPath) -->
+    <path id="edge-crp-sfc" class="topo-edge info" d="M 920,140 L 920,170 L 1040,170 L 1040,195" style="stroke:none"/>
+    <path id="edge-wms-supplier" class="topo-edge material" d="M 400,310 L 265,310" style="stroke:none"/>
 
     <!-- ════════════════════════════════════════ -->
     <!-- NODES -->
@@ -279,13 +278,13 @@ svg { width: 100%; height: 100%; }
 
     <!-- Animated edge particles -->
     <circle r="3" class="edge-dot material-dot">
-      <animateMotion dur="4s" repeatCount="indefinite" path="M 260,105 Q 320,70 420,105"/>
+      <animateMotion dur="4s" repeatCount="indefinite" path="M 260,105 L 345,105"/>
     </circle>
     <circle r="3" class="edge-dot info-dot">
-      <animateMotion dur="4s" repeatCount="indefinite" begin="1s" path="M 520,105 Q 580,70 680,105"/>
+      <animateMotion dur="4s" repeatCount="indefinite" begin="1s" path="M 490,105 L 555,105"/>
     </circle>
     <circle r="3" class="edge-dot material-dot">
-      <animateMotion dur="5s" repeatCount="indefinite" begin="0.5s" path="M 220,280 Q 260,210 420,280"/>
+      <animateMotion dur="5s" repeatCount="indefinite" begin="0.5s" path="M 260,285 L 395,285"/>
     </circle>
   </svg>
   <div id="event-layer" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
