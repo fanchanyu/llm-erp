@@ -1,16 +1,19 @@
-"""
-Dispatch Service — Production Order Management + Dynamic Rescheduling
+"""Dispatch Service — Production Order Management + Dynamic Rescheduling
 
 Core functions:
 - 工單管理 (create/release/complete orders)
 - 工作站管理
 - 派工邏輯 (priority + EDD-based scheduling)
 - 動態重排程 (Right-Shift / Route Changing / Expedite)
+- CRP 產能負載計算
+- APS 排程 (前向/後向/瓶頸基礎)
+- 甘特圖數據輸出
 """
 
 import uuid
+from collections import defaultdict
 from datetime import datetime, date, timedelta
-from sqlalchemy import select, update, and_
+from sqlalchemy import select, update, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -448,3 +451,535 @@ async def list_dispatch_logs(db: AsyncSession, limit: int = 50) -> list[dict]:
             entry["work_center_name"] = wc.name if wc else ""
         result.append(entry)
     return result
+
+
+# ═══════════════════════════════════════════════
+# CRP — Capacity Requirements Planning (產能負載)
+# ═══════════════════════════════════════════════
+
+async def calculate_crp_load(
+    db: AsyncSession, period: str = "day",
+) -> dict:
+    """
+    Calculate capacity load for each Work Center.
+
+    For each WC, query all PENDING / READY / RUNNING Operations,
+    group by day (or week), and compute utilization.
+
+    Returns {
+        "items": [{work_center_id, name, date, capacity_min, load_min, utilization}, ...],
+        "total_capacity_min": float,
+        "total_load_min": float,
+        "overall_utilization": float,
+    }
+    """
+    # Load all work centers
+    wcs = await list_work_centers(db)
+    if not wcs:
+        return {
+            "items": [],
+            "total_capacity_min": 0,
+            "total_load_min": 0,
+            "overall_utilization": 0,
+        }
+
+    # Load all non-completed operations
+    r = await db.execute(
+        select(Operation)
+        .where(
+            Operation.status.in_([
+                OpStatus.PENDING.value,
+                OpStatus.READY.value,
+                OpStatus.RUNNING.value,
+            ])
+        )
+        .options(selectinload(Operation.work_center))
+    )
+    all_ops = list(r.scalars().all())
+
+    # Build wc_id -> operations map
+    wc_ops: dict[str, list[Operation]] = defaultdict(list)
+    for op in all_ops:
+        wc_ops[op.work_center_id].append(op)
+
+    items = []
+    total_capacity_min = 0.0
+    total_load_min = 0.0
+    today = date.today()
+
+    for wc in wcs:
+        cap_per_day = wc.capacity_hours * 60.0  # minutes per day
+        ops = wc_ops.get(wc.id, [])
+
+        # Group operations by date (using scheduled_start date, or today if not set)
+        date_load: dict[date, float] = defaultdict(float)
+        for op in ops:
+            op_date = op.scheduled_start.date() if op.scheduled_start else today
+            date_load[op_date] += op.total_time_min / (wc.efficiency or 1)
+
+        if period == "week":
+            # Aggregate by ISO week: use Monday of each week as key
+            weekly: dict[date, float] = defaultdict(float)
+            for d, load in date_load.items():
+                monday = d - timedelta(days=d.weekday())
+                weekly[monday] += load
+            date_load = dict(weekly)
+
+        # Sort dates
+        sorted_dates = sorted(date_load.keys())
+        for d in sorted_dates:
+            load_min = round(date_load[d], 1)
+            # Weeks: capacity is cap_per_day * 5 (work days), dates aggregate multiple days
+            if period == "week":
+                capacity_min = round(cap_per_day * 5, 1)
+            else:
+                capacity_min = round(cap_per_day, 1)
+            utilization = round(load_min / capacity_min, 4) if capacity_min > 0 else 0.0
+            items.append({
+                "work_center_id": wc.id,
+                "name": wc.name,
+                "date": d,
+                "capacity_min": capacity_min,
+                "load_min": load_min,
+                "utilization": min(utilization, 99.0),  # cap at 99% for display
+            })
+            total_capacity_min += capacity_min
+            total_load_min += load_min
+
+    overall = round(total_load_min / total_capacity_min, 4) if total_capacity_min > 0 else 0.0
+    return {
+        "items": items,
+        "total_capacity_min": round(total_capacity_min, 1),
+        "total_load_min": round(total_load_min, 1),
+        "overall_utilization": min(overall, 99.0),
+    }
+
+
+# ═══════════════════════════════════════════════
+# APS — Advanced Planning & Scheduling
+# ═══════════════════════════════════════════════
+
+async def _get_wc_available_until(
+    db: AsyncSession, wc_id: str, at_or_after: datetime,
+) -> datetime:
+    """
+    Find the earliest time slot available on a work center.
+    Returns max(at_or_after, last scheduled end time on that WC).
+    """
+    r = await db.execute(
+        select(func.max(Operation.scheduled_end))
+        .where(
+            and_(
+                Operation.work_center_id == wc_id,
+                Operation.status.in_([
+                    OpStatus.READY.value,
+                    OpStatus.RUNNING.value,
+                ]),
+                Operation.scheduled_end.isnot(None),
+            )
+        )
+    )
+    last_end = r.scalar()
+    if last_end and last_end > at_or_after:
+        return last_end
+    return at_or_after
+
+
+async def forward_schedule(db: AsyncSession, order_id: str) -> dict:
+    """
+    Forward scheduling (前向排程).
+
+    Starting from now (or the earliest availability), schedule operations
+    in sequence order, respecting work center capacity constraints.
+
+    Updates Operation.scheduled_start / scheduled_end in DB.
+    Returns schedule details.
+    """
+    # Load order with operations
+    r = await db.execute(
+        select(ProductionOrder)
+        .where(ProductionOrder.id == order_id)
+        .options(selectinload(ProductionOrder.operations).selectinload(Operation.work_center))
+    )
+    order = r.scalar_one_or_none()
+    if not order:
+        return {"error": f"Order {order_id} not found"}
+
+    ops = sorted(order.operations, key=lambda o: o.sequence_no)
+    if not ops:
+        return {"error": f"Order {order_id} has no operations"}
+
+    now = datetime.utcnow()
+    current_time = now
+    schedule = []
+
+    for op in ops:
+        wc = op.work_center
+        if not wc:
+            return {"error": f"WorkCenter for operation {op.id} not found"}
+
+        # Earliest available = max(current_time, WC existing commitments)
+        wc_available = await _get_wc_available_until(db, wc.id, current_time)
+
+        duration = timedelta(minutes=op.total_time_min / (wc.efficiency or 1))
+        op.scheduled_start = wc_available
+        op.scheduled_end = wc_available + duration
+        op.status = OpStatus.READY.value
+
+        current_time = op.scheduled_end
+
+        schedule.append({
+            "op_seq": op.sequence_no,
+            "op_name": op.name or wc.name,
+            "work_center": wc.name,
+            "scheduled_start": op.scheduled_start.isoformat(),
+            "scheduled_end": op.scheduled_end.isoformat(),
+            "duration_min": round(op.total_time_min / (wc.efficiency or 1), 1),
+        })
+
+    order.status = OrderStatus.DISPATCHED.value
+    await db.flush()
+
+    return {
+        "strategy": "forward",
+        "order_id": order.id,
+        "order_no": order.order_no,
+        "operations_scheduled": len(schedule),
+        "start_time": schedule[0]["scheduled_start"] if schedule else "",
+        "end_time": schedule[-1]["scheduled_end"] if schedule else "",
+        "schedule": schedule,
+    }
+
+
+async def backward_schedule(db: AsyncSession, order_id: str) -> dict:
+    """
+    Backward scheduling (後向排程).
+
+    Starting from the due date, schedule operations in reverse sequence order.
+    Each operation ends before its successor begins.
+
+    Updates Operation.scheduled_start / scheduled_end in DB.
+    Returns schedule details.
+    """
+    r = await db.execute(
+        select(ProductionOrder)
+        .where(ProductionOrder.id == order_id)
+        .options(selectinload(ProductionOrder.operations).selectinload(Operation.work_center))
+    )
+    order = r.scalar_one_or_none()
+    if not order:
+        return {"error": f"Order {order_id} not found"}
+
+    ops = sorted(order.operations, key=lambda o: o.sequence_no)
+    if not ops:
+        return {"error": f"Order {order_id} has no operations"}
+
+    # Use due_date as the anchor — last op must finish by due_date end of day
+    due_end = datetime.combine(order.due_date, datetime.max.time())
+    current_time = due_end
+    schedule = []
+
+    # Schedule in reverse order
+    for op in reversed(ops):
+        wc = op.work_center
+        if not wc:
+            return {"error": f"WorkCenter for operation {op.id} not found"}
+
+        duration = timedelta(minutes=op.total_time_min / (wc.efficiency or 1))
+        # End = current_time, start = current_time - duration
+        op.scheduled_end = current_time
+        op.scheduled_start = current_time - duration
+        op.status = OpStatus.READY.value
+
+        # Move current_time backwards before this operation
+        current_time = op.scheduled_start
+
+        schedule.append({
+            "op_seq": op.sequence_no,
+            "op_name": op.name or wc.name,
+            "work_center": wc.name,
+            "scheduled_start": op.scheduled_start.isoformat(),
+            "scheduled_end": op.scheduled_end.isoformat(),
+            "duration_min": round(op.total_time_min / (wc.efficiency or 1), 1),
+        })
+
+    order.status = OrderStatus.DISPATCHED.value
+    await db.flush()
+
+    # Schedule is built in reverse; reverse back to sequence order
+    schedule.reverse()
+
+    return {
+        "strategy": "backward",
+        "order_id": order.id,
+        "order_no": order.order_no,
+        "operations_scheduled": len(schedule),
+        "due_date": order.due_date.isoformat(),
+        "start_time": schedule[0]["scheduled_start"] if schedule else "",
+        "end_time": schedule[-1]["scheduled_end"] if schedule else "",
+        "schedule": schedule,
+    }
+
+
+async def bottleneck_schedule(db: AsyncSession, order_ids: list[str]) -> dict:
+    """
+    Bottleneck-based scheduling (瓶頸基礎排程) — TOC (Theory of Constraints).
+
+    Steps:
+    1. Identify the bottleneck work center (highest utilization across all orders).
+    2. Schedule bottleneck operations first (forward from now).
+    3. For operations BEFORE the bottleneck: schedule backward from the bottleneck start.
+    4. For operations AFTER the bottleneck: schedule forward from the bottleneck end.
+
+    Updates Operation.scheduled_start / scheduled_end in DB.
+    Returns schedule details.
+    """
+    if not order_ids:
+        return {"error": "No order_ids provided"}
+
+    # Load all orders with operations
+    r = await db.execute(
+        select(ProductionOrder)
+        .where(ProductionOrder.id.in_(order_ids))
+        .options(selectinload(ProductionOrder.operations).selectinload(Operation.work_center))
+    )
+    orders = list(r.scalars().all())
+    if not orders:
+        return {"error": "No orders found"}
+
+    now = datetime.utcnow()
+
+    # Collect all pending/ready operations across these orders
+    all_ops: list[Operation] = []
+    for o in orders:
+        all_ops.extend(o.operations)
+
+    if not all_ops:
+        return {"error": "No operations found across orders"}
+
+    # ── Step 1: Identify bottleneck (WC with highest total load) ──
+    wc_load: dict[str, float] = defaultdict(float)
+    wc_map: dict[str, WorkCenter] = {}
+    for op in all_ops:
+        wc = op.work_center
+        if not wc:
+            continue
+        wc_load[wc.id] += op.total_time_min / (wc.efficiency or 1)
+        wc_map[wc.id] = wc
+
+    if not wc_load:
+        return {"error": "No work centers found"}
+
+    bottleneck_wc_id = max(wc_load, key=wc_load.get)
+    bottleneck_wc = wc_map[bottleneck_wc_id]
+
+    # ── Step 2: Schedule bottleneck operations first ──
+    bottleneck_ops = sorted(
+        [op for op in all_ops if op.work_center_id == bottleneck_wc_id],
+        key=lambda o: o.sequence_no,
+    )
+
+    current_time = now
+    bottleneck_start = now
+    bottleneck_end = now
+
+    for op in bottleneck_ops:
+        wc_available = await _get_wc_available_until(db, op.work_center_id, current_time)
+        duration = timedelta(minutes=op.total_time_min / (bottleneck_wc.efficiency or 1))
+        op.scheduled_start = wc_available
+        op.scheduled_end = wc_available + duration
+        op.status = OpStatus.READY.value
+        current_time = op.scheduled_end
+
+    if bottleneck_ops:
+        bottleneck_start = bottleneck_ops[0].scheduled_start
+        bottleneck_end = bottleneck_ops[-1].scheduled_end
+
+    # ── Step 3: Pre-bottleneck ops — backward from bottleneck start ──
+    for order in orders:
+        ops_sorted = sorted(order.operations, key=lambda o: o.sequence_no)
+        bottleneck_seq = None
+        for i, op in enumerate(ops_sorted):
+            if op.work_center_id == bottleneck_wc_id:
+                bottleneck_seq = i
+                break
+
+        if bottleneck_seq is None or bottleneck_seq == 0:
+            continue  # no preceding ops
+
+        # Pre-bottleneck ops (in reverse order)
+        current_end = bottleneck_start
+        for op in reversed(ops_sorted[:bottleneck_seq]):
+            wc = op.work_center
+            if not wc:
+                continue
+            duration = timedelta(minutes=op.total_time_min / (wc.efficiency or 1))
+            op.scheduled_end = current_end
+            op.scheduled_start = current_end - duration
+            op.status = OpStatus.READY.value
+            current_end = op.scheduled_start
+
+    # ── Step 4: Post-bottleneck ops — forward from bottleneck end ──
+    for order in orders:
+        ops_sorted = sorted(order.operations, key=lambda o: o.sequence_no)
+        bottleneck_seq = None
+        for i, op in enumerate(ops_sorted):
+            if op.work_center_id == bottleneck_wc_id:
+                bottleneck_seq = i
+                break
+
+        if bottleneck_seq is None or bottleneck_seq == len(ops_sorted) - 1:
+            continue  # no succeeding ops
+
+        # Post-bottleneck ops (in order)
+        current_start = bottleneck_end if bottleneck_ops else now
+        for op in ops_sorted[bottleneck_seq + 1:]:
+            wc = op.work_center
+            if not wc:
+                continue
+            wc_available = await _get_wc_available_until(db, op.work_center_id, current_start)
+            duration = timedelta(minutes=op.total_time_min / (wc.efficiency or 1))
+            op.scheduled_start = wc_available
+            op.scheduled_end = wc_available + duration
+            op.status = OpStatus.READY.value
+            current_start = op.scheduled_end
+
+    # Mark orders as dispatched
+    for order in orders:
+        if order.status not in (OrderStatus.COMPLETED.value, OrderStatus.CANCELLED.value):
+            order.status = OrderStatus.DISPATCHED.value
+
+    await db.flush()
+
+    # Build result
+    result_orders = []
+    for order in orders:
+        ops_out = sorted(order.operations, key=lambda o: o.sequence_no)
+        sched = []
+        for op in ops_out:
+            wc = op.work_center
+            sched.append({
+                "op_seq": op.sequence_no,
+                "op_name": op.name or (wc.name if wc else ""),
+                "work_center": wc.name if wc else "",
+                "scheduled_start": op.scheduled_start.isoformat() if op.scheduled_start else "",
+                "scheduled_end": op.scheduled_end.isoformat() if op.scheduled_end else "",
+                "duration_min": round(op.total_time_min / ((wc.efficiency or 1) if wc else 1), 1),
+            })
+        result_orders.append({
+            "order_no": order.order_no,
+            "operations": sched,
+        })
+
+    return {
+        "strategy": "bottleneck",
+        "bottleneck_work_center": bottleneck_wc.name,
+        "bottleneck_load_min": round(wc_load[bottleneck_wc_id], 1),
+        "order_count": len(orders),
+        "total_operations": len(all_ops),
+        "orders": result_orders,
+    }
+
+
+# ═══════════════════════════════════════════════
+# Gantt Chart Data (甘特圖數據)
+# ═══════════════════════════════════════════════
+
+async def gantt_data(db: AsyncSession) -> dict:
+    """
+    Return complete data needed for Gantt chart rendering.
+
+    Returns {
+        "operations": [{
+            id, order_id, order_no, work_center_id, work_center_name,
+            sequence_no, name, status,
+            scheduled_start, scheduled_end, total_time_min
+        }, ...],
+        "work_centers": [{id, name}, ...],
+        "orders": [{id, order_no, product_no, priority, due_date, status}, ...],
+    }
+    """
+    # Load all scheduled operations (not cancelled, not completed as pending)
+    r = await db.execute(
+        select(Operation)
+        .where(
+            Operation.status.in_([
+                OpStatus.PENDING.value,
+                OpStatus.READY.value,
+                OpStatus.RUNNING.value,
+            ])
+        )
+        .options(
+            selectinload(Operation.order),
+            selectinload(Operation.work_center),
+        )
+        .order_by(Operation.scheduled_start, Operation.sequence_no)
+    )
+    ops = list(r.scalars().all())
+
+    # Load all work centers
+    wcs = await list_work_centers(db)
+
+    # Load all non-completed orders
+    r = await db.execute(
+        select(ProductionOrder)
+        .where(
+            ProductionOrder.status.in_([
+                OrderStatus.DRAFT.value,
+                OrderStatus.RELEASED.value,
+                OrderStatus.DISPATCHED.value,
+                OrderStatus.IN_PROGRESS.value,
+            ])
+        )
+        .order_by(ProductionOrder.due_date)
+    )
+    orders = list(r.scalars().all())
+
+    operations_out = []
+    seen_order_ids = set()
+    seen_wc_ids = set()
+
+    for op in ops:
+        order = op.order
+        wc = op.work_center
+        if not order or not wc:
+            continue
+
+        seen_order_ids.add(order.id)
+        seen_wc_ids.add(wc.id)
+
+        operations_out.append({
+            "id": op.id,
+            "order_id": op.order_id,
+            "order_no": order.order_no,
+            "work_center_id": op.work_center_id,
+            "work_center_name": wc.name,
+            "sequence_no": op.sequence_no,
+            "name": op.name or "",
+            "status": op.status,
+            "scheduled_start": op.scheduled_start,
+            "scheduled_end": op.scheduled_end,
+            "total_time_min": op.total_time_min,
+        })
+
+    wcs_out = [{"id": w.id, "name": w.name} for w in wcs if w.id in seen_wc_ids or not seen_wc_ids]
+    if not wcs_out:
+        wcs_out = [{"id": w.id, "name": w.name} for w in wcs]
+
+    orders_out = [
+        {
+            "id": o.id,
+            "order_no": o.order_no,
+            "product_no": o.product_no,
+            "priority": o.priority,
+            "due_date": o.due_date.isoformat() if o.due_date else "",
+            "status": o.status,
+        }
+        for o in orders
+    ]
+
+    return {
+        "operations": operations_out,
+        "work_centers": wcs_out,
+        "orders": orders_out,
+    }

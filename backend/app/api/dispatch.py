@@ -1,4 +1,4 @@
-"""Dispatch API — Production Orders, WorkCenters, Dynamic Rescheduling"""
+"""Dispatch API — Production Orders, WorkCenters, Dynamic Rescheduling, CRP, APS, Gantt"""
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,9 @@ from app.schemas.dispatch import (
     OrderWithOperationsResponse, OperationResponse,
     DispatchRequest, DispatchResponse,
     RescheduleRequest, DispatchLogResponse,
+    ScheduleRequest, BottleneckScheduleRequest,
+    CrpLoadResponse, CrpLoadItem,
+    GanttDataResponse, GanttOperationItem,
 )
 
 router = APIRouter()
@@ -179,3 +182,67 @@ async def reschedule(body: RescheduleRequest, db: AsyncSession = Depends(get_db)
 async def dispatch_logs(db: AsyncSession = Depends(get_db)):
     """派工記錄"""
     return await svc.list_dispatch_logs(db)
+
+
+# ═══════════════════════════════════════════════
+# CRP — Capacity Requirements Planning (產能負載)
+# ═══════════════════════════════════════════════
+
+@router.get("/dispatch/crp-load", response_model=CrpLoadResponse)
+async def crp_load(
+    period: str = Query("day", description="Aggregation period: 'day' or 'week'"),
+    db: AsyncSession = Depends(get_db),
+):
+    """計算工作中心產能負載 (CRP)"""
+    result = await svc.calculate_crp_load(db, period)
+    return result
+
+
+# ═══════════════════════════════════════════════
+# APS — Advanced Planning & Scheduling
+# ═══════════════════════════════════════════════
+
+@router.post("/dispatch/schedule/forward", response_model=dict)
+async def schedule_forward(
+    body: ScheduleRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """前向排程 — 從今天開始，依工序順序排程"""
+    result = await svc.forward_schedule(db, body.order_id)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@router.post("/dispatch/schedule/backward", response_model=dict)
+async def schedule_backward(
+    body: ScheduleRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """後向排程 — 從交期往回排"""
+    result = await svc.backward_schedule(db, body.order_id)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+@router.post("/dispatch/schedule/bottleneck", response_model=dict)
+async def schedule_bottleneck(
+    body: BottleneckScheduleRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """瓶頸基礎排程 (TOC) — 找出瓶頸工作站，前後分別排程"""
+    result = await svc.bottleneck_schedule(db, body.order_ids)
+    if "error" in result:
+        raise HTTPException(400, result["error"])
+    return result
+
+
+# ═══════════════════════════════════════════════
+# Gantt Chart Data (甘特圖數據)
+# ═══════════════════════════════════════════════
+
+@router.get("/dispatch/gantt-data", response_model=GanttDataResponse)
+async def gantt_chart_data(db: AsyncSession = Depends(get_db)):
+    """回傳甘特圖渲染所需完整數據"""
+    return await svc.gantt_data(db)

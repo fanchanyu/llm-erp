@@ -149,3 +149,55 @@ class DispatchLogResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# ── APS / CRP Schemas ──
+
+class ScheduleRequest(BaseModel):
+    """Request for APS scheduling (forward / backward)."""
+    order_id: str
+
+
+class BottleneckScheduleRequest(BaseModel):
+    """Request for bottleneck-based scheduling."""
+    order_ids: list[str]
+
+
+class CrpLoadItem(BaseModel):
+    """Single CRP load entry for one work center on one period."""
+    work_center_id: str
+    name: str
+    date: date
+    capacity_min: float
+    load_min: float
+    utilization: float  # 0~1
+
+
+class CrpLoadResponse(BaseModel):
+    """CRP capacity load report."""
+    items: list[CrpLoadItem]
+    total_capacity_min: float
+    total_load_min: float
+    overall_utilization: float
+
+
+class GanttOperationItem(BaseModel):
+    """Operation entry for Gantt chart."""
+    id: str
+    order_id: str
+    order_no: str
+    work_center_id: str
+    work_center_name: str
+    sequence_no: int
+    name: str
+    status: str
+    scheduled_start: Optional[datetime] = None
+    scheduled_end: Optional[datetime] = None
+    total_time_min: float
+
+
+class GanttDataResponse(BaseModel):
+    """Complete Gantt chart data."""
+    operations: list[GanttOperationItem]
+    work_centers: list[dict]  # [{id, name}]
+    orders: list[dict]  # [{id, order_no, product_no, priority, due_date, status}]
