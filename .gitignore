@@ -59,9 +59,9 @@ backend/alembic/versions/*.pyc
 sales/*.pdf
 sales/*.csv
 sales/*.json
+sales/*.py
 sales/cjk-print.css
 sales/LLM-ERP客戶潛在名單.xlsx
-sales/batch_find_emails.py
 sales/progress.json
 sales/found_emails.json
 
