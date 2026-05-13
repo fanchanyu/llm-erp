@@ -62,3 +62,11 @@ backend/reports/
 backend/app/data_import.py
 sales/*.pdf
 sales/cjk-print.css
+
+# 客戶資料（機密）
+sales/LLM-ERP客戶潛在名單.xlsx
+sales/missing_emails_high_potential.*
+sales/*.csv
+sales/batch_find_emails.py
+sales/progress.json
+sales/found_emails.json
