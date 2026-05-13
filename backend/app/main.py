@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse
 from app.config import settings
 from app.database import init_db
-from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events, factory, leads, opportunities, contracts, decisions, organization, production, warehouse, compliance, security_mgmt
+from app.api import chat, inventory, purchase, bom, dispatch, events, accounting, quality, dashboard, reports, conversations, customers, sales_orders, crm_events, factory, leads, opportunities, contracts, decisions, organization, production, warehouse, compliance, security_mgmt, mps
 from app.event_engine import init_event_engine, get_notifications, count_unread
 from app.event_engine.role_config import Role
 from app.auth_middleware import AuthMiddleware
@@ -63,6 +63,7 @@ app.include_router(production.router, prefix="/api", tags=["production"])
 app.include_router(warehouse.router, prefix="/api", tags=["warehouse"])
 app.include_router(compliance.router, prefix="/api", tags=["compliance"])
 app.include_router(security_mgmt.router, prefix="/api", tags=["security"])
+app.include_router(mps.router, prefix="/api", tags=["mps"])
 
 
 @app.get("/health")
