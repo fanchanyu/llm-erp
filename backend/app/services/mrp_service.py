@@ -28,12 +28,21 @@ from app.models.inventory import Inventory, Part
 from app.models.purchase import PurchaseOrderItem
 
 
+def _u(val: str) -> uuid.UUID:
+    """Convert string/UUID to UUID object for SQLAlchemy Uuid columns."""
+    if isinstance(val, uuid.UUID):
+        return val
+    return uuid.UUID(val) if val else uuid.uuid4()
+
+
 # ═══════════════════════════════════════════════
 # MRP Master CRUD
 # ═══════════════════════════════════════════════
 
 async def create_mrp_master(db: AsyncSession, **kw) -> MrpMaster:
     """建立 MRP 主檔"""
+    if "mps_id" in kw and kw["mps_id"]:
+        kw["mps_id"] = _u(kw["mps_id"])
     master = MrpMaster(**kw)
     db.add(master)
     await db.flush()
@@ -44,7 +53,7 @@ async def get_mrp_master(db: AsyncSession, master_id: str = "") -> MrpMaster | N
     """取得單一 MRP 主檔"""
     q = select(MrpMaster).options(selectinload(MrpMaster.items))
     if master_id:
-        q = q.where(MrpMaster.id == master_id)
+        q = q.where(MrpMaster.id == _u(master_id))
     r = await db.execute(q)
     return r.scalar_one_or_none()
 
@@ -82,7 +91,7 @@ async def get_mrp_items(
     db: AsyncSession, mrp_id: str, part_no: str = "", bom_level: int = -1
 ) -> list[MrpItem]:
     """取得 MRP 明細清單"""
-    q = select(MrpItem).where(MrpItem.mrp_id == mrp_id)
+    q = select(MrpItem).where(MrpItem.mrp_id == _u(mrp_id))
     if part_no:
         q = q.where(MrpItem.part_no == part_no)
     if bom_level >= 0:
@@ -124,7 +133,7 @@ async def get_mps_planned_orders(
         select(MpsEntry)
         .where(
             and_(
-                MpsEntry.mps_id == mps_id,
+                MpsEntry.mps_id == _u(mps_id),
                 MpsEntry.planned_order_qty > 0,
             )
         )
@@ -480,7 +489,7 @@ async def run_mrp(
                 exception_count += 1
 
             all_mrp_items.append({
-                "mrp_id": mrp_id,
+                "mrp_id": _u(mrp_id),
                 "product_no": product_no,
                 "part_no": item.get("part_no", ""),
                 "part_name": item.get("part_name", ""),

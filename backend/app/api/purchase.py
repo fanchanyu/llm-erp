@@ -29,7 +29,7 @@ async def list_suppliers(
             SupplierResponse(
                 id=str(s.id), name=s.name, tier=s.tier or "1",
                 parent_supplier_name=s.parent_supplier.name if s.parent_supplier else None,
-                sub_supplier_count=len(s.sub_suppliers) if s.sub_suppliers else 0,
+                sub_supplier_count=0,
                 contact=s.contact, phone=s.phone, email=s.email, score=s.score
             ) for s in suppliers
         ],

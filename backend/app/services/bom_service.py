@@ -111,12 +111,6 @@ async def bom_explode(db: AsyncSession, product_no: str, demand_quantity: float)
     if not product:
         raise ValueError(f"Product not found: {product_no}")
 
-    exploded = []
-    _explode_recursive(db, product.id, demand_quantity, 0, exploded)
-    # await is not used inside the recursive, but we need to trigger the lazy loading
-    # Actually we need a different approach for async. Let me do it iteratively.
-
-    # Re-do properly with async
     return await _bom_explode_async(db, product, demand_quantity)
 
 

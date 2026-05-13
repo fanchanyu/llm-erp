@@ -14,7 +14,7 @@ from app.event_engine.service_enforcer import enforce
 
 async def list_suppliers(db: AsyncSession, search: Optional[str] = None,
                          skip: int = 0, limit: int = 50) -> tuple[list[Supplier], int]:
-    q = select(Supplier)
+    q = select(Supplier).options(selectinload(Supplier.parent_supplier))
     if search:
         q = q.where(Supplier.name.ilike(f"%{search}%"))
     count_q = select(func.count()).select_from(q.subquery())

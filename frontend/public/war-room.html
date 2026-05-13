@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLM-ERP 戰情室 · 價值流</title>
+<title>LLM-ERP 戰情室 · 拓樸</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; overflow: hidden; height: 100vh; color: #334155; }
 
-/* Grid background */
 .bg-grid {
   position: fixed; inset: 0;
   background-image:
@@ -18,87 +17,77 @@ body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; over
   z-index: 0;
 }
 
-/* Header */
 .header { position: fixed; top: 0; left: 0; right: 0; z-index: 10;
   padding: 16px 40px; display: flex; align-items: center; justify-content: space-between;
   background: linear-gradient(180deg, #f0f4f8 0%, transparent 100%);
 }
 .header h1 { font-size: 20px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: #1e293b; }
-.header h1 span { color: #0891b2; }
+.header h1 small { font-size: 11px; color: #94a3b8; font-weight: 400; }
 .dot-live { width: 8px; height: 8px; background: #22d3ee; border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,211,238,0.4); } 70% { opacity: 1; box-shadow: 0 0 0 14px rgba(34,211,238,0); } }
 .header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
 .header .meta strong { color: #475569; }
 
-/* Flow container */
-.flow { position: fixed; inset: 75px 40px 100px; z-index: 1; display: flex; align-items: center; justify-content: center; }
+/* Topology container */
+.topology { position: fixed; inset: 75px 40px 100px; z-index: 1; }
 svg { width: 100%; height: 100%; }
 
-/* Stage node */
-.stage-box { transition: all 0.3s; cursor: pointer; }
-.stage-box:hover { filter: brightness(1.3); }
-.stage-box.glow-suppliers > rect:first-of-type { filter: url(#glow-orange); }
-.stage-box.glow-purchase > rect:first-of-type { filter: url(#glow-blue); }
-.stage-box.glow-inventory > rect:first-of-type { filter: url(#glow-green); }
-.stage-box.glow-dispatch > rect:first-of-type { filter: url(#glow-red); }
-.stage-box.glow-quality > rect:first-of-type { filter: url(#glow-pink); }
-.stage-box.glow-accounting > rect:first-of-type { filter: url(#glow-yellow); }
+/* Topology node */
+.topo-node { cursor: pointer; transition: all 0.3s; }
+.topo-node:hover { filter: brightness(1.15); }
+.topo-node.highlight { filter: drop-shadow(0 0 12px rgba(34,211,238,0.5)); }
+.topo-node.dim { opacity: 0.3; }
+.node-bg { transition: all 0.3s; }
+.node-bg-pulse { animation: nodePulse 2s ease-in-out infinite; }
+@keyframes nodePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+.node-icon { font-size: 22px; }
+.node-title { font-size: 13px; font-weight: 700; fill: #1e293b; }
+.node-count { font-size: 22px; font-weight: 800; }
+.node-sublabel { font-size: 9px; fill: #94a3b8; }
 
-.count-label { font-size: 20px; font-weight: 700; }
-.sub-label { font-size: 9px; opacity: 0.6; }
+/* Edges */
+.topo-edge { stroke-width: 2; fill: none; }
+.topo-edge.material { stroke: #10b981; stroke-dasharray: none; }
+.topo-edge.info { stroke: #3b82f6; stroke-dasharray: 6,4; }
+.topo-edge.finance { stroke: #fbbf24; stroke-dasharray: 4,4; }
+.topo-edge.quality { stroke: #f43f5e; stroke-dasharray: 3,3; }
+.topo-edge-label { font-size: 8px; fill: #94a3b8; }
 
-/* Animated data dot */
-.data-dot { animation: flowParticle 2.5s ease-in-out infinite; }
+/* Animated data dot on edges */
+.edge-dot { animation: edgeFlow 3s linear infinite; }
+.edge-dot.material-dot { fill: #34d399; }
+.edge-dot.info-dot { fill: #60a5fa; }
+.edge-dot.finance-dot { fill: #fbbf24; }
 
-/* Floating event card */
 .event-card {
-  position: fixed;
-  z-index: 20;
-  pointer-events: none;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 600;
-  white-space: nowrap;
-  opacity: 0;
-  transition: none;
+  position: fixed; z-index: 20; pointer-events: none;
+  padding: 4px 10px; border-radius: 6px; font-size: 9px; font-weight: 600;
+  white-space: nowrap; opacity: 0; transition: none;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-.event-card.mat { background: rgba(16,185,129,0.95); border: none; color: #ffffff; }
-.event-card.pur { background: rgba(59,130,246,0.95); border: none; color: #ffffff; }
-.event-card.prod { background: rgba(239,68,68,0.95); border: none; color: #ffffff; }
-.event-card.qual { background: rgba(244,63,94,0.95); border: none; color: #ffffff; }
-.event-card.fin { background: rgba(251,191,36,0.95); border: none; color: #1e293b; }
-.event-card.crit { background: #ef4444; border: none; color: #ffffff; }
+.event-card.mat { background: rgba(16,185,129,0.95); color: #fff; }
+.event-card.pur { background: rgba(59,130,246,0.95); color: #fff; }
+.event-card.prod { background: rgba(239,68,68,0.95); color: #fff; }
+.event-card.qual { background: rgba(244,63,94,0.95); color: #fff; }
+.event-card.fin { background: rgba(251,191,36,0.95); color: #1e293b; }
 
-/* Event stream (bottom) */
 .event-stream {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
   height: 92px;
   background: linear-gradient(0deg, rgba(240,244,248,0.97) 0%, rgba(240,244,248,0.7) 100%);
-  padding: 10px 40px;
-  overflow: hidden;
+  padding: 10px 40px; overflow: hidden;
   border-top: 1px solid #e2e8f0;
 }
-.event-stream .label {
-  font-size: 9px; color: #94a3b8; margin-bottom: 6px; letter-spacing: 1px;
-}
-.event-items {
-  display: flex; flex-direction: column; gap: 3px;
-  max-height: 60px; overflow-y: auto;
-  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent;
-}
-.event-item {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 10px; padding: 2px 8px;
-  border-radius: 4px;
-  animation: slideIn 0.3s ease-out;
-  background: #ffffff; border: 1px solid #e2e8f0;
-}
-@keyframes slideIn {
-  from { opacity: 0; transform: translateX(-20px); }
-  to { opacity: 1; transform: translateX(0); }
-}
+.event-stream .label { font-size: 9px; color: #94a3b8; margin-bottom: 6px; letter-spacing: 1px; }
+.event-items { display: flex; flex-direction: column; gap: 3px; max-height: 60px; overflow-y: auto;
+  scrollbar-width: thin; scrollbar-color: #cbd5e1 transparent; }
+.event-item { display: flex; align-items: center; gap: 6px; font-size: 10px; padding: 2px 8px;
+  border-radius: 4px; animation: slideIn 0.3s ease-out;
+  background: #fff; border: 1px solid #e2e8f0; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
 .event-item .sev-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .event-item .sev-info { background: #22d3ee; }
 .event-item .sev-warning { background: #fbbf24; }
@@ -107,24 +96,22 @@ svg { width: 100%; height: 100%; }
 .event-item .ev-type { color: #64748b; font-size: 8px; }
 .event-item .ev-summary { color: #475569; }
 
-/* Sim button */
 .sim-btn {
-  position: fixed; right: 40px; bottom: 102px;
-  z-index: 20;
-  background: #ffffff; border: 1px solid #e2e8f0;
-  color: #475569;
-  padding: 4px 12px;
-  border-radius: 4px;
-  font-size: 9px;
-  cursor: pointer;
+  position: fixed; right: 40px; bottom: 102px; z-index: 20;
+  background: #fff; border: 1px solid #e2e8f0; color: #475569;
+  padding: 4px 12px; border-radius: 4px; font-size: 9px; cursor: pointer;
   transition: all 0.2s;
 }
 .sim-btn:hover { background: #f1f5f9; }
 
-/* Loading */
 .loading { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
   background: #f0f4f8; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
 .loading.hide { opacity: 0; pointer-events: none; }
+
+/* Legend */
+.legend { position: fixed; left: 40px; bottom: 102px; z-index: 15; display: flex; gap: 16px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #94a3b8; }
+.legend-line { width: 20px; height: 2px; }
 </style>
 </head>
 <body>
@@ -132,153 +119,194 @@ svg { width: 100%; height: 100%; }
 <div class="bg-grid"></div>
 
 <div class="header">
-  <h1><span class="dot-live"></span> LLM-ERP <span>戰情室</span></h1>
+  <h1><span class="dot-live"></span> LLM-ERP <small>拓樸視圖</small></h1>
   <div class="meta">
-    <span>🔄 <strong id="live-orders">—</strong> 在線工單</span>
-    <span>📦 <strong id="live-stock">—</strong> 庫存品項</span>
-    <span>💰 <strong id="live-ar">—</strong> 應收帳款</span>
+    <span>🔄 <strong id="live-orders">—</strong> 工單</span>
+    <span>📦 <strong id="live-stock">—</strong> 庫存</span>
+    <span>💰 <strong id="live-ar">—</strong> AR</span>
     <span id="live-clock" style="color:#64748b">—</span>
-    <span id="event-count" style="color:#64748b">📡 — 事件</span>
-    <a href="/war-room-en" style="color:#0891b2;font-size:11px;text-decoration:none;margin-left:4px;">🌐 EN</a>
+    <span id="last-refresh" style="color:#94a3b8;font-size:11px;"></span>
+    <span id="event-count" style="color:#64748b">📡 —</span>
+    <a href="/war-room-en" style="color:#0891b2;font-size:11px;text-decoration:none;">🌐 EN</a>
   </div>
 </div>
 
-<div class="flow">
-  <svg viewBox="0 0 1200 520" id="flow-svg">
+<div class="topology" id="topology">
+  <svg viewBox="0 0 1200 520" id="topo-svg">
     <defs>
-      <filter id="glow-g"><feGaussianBlur stdDeviation="4"/></filter>
-      <filter id="glow-orange"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="glow-blue"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="glow-green"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="glow-red"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="glow-pink"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <filter id="glow-yellow"><feGaussianBlur stdDeviation="6" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-      <marker id="arr-mat" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#34d399"/>
+      <filter id="glow"><feGaussianBlur stdDeviation="6" result="blur"/>
+        <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <marker id="arr-mat" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#10b981"/>
       </marker>
-      <marker id="arr-fin" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <marker id="arr-info" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#3b82f6"/>
+      </marker>
+      <marker id="arr-fin" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
         <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fbbf24"/>
       </marker>
-      <marker id="arr-nc" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#fb7185"/>
+      <marker id="arr-qual" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+        <path d="M 0 0 L 10 5 L 0 10 Z" fill="#f43f5e"/>
       </marker>
     </defs>
 
-    <text x="130" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">採購段</text>
-    <text x="370" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">計劃段</text>
-    <text x="610" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">倉儲段</text>
-    <text x="850" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">製造段</text>
-    <text x="1050" y="68" text-anchor="middle" fill="#94a3b8" font-size="10" font-weight="600">檢驗段</text>
+    <!-- ════════════════════════════════════════ -->
+    <!-- EDGES (drawn first so they're behind nodes) -->
+    <!-- ════════════════════════════════════════ -->
 
-    <!-- Material flow arrows -->
-    <line x1="230" y1="140" x2="310" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-    <line x1="470" y1="140" x2="550" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-    <line x1="710" y1="140" x2="790" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
-    <line x1="950" y1="140" x2="990" y2="140" stroke="#34d399" stroke-width="2.5" marker-end="url(#arr-mat)" opacity="0.6"/>
+    <!-- 1. CRM → MPS (info: demand forecast) -->
+    <path class="topo-edge info" d="M 260,105 Q 320,70 420,105" marker-end="url(#arr-info)"/>
+    <!-- 2. MPS → MRP (info: planned orders) -->
+    <path class="topo-edge info" d="M 520,105 Q 580,70 680,105" marker-end="url(#arr-info)"/>
+    <!-- 3. MRP → CRP (info: material reqs) -->
+    <path class="topo-edge info" d="M 780,105 Q 840,70 940,105" marker-end="url(#arr-info)"/>
 
-    <!-- Finance flow arrow -->
-    <line x1="1100" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="2" stroke-dasharray="6,3" marker-end="url(#arr-fin)" opacity="0.5"/>
-    <!-- NC flow arrow (dispatch -> quality) -->
-    <line x1="950" y1="170" x2="990" y2="170" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr-nc)" opacity="0.4"/>
+    <!-- 4. CRP → SFC/Shop Floor (info: dispatch list) -->
+    <path class="topo-edge info" d="M 1040,145 Q 1080,210 1040,280" marker-end="url(#arr-info)"/>
+    <text class="topo-edge-label"><textPath href="#edge-crp-sfc" startOffset="50%">派工指令</textPath></text>
 
-    <!-- Finance cross-cut lines -->
-    <line x1="280" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
-    <line x1="520" y1="170" x2="1100" y2="310" stroke="#fbbf24" stroke-width="1" stroke-dasharray="3,5" opacity="0.2"/>
+    <!-- 5. SFC → Quality (info: NC reports) -->
+    <path class="topo-edge quality" d="M 1000,350 Q 900,390 780,350" marker-end="url(#arr-qual)"/>
 
-    <!-- ═══ STAGE 1: SUPPLIERS ═══ -->
-    <g class="stage-box" id="node-suppliers">
-      <rect x="60" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f59e0b" stroke-width="2"/>
-      <rect x="60" y="100" width="170" height="80" rx="12" fill="rgba(245,158,11,0.08)"/>
-      <text x="145" y="128" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600">採購段</text>
-      <text x="70" y="150" font-size="24">🏭</text>
-      <text x="100" y="150" fill="#1e293b" font-size="16" font-weight="700">供應商</text>
-      <text x="145" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers">—</tspan> 家</text>
+    <!-- 6. Quality → WMS (info: RMA, material return) -->
+    <path class="topo-edge quality" d="M 700,350 Q 620,390 520,350" marker-end="url(#arr-qual)"/>
+
+    <!-- 7. WMS → Supplier (material: replenish PO) -->
+    <path class="topo-edge material" d="M 420,350 Q 360,390 260,350" marker-end="url(#arr-mat)"/>
+    <text class="topo-edge-label"><textPath href="#edge-wms-supplier" startOffset="50%">補貨</textPath></text>
+
+    <!-- 8. Supplier → WMS (material: received goods) -->
+    <path class="topo-edge material" d="M 220,280 Q 260,210 420,280" marker-end="url(#arr-mat)"/>
+    <!-- 8b. Supplier → Finance (cash outflow) -->
+    <path class="topo-edge finance" d="M 180,180 Q 280,120 420,180" marker-end="url(#arr-fin)"/>
+
+    <!-- 9. Finance cross: AR connects via bottom -->
+    <path class="topo-edge finance" d="M 180,350 Q 180,430 420,430 Q 600,430 700,370" marker-end="url(#arr-fin)"/>
+    <path class="topo-edge finance" d="M 700,370 Q 800,390 1040,350" marker-end="url(#arr-fin)"/>
+
+    <!-- Edge path definitions for labels -->
+    <path id="edge-crp-sfc" class="topo-edge info" d="M 1040,145 Q 1080,210 1040,280" style="stroke:none"/>
+    <path id="edge-wms-supplier" class="topo-edge material" d="M 420,350 Q 360,390 260,350" style="stroke:none"/>
+
+    <!-- ════════════════════════════════════════ -->
+    <!-- NODES -->
+    <!-- ════════════════════════════════════════ -->
+
+    <!-- Layer 1: Planning & Sales (top) -->
+    <!-- Node: CRM / Sales (customers) -->
+    <g class="topo-node" id="node-crm" data-x="180" data-y="80">
+      <rect class="node-bg" x="130" y="70" width="130" height="70" rx="35" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+      <text x="195" y="95" text-anchor="middle" class="node-icon">🤝</text>
+      <text x="195" y="115" text-anchor="middle" class="node-title">CRM</text>
+      <text x="195" y="130" text-anchor="middle" class="node-sublabel">客戶需求</text>
     </g>
 
-    <!-- ═══ STAGE 2: PURCHASE ═══ -->
-    <g class="stage-box" id="node-purchase">
-      <rect x="310" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#3b82f6" stroke-width="2"/>
-      <rect x="310" y="100" width="160" height="80" rx="12" fill="rgba(59,130,246,0.08)"/>
-      <text x="390" y="128" text-anchor="middle" fill="#3b82f6" font-size="9" font-weight="600">計劃段</text>
-      <text x="320" y="150" font-size="24">📋</text>
-      <text x="350" y="150" fill="#1e293b" font-size="16" font-weight="700">採購</text>
-      <text x="390" y="170" text-anchor="middle" fill="#64748b" font-size="10">PO <tspan id="count-pos" fill="#3b82f6" font-weight="600">—</tspan></text>
+    <!-- Node: MPS -->
+    <g class="topo-node" id="node-mps" data-x="380" y="80">
+      <rect class="node-bg" x="350" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2.5"/>
+      <text x="420" y="95" text-anchor="middle" class="node-icon">📊</text>
+      <text x="420" y="115" text-anchor="middle" class="node-title">MPS</text>
+      <text x="420" y="130" text-anchor="middle" class="node-sublabel">主生產排程</text>
     </g>
 
-    <!-- ═══ STAGE 3: INVENTORY ═══ -->
-    <g class="stage-box" id="node-inventory">
-      <rect x="550" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
-      <rect x="550" y="100" width="160" height="80" rx="12" fill="rgba(16,185,129,0.08)"/>
-      <text x="630" y="128" text-anchor="middle" fill="#10b981" font-size="9" font-weight="600">倉儲段</text>
-      <text x="560" y="150" font-size="24">📦</text>
-      <text x="590" y="150" fill="#1e293b" font-size="16" font-weight="700">庫存</text>
-      <text x="630" y="170" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
+    <!-- Node: MRP -->
+    <g class="topo-node" id="node-mrp" data-x="600" y="80">
+      <rect class="node-bg" x="560" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#6366f1" stroke-width="2.5"/>
+      <text x="630" y="95" text-anchor="middle" class="node-icon">🧮</text>
+      <text x="630" y="115" text-anchor="middle" class="node-title">MRP</text>
+      <text x="630" y="130" text-anchor="middle" class="node-sublabel">物料需求</text>
     </g>
 
-    <!-- ═══ STAGE 4: DISPATCH ═══ -->
-    <g class="stage-box" id="node-dispatch">
-      <rect x="790" y="100" width="160" height="80" rx="12" fill="#ffffff" stroke="#ef4444" stroke-width="2"/>
-      <rect x="790" y="100" width="160" height="80" rx="12" fill="rgba(239,68,68,0.08)"/>
-      <text x="870" y="128" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600">製造段</text>
-      <text x="800" y="150" font-size="24">⚙️</text>
-      <text x="830" y="150" fill="#1e293b" font-size="16" font-weight="700">派工</text>
-      <text x="870" y="170" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
+    <!-- Node: CRP / APS -->
+    <g class="topo-node" id="node-crp" data-x="820" y="80">
+      <rect class="node-bg" x="780" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2.5"/>
+      <text x="850" y="95" text-anchor="middle" class="node-icon">⚡</text>
+      <text x="850" y="115" text-anchor="middle" class="node-title">CRP/APS</text>
+      <text x="850" y="130" text-anchor="middle" class="node-sublabel">產能/瓶頸</text>
     </g>
 
-    <!-- ═══ STAGE 5: QUALITY ═══ -->
-    <g class="stage-box" id="node-quality">
-      <rect x="990" y="100" width="170" height="80" rx="12" fill="#ffffff" stroke="#f43f5e" stroke-width="2"/>
-      <rect x="990" y="100" width="170" height="80" rx="12" fill="rgba(244,63,94,0.08)"/>
-      <text x="1075" y="128" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600">檢驗段</text>
-      <text x="1000" y="150" font-size="24">✅</text>
-      <text x="1030" y="150" fill="#1e293b" font-size="16" font-weight="700">品檢</text>
-      <text x="1075" y="170" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
+    <!-- Layer 2: Execution (middle) -->
+
+    <!-- Node: SFC / Shop Floor (Dispatch) -->
+    <g class="topo-node" id="node-dispatch" data-x="1020" y="210">
+      <rect class="node-bg" x="960" y="200" width="160" height="80" rx="12" fill="#fff" stroke="#ef4444" stroke-width="2"/>
+      <text x="1000" y="235" font-size="22">⚙️</text>
+      <text x="1030" y="235" fill="#1e293b" font-size="15" font-weight="700">派工</text>
+      <text x="1040" y="255" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
     </g>
 
-    <!-- ═══ STAGE 6: ACCOUNTING ═══ -->
-    <g class="stage-box" id="node-accounting">
-      <rect x="1000" y="290" width="170" height="80" rx="12" fill="#ffffff" stroke="#fbbf24" stroke-width="2"/>
-      <rect x="1000" y="290" width="170" height="80" rx="12" fill="rgba(251,191,36,0.08)"/>
-      <text x="1085" y="318" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">財務段</text>
-      <text x="1010" y="340" font-size="24">💰</text>
-      <text x="1040" y="340" fill="#1e293b" font-size="16" font-weight="700">會計</text>
-      <text x="1085" y="360" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
+    <!-- Layer 3: Supply Chain (bottom-left) -->
+    <!-- Node: Suppliers -->
+    <g class="topo-node" id="node-suppliers" data-x="180" y="280">
+      <rect class="node-bg" x="120" y="270" width="140" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+      <text x="155" y="305" font-size="22">🏭</text>
+      <text x="185" y="305" fill="#1e293b" font-size="15" font-weight="700">供應商</text>
+      <text x="190" y="325" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers" fill="#f59e0b" font-weight="600">—</tspan> 家</text>
     </g>
 
-    <text x="960" y="240" fill="#fbbf24" font-size="8" opacity="0.4" font-weight="600">💰 金流橫切</text>
+    <!-- Node: WMS / Inventory -->
+    <g class="topo-node" id="node-inventory" data-x="460" y="280">
+      <rect class="node-bg" x="400" y="270" width="160" height="80" rx="12" fill="#fff" stroke="#10b981" stroke-width="2"/>
+      <text x="440" y="305" font-size="22">📦</text>
+      <text x="470" y="305" fill="#1e293b" font-size="15" font-weight="700">倉儲</text>
+      <text x="480" y="325" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
+    </g>
 
-    <!-- Background decorative particles -->
-    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-      <animateMotion dur="3s" repeatCount="indefinite" path="M230,140 L310,140"/>
+    <!-- Node: Quality -->
+    <g class="topo-node" id="node-quality" data-x="780" y="280">
+      <rect class="node-bg" x="720" y="270" width="160" height="80" rx="12" fill="#fff" stroke="#f43f5e" stroke-width="2"/>
+      <text x="760" y="305" font-size="22">✅</text>
+      <text x="790" y="305" fill="#1e293b" font-size="15" font-weight="700">品管</text>
+      <text x="800" y="325" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- Node: Finance / AR -->
+    <g class="topo-node" id="node-accounting" data-x="1020" y="280">
+      <rect class="node-bg" x="960" y="290" width="160" height="70" rx="12" fill="#fff" stroke="#fbbf24" stroke-width="2"/>
+      <text x="1000" y="325" font-size="22">💰</text>
+      <text x="1030" y="325" fill="#1e293b" font-size="15" font-weight="700">財務</text>
+      <text x="1040" y="345" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
+    </g>
+
+    <!-- Zone labels -->
+    <text x="195" y="55" text-anchor="middle" fill="#8b5cf6" font-size="9" font-weight="600" opacity="0.5">需求端</text>
+    <text x="460" y="55" text-anchor="middle" fill="#0d9488" font-size="9" font-weight="600" opacity="0.5">規劃層</text>
+    <text x="850" y="55" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600" opacity="0.5">排程層</text>
+    <text x="1080" y="185" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600" opacity="0.5">執行層</text>
+    <text x="250" y="260" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600" opacity="0.5">供應鏈</text>
+    <text x="800" y="260" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600" opacity="0.5">品保</text>
+    <text x="1080" y="280" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600" opacity="0.5">財務</text>
+
+    <!-- Animated edge particles -->
+    <circle r="3" class="edge-dot material-dot">
+      <animateMotion dur="4s" repeatCount="indefinite" path="M 260,105 Q 320,70 420,105"/>
     </circle>
-    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-      <animateMotion dur="3s" repeatCount="indefinite" begin="1.5s" path="M470,140 L550,140"/>
+    <circle r="3" class="edge-dot info-dot">
+      <animateMotion dur="4s" repeatCount="indefinite" begin="1s" path="M 520,105 Q 580,70 680,105"/>
     </circle>
-    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-      <animateMotion dur="3s" repeatCount="indefinite" begin="0.8s" path="M710,140 L790,140"/>
-    </circle>
-    <circle r="4" fill="#34d399" opacity="0.8" class="data-dot">
-      <animateMotion dur="3s" repeatCount="indefinite" begin="2s" path="M950,140 L990,140"/>
-    </circle>
-    <circle r="3" fill="#fbbf24" opacity="0.6" class="data-dot">
-      <animateMotion dur="4s" repeatCount="indefinite" path="M1100,170 L1100,310"/>
+    <circle r="3" class="edge-dot material-dot">
+      <animateMotion dur="5s" repeatCount="indefinite" begin="0.5s" path="M 220,280 Q 260,210 420,280"/>
     </circle>
   </svg>
-
-  <!-- Floating event cards container -->
   <div id="event-layer" style="position:absolute;inset:0;pointer-events:none;z-index:5;"></div>
 </div>
 
-<!-- Event stream at bottom -->
+<!-- Legend -->
+<div class="legend">
+  <span class="legend-item"><span class="legend-line" style="background:#10b981"></span> 料物流</span>
+  <span class="legend-item"><span class="legend-line" style="background:#3b82f6"></span> 資訊流</span>
+  <span class="legend-item"><span class="legend-line" style="background:#fbbf24"></span> 金流</span>
+  <span class="legend-item"><span class="legend-line" style="background:#f43f5e"></span> 品質流</span>
+</div>
+
 <div class="event-stream">
   <div style="display:flex;justify-content:space-between;align-items:center;">
     <div class="label">📡 事件流 (即時)</div>
     <div style="display:flex;gap:8px;">
-      <span style="font-size:9px;color:#64748b;">🟢<span style="color:#64748b;margin-left:3px;">料物流</span></span>
-      <span style="font-size:9px;color:#64748b;">🔵<span style="color:#64748b;margin-left:3px;">採購流</span></span>
-      <span style="font-size:9px;color:#64748b;">🔴<span style="color:#64748b;margin-left:3px;">生產流</span></span>
-      <span style="font-size:9px;color:#64748b;">🟡<span style="color:#64748b;margin-left:3px;">金流</span></span>
-      <span style="font-size:9px;color:#64748b;">🩷<span style="color:#64748b;margin-left:3px;">品質流</span></span>
+      <span style="font-size:9px;color:#64748b;">🟢料物流</span>
+      <span style="font-size:9px;color:#64748b;">🔵資訊流</span>
+      <span style="font-size:9px;color:#64748b;">🟡金流</span>
+      <span style="font-size:9px;color:#64748b;">🩷品質流</span>
     </div>
     <button class="sim-btn" onclick="simulateRandomEvent()">▶ 模擬事件</button>
   </div>
@@ -286,84 +314,101 @@ svg { width: 100%; height: 100%; }
 </div>
 
 <script>
-// ─── SVG Flow Paths (from SVG coordinates) ───
-const FLOW_PATHS = {
-  'supplier-to-purchase':    { from: [230,140], to: [310,140], cls:'pur' },
-  'purchase-to-inventory':   { from: [470,140], to: [550,140], cls:'mat' },
-  'inventory-to-dispatch':   { from: [710,140], to: [790,140], cls:'mat' },
-  'dispatch-to-quality':     { from: [950,140], to: [990,140], cls:'qual' },
-  'dispatch-to-accounting':  { from: [1100,170], to:[1100,310], cls:'fin' },
+// ─── Topology Node Coordinates ───
+const NODE_COORDS = {
+  'node-crm':        { cx:195, cy:105 },
+  'node-mps':        { cx:420, cy:105 },
+  'node-mrp':        { cx:630, cy:105 },
+  'node-crp':        { cx:850, cy:105 },
+  'node-dispatch':   { cx:1040, cy:240 },
+  'node-suppliers':  { cx:190, cy:305 },
+  'node-inventory':  { cx:480, cy:310 },
+  'node-quality':    { cx:800, cy:310 },
+  'node-accounting': { cx:1040, cy:325 },
 };
 
-// Map event types to flow paths
-const EVENT_FLOW_MAP = {
-  'purchase_order.created':       { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
-  'purchase_order.approved':      { path:'supplier-to-purchase', stage:'purchase',    icon:'📋' },
-  'material.received':            { path:'purchase-to-inventory', stage:'inventory',   icon:'📦' },
-  'material.issued':              { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
-  'work_order.released':          { path:'inventory-to-dispatch', stage:'dispatch',    icon:'⚙️' },
-  'work_order.completed':         { path:'dispatch-to-quality',   stage:'quality',     icon:'✅' },
-  'non_conformance.created':      { path:'dispatch-to-quality',   stage:'quality',     icon:'⚠️' },
-  'payment.due':                  { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
-  'receivable.overdue':           { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
-  'payment.received':             { path:'dispatch-to-accounting',stage:'accounting',  icon:'💰' },
+// ─── Event → Edge mapping ───
+const EVENT_EDGE_MAP = {
+  'so.created':              { from:'node-crm', to:'node-mps', cls:'pur', icon:'🤝' },
+  'forecast.submitted':      { from:'node-crm', to:'node-mps', cls:'pur', icon:'📊' },
+  'mps.calculated':          { from:'node-mps', to:'node-mrp', cls:'pur', icon:'📊' },
+  'mrp.calculated':          { from:'node-mrp', to:'node-crp', cls:'pur', icon:'🧮' },
+  'work_order.created':      { from:'node-crp', to:'node-dispatch', cls:'pur', icon:'⚙️' },
+  'work_order.released':     { from:'node-crp', to:'node-dispatch', cls:'prod', icon:'⚙️' },
+  'material.issued':         { from:'node-inventory', to:'node-dispatch', cls:'mat', icon:'📦' },
+  'work_order.completed':    { from:'node-dispatch', to:'node-quality', cls:'qual', icon:'✅' },
+  'non_conformance.created': { from:'node-dispatch', to:'node-quality', cls:'qual', icon:'⚠️' },
+  'nc.resolved':             { from:'node-quality', to:'node-inventory', cls:'qual', icon:'✅' },
+  'purchase_order.created':  { from:'node-inventory', to:'node-suppliers', cls:'pur', icon:'📋' },
+  'material.received':       { from:'node-suppliers', to:'node-inventory', cls:'mat', icon:'📦' },
+  'payment.due':             { from:'node-dispatch', to:'node-accounting', cls:'fin', icon:'💰' },
+  'payment.received':        { from:'node-accounting', to:'node-crm', cls:'fin', icon:'💰' },
 };
 
-// ─── Event Flow Animation ───
+// ─── Animate event flow ───
 function animateEventFlow(ev) {
-  const flow = EVENT_FLOW_MAP[ev.event_type] || EVENT_FLOW_MAP['purchase_order.created'];
-  const pathData = FLOW_PATHS[flow.path];
-  if (!pathData) return;
+  const edge = EVENT_EDGE_MAP[ev.event_type] || EVENT_EDGE_MAP['material.received'];
+  if (!edge) return;
+
+  const from = NODE_COORDS[edge.from];
+  const to = NODE_COORDS[edge.to];
+  if (!from || !to) return;
 
   const layer = document.getElementById('event-layer');
+  const topoEl = document.querySelector('.topology');
+  const topoRect = topoEl.getBoundingClientRect();
+
+  const svgW = 1200, svgH = 520;
+  const scaleX = topoRect.width / svgW;
+  const scaleY = topoRect.height / svgH;
+
+  const sx = topoRect.left + from.cx * scaleX;
+  const sy = topoRect.top + from.cy * scaleY;
+  const ex = topoRect.left + to.cx * scaleX;
+  const ey = topoRect.top + to.cy * scaleY;
+
+  const label = ev.summary || `${edge.icon} ${ev.event_type.split('.').pop()}`;
 
   // Create floating card
   const card = document.createElement('div');
-  card.className = `event-card ${pathData.cls}`;
-  const label = ev.summary || `${flow.icon} ${ev.event_type.split('.').pop()}`;
-  card.textContent = label.length > 40 ? label.slice(0, 40) + '…' : label;
+  card.className = `event-card ${edge.cls}`;
+  card.textContent = label.length > 36 ? label.slice(0, 36) + '…' : label;
+  card.style.left = sx + 'px';
+  card.style.top = sy + 'px';
+  card.style.opacity = '0';
   layer.appendChild(card);
 
-  // Position at start
-  const flowEl = document.querySelector('.flow');
-  const flowRect = flowEl.getBoundingClientRect();
-  const svgW = 1200, svgH = 520;
-
-  const startX = flowRect.left + (pathData.from[0] / svgW) * flowRect.width;
-  const startY = flowRect.top + 75 + (pathData.from[1] / svgH) * (flowRect.height - 120);
-  const endX = flowRect.left + (pathData.to[0] / svgW) * flowRect.width;
-  const endY = flowRect.top + 75 + (pathData.to[1] / svgH) * (flowRect.height - 120);
-
-  card.style.left = startX + 'px';
-  card.style.top = startY + 'px';
-  card.style.opacity = '0';
-
-  // Fade in, move, fade out
   requestAnimationFrame(() => {
     card.style.transition = 'opacity 0.3s';
     card.style.opacity = '1';
   });
 
-  // Glow target stage
-  const stageId = 'node-' + flow.stage;
-  const stageEl = document.getElementById(stageId);
-  if (stageEl) stageEl.classList.add('glow-' + flow.stage);
+  // Highlight source and target nodes
+  const srcEl = document.getElementById(edge.from);
+  const tgtEl = document.getElementById(edge.to);
+  if (srcEl) srcEl.classList.add('highlight');
+  if (tgtEl) tgtEl.classList.add('highlight');
+
+  // Delay proportional to distance
+  const dist = Math.sqrt((ex - sx) ** 2 + (ey - sy) ** 2);
+  const duration = Math.min(3000, Math.max(1500, dist * 0.4));
 
   setTimeout(() => {
-    card.style.transition = `left 2.5s ease-in-out, top 2.5s ease-in-out`;
-    card.style.left = endX + 'px';
-    card.style.top = endY + 'px';
+    card.style.transition = `left ${duration}ms ease-in-out, top ${duration}ms ease-in-out`;
+    card.style.left = ex + 'px';
+    card.style.top = ey + 'px';
   }, 400);
 
   setTimeout(() => {
     card.style.transition = 'opacity 0.5s';
     card.style.opacity = '0';
-  }, 2600);
+  }, 600 + duration);
 
   setTimeout(() => {
-    if (stageEl) stageEl.classList.remove('glow-' + flow.stage);
+    if (srcEl) srcEl.classList.remove('highlight');
+    if (tgtEl) tgtEl.classList.remove('highlight');
     card.remove();
-  }, 3200);
+  }, 1500 + duration);
 }
 
 // ─── Add event to stream ───
@@ -374,21 +419,18 @@ function addEventToStream(ev) {
 
   const item = document.createElement('div');
   item.className = 'event-item';
-  item.innerHTML = `
-    <span class="sev-dot ${sevClass}"></span>
+  item.innerHTML = `<span class="sev-dot ${sevClass}"></span>
     <span class="ev-time">${time}</span>
     <span class="ev-type">${ev.event_type}</span>
-    <span class="ev-summary">${ev.summary || ''}</span>
-  `;
+    <span class="ev-summary">${ev.summary || ''}</span>`;
   container.prepend(item);
-
-  // Keep max 30 items
   while (container.children.length > 30) container.removeChild(container.lastChild);
 }
 
-// ─── Simulate a random event ───
+// ─── Simulate random event ───
 async function simulateRandomEvent() {
-  const types = ['material.received','material.issued','purchase_order.created','work_order.released','non_conformance.created'];
+  const types = ['material.received','material.issued','purchase_order.created',
+    'work_order.released','non_conformance.created','mps.calculated','payment.received'];
   const type = types[Math.floor(Math.random() * types.length)];
   try {
     const res = await fetch('/api/events/simulate/' + type, { method: 'POST' });
@@ -400,7 +442,7 @@ async function simulateRandomEvent() {
   } catch(e) { console.error('Sim error:', e); }
 }
 
-// ─── Fetch events from activity API ───
+// ─── Refresh events ───
 let lastEventCount = 0;
 async function refreshEvents() {
   try {
@@ -410,7 +452,6 @@ async function refreshEvents() {
     const events = data.events || [];
     document.getElementById('event-count').textContent = `📡 ${events.length} 事件`;
 
-    // Animate new events
     if (events.length > lastEventCount) {
       const newEvents = events.slice(0, events.length - lastEventCount);
       newEvents.forEach(ev => {
@@ -418,8 +459,7 @@ async function refreshEvents() {
         animateEventFlow(ev);
       });
     } else if (events.length > 0) {
-      // First load: show latest 3 events as flow animation
-      const recent = events.slice(0, 3);
+      const recent = events.slice(0, 2);
       recent.forEach(ev => {
         addEventToStream(ev);
         animateEventFlow(ev);
@@ -427,16 +467,13 @@ async function refreshEvents() {
     }
     lastEventCount = events.length;
 
-    // If no events exist, simulate some demo events
     if (events.length === 0) {
-      setTimeout(() => {
-        simulateRandomEvent();
-      }, 2000);
+      setTimeout(() => simulateRandomEvent(), 2000);
     }
   } catch(e) { console.error('Events fetch error:', e); }
 }
 
-// ─── Fetch dashboard data (existing) ───
+// ─── Fetch dashboard data ───
 async function fetchData() {
   try {
     const [health, stockRes, poRes, woRes, ncRes, arRes, supRes] = await Promise.allSettled([
@@ -447,49 +484,43 @@ async function fetchData() {
       fetch('/api/quality/ncs').then(r => r.json()),
       fetch('/api/accounting/ar').then(r => r.json()),
       fetch('/api/purchase/suppliers').then(r => r.json()),
-    ])
+    ]);
 
     if (stockRes.status === 'fulfilled') {
-      const d = stockRes.value
-      const count = d?.total ?? (Array.isArray(d) ? d.length : 0)
-      document.getElementById('count-stock').textContent = count
-      document.getElementById('live-stock').textContent = count
+      const d = stockRes.value;
+      const count = d?.total ?? (Array.isArray(d) ? d.length : 0);
+      document.getElementById('count-stock').textContent = count;
+      document.getElementById('live-stock').textContent = count;
     }
-
     if (poRes.status === 'fulfilled') {
-      document.getElementById('count-pos').textContent = poRes.value?.total ?? 0
+      const el = document.getElementById('count-pos');
+      if (el) el.textContent = poRes.value?.total ?? 0;
     }
-
     if (woRes.status === 'fulfilled') {
-      const d = woRes.value
-      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0
-      document.getElementById('count-orders').textContent = active
-      document.getElementById('live-orders').textContent = active
+      const d = woRes.value;
+      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0;
+      document.getElementById('count-orders').textContent = active;
+      document.getElementById('live-orders').textContent = active;
     }
-
     if (ncRes.status === 'fulfilled') {
-      const d = ncRes.value
-      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0
-      document.getElementById('count-ncs').textContent = count
+      const d = ncRes.value;
+      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0;
+      document.getElementById('count-ncs').textContent = count;
     }
-
     if (arRes.status === 'fulfilled') {
-      const d = arRes.value
-      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0
-      document.getElementById('live-ar').textContent = `NT$${Intl.NumberFormat('zh-TW').format(d?.items?.[0]?.amount || 0)}`
+      const d = arRes.value;
+      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0;
+      document.getElementById('live-ar').textContent = `NT$${Intl.NumberFormat('zh-TW').format(d?.items?.[0]?.amount || 0)}`;
     }
-
     if (supRes.status === 'fulfilled') {
-      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0
+      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0;
     }
-
     if (health.status === 'fulfilled' && health.value?.status === 'ok') {
-      document.querySelector('.dot-live').style.background = '#22d3ee'
+      document.querySelector('.dot-live').style.background = '#22d3ee';
     }
-
-    document.getElementById('last-refresh').textContent = `更新 ${new Date().toLocaleTimeString('zh-TW')}`
-  } catch(e) { console.error('Fetch error:', e) }
-  document.getElementById('loading').classList.add('hide')
+    document.getElementById('last-refresh').textContent = `更新 ${new Date().toLocaleTimeString('zh-TW')}`;
+  } catch(e) { console.error('Fetch error:', e); }
+  document.getElementById('loading').classList.add('hide');
 }
 
 // ─── Clock ───
@@ -497,21 +528,29 @@ function updateClock() {
   document.getElementById('live-clock').textContent = new Date().toLocaleString('zh-TW', {
     year: 'numeric', month: '2-digit', day: '2-digit',
     hour: '2-digit', minute: '2-digit', second: '2-digit'
-  })
+  });
 }
 
-// ─── Init ───
-fetchData()
-refreshEvents()
-updateClock()
-setInterval(fetchData, 15000)
-setInterval(refreshEvents, 10000)
-setInterval(updateClock, 1000)
-// Auto-simulate every 25 seconds
-setInterval(simulateRandomEvent, 25000)
+// ─── Node interaction: dim others on click ───
+document.querySelectorAll('.topo-node').forEach(node => {
+  node.addEventListener('click', () => {
+    const isDim = node.classList.contains('dim');
+    document.querySelectorAll('.topo-node').forEach(n => n.classList.remove('highlight','dim'));
+    if (!isDim) {
+      node.classList.add('highlight');
+      document.querySelectorAll('.topo-node').forEach(n => {
+        if (n !== node) n.classList.add('dim');
+      });
+    }
+  });
+});
 
-// Expose for button
-window.simulateRandomEvent = simulateRandomEvent
+// ─── Init ───
+fetchData();
+updateClock();
+setInterval(updateClock, 1000);
+refreshEvents();
+setInterval(refreshEvents, 5000);
 </script>
 </body>
 </html>

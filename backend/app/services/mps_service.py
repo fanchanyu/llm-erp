@@ -27,6 +27,15 @@ from app.models.mps import (
     MpsMaster, MpsEntry, TimeFence,
     MpsStatus, MpsEntryStatus, TimeFenceType, LotSizingRule,
 )
+
+
+def _u(val: str) -> uuid.UUID:
+    """Convert string/UUID to UUID object for SQLAlchemy Uuid columns."""
+    if isinstance(val, uuid.UUID):
+        return val
+    return uuid.UUID(val) if val else uuid.uuid4()
+
+
 from app.models.bom import Product
 
 
@@ -69,7 +78,7 @@ async def get_mps_master(db: AsyncSession, mps_id: str = "") -> MpsMaster | None
         selectinload(MpsMaster.time_fences),
     )
     if mps_id:
-        q = q.where(MpsMaster.id == mps_id)
+        q = q.where(MpsMaster.id == _u(mps_id))
     r = await db.execute(q)
     return r.scalar_one_or_none()
 
@@ -111,7 +120,7 @@ async def get_mps_entries(
     db: AsyncSession, mps_id: str, product_no: str = "",
 ) -> list[MpsEntry]:
     """Get all entries for an MPS master, optionally filtered by product."""
-    q = select(MpsEntry).where(MpsEntry.mps_id == mps_id)
+    q = select(MpsEntry).where(MpsEntry.mps_id == _u(mps_id))
     if product_no:
         q = q.where(MpsEntry.product_no == product_no)
     r = await db.execute(q.order_by(MpsEntry.period_week))
@@ -141,7 +150,7 @@ async def get_time_fences(db: AsyncSession, mps_id: str) -> list[TimeFence]:
     """Get all time fences for an MPS master."""
     r = await db.execute(
         select(TimeFence)
-        .where(TimeFence.mps_id == mps_id)
+        .where(TimeFence.mps_id == _u(mps_id))
         .order_by(TimeFence.fence_week)
     )
     return list(r.scalars().all())
@@ -370,7 +379,7 @@ async def calculate_mps(
                 db_entry = entry_map.get(entry_key) or (
                     # Find the newly created entry by period_week
                     next((e for e in db.new if isinstance(e, MpsEntry)
-                          and e.mps_id == mps_id and e.period_week == period_results[idx]['period_week']), None)
+                          and e.mps_id == _u(mps_id) and e.period_week == period_results[idx]['period_week']), None)
                 )
                 if db_entry:
                     db_entry.available_to_promise = atp_val
@@ -567,7 +576,7 @@ async def convert_planned_to_work_order(
     r = await db.execute(
         select(MpsEntry).where(
             and_(
-                MpsEntry.mps_id == mps_id,
+                MpsEntry.mps_id == _u(mps_id),
                 MpsEntry.product_no == product_no,
                 MpsEntry.period_week == period_week,
             )

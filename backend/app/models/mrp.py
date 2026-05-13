@@ -10,11 +10,10 @@ from datetime import datetime
 from sqlalchemy import (
     Column, String, Float, Integer, DateTime, Text, ForeignKey, Uuid,
 )
-from sqlalchemy.orm import DeclarativeBase, relationship
+from sqlalchemy.orm import relationship
 
-
-class Base(DeclarativeBase):
-    pass
+# ⚠️ 共用 mps 的 Base，確保 FK (mrp_masters.mps_id → mps_masters.id) 在同一個 metadata 中
+from app.models.mps import Base
 
 
 class MrpStatus(str):
