@@ -1,4 +1,4 @@
-# ─── Python ──────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
 *.egg-info/
@@ -6,64 +6,56 @@ dist/
 build/
 .eggs/
 
-# ─── Environment ──────────────────────────────────
+# Environment
 .env
 .env.local
-.env.example
 *.env
 
-# ─── Virtual Environment ──────────────────────────
+# Virtual Environment
 .venv/
 venv/
 
-# ─── IDE / Editor ─────────────────────────────────
+# IDE / Editor
 .vscode/
 .idea/
 *.swp
 *.swo
 *.bak
 
-# ─── OS ────────────────────────────────────────────
+# OS
 .DS_Store
 Thumbs.db
 
-# ─── Project: Data & Logs ─────────────────────────
+# Project: Data & Logs
 *.db
 *.sqlite3
 *.log
 backend/reports/
 
-# ─── Large data files ─────────────────────────────
+# Large data files
 *.csv
 *.xlsx
 *.xls
 
-# ─── Paper & research (NOT for public repo) ───────
+# Paper & research (NOT for public repo)
 paper/
 PAPER_OUTLINE.md
 REFERENCES.md
 ROADMAP.md
-CLAUDE.md
 llm-erp-architecture.html
 sketches/
 work-logs/
 evaluation/provider-comparison.md
 evaluation/results*.json
 
-# ─── Project: Build artifacts ──────────────────────
+# Project: Build artifacts
 frontend/node_modules/
 frontend/dist/
 backend/alembic/versions/*.pyc
 
-# ─── Sales: Pricing & customer data (機密) ────────
-sales/*.pdf
-sales/*.csv
-sales/*.json
-sales/*.py
-sales/cjk-print.css
-sales/LLM-ERP客戶潛在名單.xlsx
-sales/progress.json
-sales/found_emails.json
+# Sales: no customer data, only strategy docs
+sales/pricing_and_strategy.md
 
-# ─── Misc ──────────────────────────────────────────
+# Misc
 backend/app/data_import.py
+CLAUDE.md

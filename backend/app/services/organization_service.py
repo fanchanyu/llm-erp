@@ -712,3 +712,47 @@ async def seed_organization(db: AsyncSession):
         db.add(ApprovalFlow(name=name, module=mod, trigger_event=evt, steps=steps))
 
     await db.flush()
+
+
+# ─── Data Permission Scope Helper ────────────────────────────────
+
+
+def get_scope_filter(
+    user_info: dict,
+    module: str,
+    action: str,
+    department_fk_column=None,
+    employee_fk_column=None,
+) -> tuple[bool, Optional[str]]:
+    """
+    Return (is_allowed, filter_expression) based on user's permission scope.
+
+    Permission scopes:
+        'all'        → unrestricted (director, admin)
+        'department' → filter by department_id
+        'self'       → filter by employee_id
+
+    Returns:
+        (is_allowed, filter_column_or_None)
+    """
+    if not user_info.get("is_authenticated"):
+        return False, None
+
+    roles = user_info.get("roles", [])
+    role_codes = [r["role_code"] if isinstance(r, dict) else r for r in roles]
+    if "plant_manager" in role_codes or "admin" in role_codes:
+        return True, None
+
+    permissions = user_info.get("permissions", [])
+    perm_code = f"{module}:{action}"
+    for p in permissions:
+        p_code = p["permission_code"] if isinstance(p, dict) else p
+        p_scope = p.get("scope", "department") if isinstance(p, dict) else "department"
+        if p_code == perm_code:
+            if p_scope == "all":
+                return True, None
+            elif p_scope == "department":
+                return True, department_fk_column
+            elif p_scope == "self":
+                return True, employee_fk_column
+    return False, None
