@@ -28,25 +28,25 @@ body { background: #f0f4f8; font-family: 'Segoe UI', system-ui, sans-serif; over
 .header .meta { display: flex; gap: 20px; font-size: 11px; color: #64748b; }
 .header .meta strong { color: #475569; }
 
-/* Topology container */
 .topology { position: fixed; inset: 75px 40px 100px; z-index: 1; }
 svg { width: 100%; height: 100%; }
 
-/* Topology node */
 .topo-node { cursor: pointer; transition: all 0.3s; }
 .topo-node:hover { filter: brightness(1.15); }
 .topo-node.highlight { filter: drop-shadow(0 0 12px rgba(34,211,238,0.5)); }
 .topo-node.dim { opacity: 0.3; }
 .node-bg { transition: all 0.3s; }
-.node-bg-pulse { animation: nodePulse 2s ease-in-out infinite; }
-@keyframes nodePulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.03); }
-}
 .node-icon { font-size: 22px; }
-.node-title { font-size: 13px; font-weight: 700; fill: #1e293b; }
-.node-count { font-size: 22px; font-weight: 800; }
-.node-sublabel { font-size: 9px; fill: #94a3b8; }
+.node-title { font-size: 14px; font-weight: 700; fill: #1e293b; }
+.node-kpi { font-size: 20px; font-weight: 800; fill: #1e293b; }
+.node-sublabel { font-size: 9px; fill: #64748b; }
+
+/* Health status dot */
+.health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.health-dot.healthy { background: #22c55e; box-shadow: 0 0 6px rgba(34,197,94,0.4); }
+.health-dot.warning { background: #eab308; box-shadow: 0 0 6px rgba(234,179,8,0.4); }
+.health-dot.critical { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); animation: pulseRed 1s infinite; }
+@keyframes pulseRed { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
 
 /* Edges */
 .topo-edge { stroke-width: 2; fill: none; }
@@ -56,11 +56,11 @@ svg { width: 100%; height: 100%; }
 .topo-edge.quality { stroke: #f43f5e; stroke-dasharray: 3,3; }
 .topo-edge-label { font-size: 8px; fill: #94a3b8; }
 
-/* Animated data dot on edges */
 .edge-dot { animation: edgeFlow 3s linear infinite; }
 .edge-dot.material-dot { fill: #34d399; }
 .edge-dot.info-dot { fill: #60a5fa; }
 .edge-dot.finance-dot { fill: #fbbf24; }
+@keyframes edgeFlow { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
 
 .event-card {
   position: fixed; z-index: 20; pointer-events: none;
@@ -108,7 +108,6 @@ svg { width: 100%; height: 100%; }
   background: #f0f4f8; z-index: 100; font-size: 14px; color: #64748b; transition: opacity 0.5s; }
 .loading.hide { opacity: 0; pointer-events: none; }
 
-/* Legend */
 .legend { position: fixed; left: 40px; bottom: 102px; z-index: 15; display: flex; gap: 16px; }
 .legend-item { display: flex; align-items: center; gap: 4px; font-size: 9px; color: #94a3b8; }
 .legend-line { width: 20px; height: 2px; }
@@ -121,9 +120,6 @@ svg { width: 100%; height: 100%; }
 <div class="header">
   <h1><span class="dot-live"></span> LLM-ERP <small>拓樸視圖</small></h1>
   <div class="meta">
-    <span>🔄 <strong id="live-orders">—</strong> 工單</span>
-    <span>📦 <strong id="live-stock">—</strong> 庫存</span>
-    <span>💰 <strong id="live-ar">—</strong> AR</span>
     <span id="live-clock" style="color:#64748b">—</span>
     <span id="last-refresh" style="color:#94a3b8;font-size:11px;"></span>
     <span id="event-count" style="color:#64748b">📡 —</span>
@@ -150,131 +146,138 @@ svg { width: 100%; height: 100%; }
       </marker>
     </defs>
 
-    <!-- ════════════════════════════════════════ -->
-    <!-- EDGES (drawn first so they're behind nodes) -->
-    <!-- ════════════════════════════════════════ -->
-
-    <!-- Top Row: Planning layer (straight horizontal) -->
-    <!-- 1. CRM → MPS (info: demand forecast) -->
+    <!-- ════════════════════════════ EDGES ════════════════════════════ -->
+    <!-- Top Row: Planning layer -->
     <path class="topo-edge info" d="M 260,105 L 345,105" marker-end="url(#arr-info)"/>
-    <!-- 2. MPS → MRP (info: planned orders) -->
     <path class="topo-edge info" d="M 490,105 L 555,105" marker-end="url(#arr-info)"/>
-    <!-- 3. MRP → CRP (info: material reqs) -->
     <path class="topo-edge info" d="M 700,105 L 775,105" marker-end="url(#arr-info)"/>
 
-    <!-- 4. CRP → SFC/Shop Floor (L-shape down-right) -->
+    <!-- CRP → Dispatch -->
     <path class="topo-edge info" d="M 920,140 L 920,170 L 1040,170 L 1040,195" marker-end="url(#arr-info)"/>
     <text class="topo-edge-label"><textPath href="#edge-crp-sfc" startOffset="50%">派工指令</textPath></text>
 
-    <!-- 5. SFC → Quality (L-shape left-down) -->
+    <!-- Middle row connections -->
     <path class="topo-edge quality" d="M 960,240 L 960,275 L 880,275 L 880,305" marker-end="url(#arr-qual)"/>
-    <!-- 6. Quality → WMS (straight left) -->
     <path class="topo-edge quality" d="M 720,310 L 565,310" marker-end="url(#arr-qual)"/>
-    <!-- 7. WMS → Supplier PO (straight left) -->
     <path class="topo-edge material" d="M 400,310 L 265,310" marker-end="url(#arr-mat)"/>
     <text class="topo-edge-label"><textPath href="#edge-wms-supplier" startOffset="50%">補貨</textPath></text>
 
-    <!-- 8. Supplier → WMS received (straight right, above lane 7) -->
+    <!-- Supplier ↔ Warehouse -->
     <path class="topo-edge material" d="M 260,285 L 395,285" marker-end="url(#arr-mat)"/>
 
-    <!-- 9. Supplier → Finance cash outflow (straight right) -->
+    <!-- Finance -->
     <path class="topo-edge finance" d="M 180,180 L 415,180" marker-end="url(#arr-fin)"/>
-
-    <!-- 10. Finance AR wrap: under all nodes → up into accounting -->
     <path class="topo-edge finance" d="M 180,350 L 180,420 L 1040,420 L 1040,365" marker-end="url(#arr-fin)"/>
 
-    <!-- Edge path definitions for labels (invisible, for textPath) -->
+    <!-- Organization → Planning (approval flow) -->
+    <path class="topo-edge info" d="M 160,140 L 160,165 L 310,165 L 310,140" marker-end="url(#arr-info)"/>
+    <path class="topo-edge info" d="M 160,140 L 160,190 L 470,190 L 470,140" marker-end="url(#arr-info)"/>
+
+    <!-- Edge path definitions for labels -->
     <path id="edge-crp-sfc" class="topo-edge info" d="M 920,140 L 920,170 L 1040,170 L 1040,195" style="stroke:none"/>
     <path id="edge-wms-supplier" class="topo-edge material" d="M 400,310 L 265,310" style="stroke:none"/>
 
-    <!-- ════════════════════════════════════════ -->
-    <!-- NODES -->
-    <!-- ════════════════════════════════════════ -->
+    <!-- ════════════════════════════ NODES ════════════════════════════ -->
 
-    <!-- Layer 1: Planning & Sales (top) -->
-    <!-- Node: CRM / Sales (customers) -->
-    <g class="topo-node" id="node-crm" data-x="180" data-y="80">
-      <rect class="node-bg" x="130" y="70" width="130" height="70" rx="35" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
-      <text x="195" y="95" text-anchor="middle" class="node-icon">🤝</text>
-      <text x="195" y="115" text-anchor="middle" class="node-title">CRM</text>
-      <text x="195" y="130" text-anchor="middle" class="node-sublabel">客戶需求</text>
+    <!-- Row 1: Planning & Demand (top) -->
+
+    <!-- Node: Organization / Approval (Phase 0) -->
+    <g class="topo-node" id="node-organization">
+      <rect class="node-bg" x="100" y="70" width="120" height="70" rx="30" fill="#fff" stroke="#6366f1" stroke-width="2.5"/>
+      <text x="160" y="94" text-anchor="middle" font-size="20">🏛️</text>
+      <text x="160" y="113" text-anchor="middle" class="node-title">組織</text>
+      <text x="160" y="127" text-anchor="middle" class="node-sublabel">簽核</text>
+      <circle cx="210" cy="78" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: MPS -->
-    <g class="topo-node" id="node-mps" data-x="380" y="80">
-      <rect class="node-bg" x="350" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2.5"/>
-      <text x="420" y="95" text-anchor="middle" class="node-icon">📊</text>
-      <text x="420" y="115" text-anchor="middle" class="node-title">MPS</text>
-      <text x="420" y="130" text-anchor="middle" class="node-sublabel">主生產排程</text>
+    <g class="topo-node" id="node-crm">
+      <rect class="node-bg" x="250" y="70" width="120" height="70" rx="30" fill="#fff" stroke="#8b5cf6" stroke-width="2"/>
+      <text x="310" y="94" text-anchor="middle" font-size="20">🤝</text>
+      <text x="310" y="113" text-anchor="middle" class="node-title">CRM</text>
+      <text x="310" y="127" text-anchor="middle" class="node-sublabel" id="sublabel-crm">客戶需求</text>
+      <circle cx="360" cy="78" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: MRP -->
-    <g class="topo-node" id="node-mrp" data-x="600" y="80">
-      <rect class="node-bg" x="560" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#6366f1" stroke-width="2.5"/>
-      <text x="630" y="95" text-anchor="middle" class="node-icon">🧮</text>
-      <text x="630" y="115" text-anchor="middle" class="node-title">MRP</text>
-      <text x="630" y="130" text-anchor="middle" class="node-sublabel">物料需求</text>
+    <g class="topo-node" id="node-mps">
+      <rect class="node-bg" x="410" y="70" width="120" height="70" rx="12" fill="#fff" stroke="#0d9488" stroke-width="2.5"/>
+      <text x="470" y="92" text-anchor="middle" font-size="20">📊</text>
+      <text x="470" y="111" text-anchor="middle" class="node-title">MPS</text>
+      <text x="470" y="127" text-anchor="middle" class="node-kpi" id="kpi-mps">—</text>
+      <circle cx="520" cy="78" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: CRP / APS -->
-    <g class="topo-node" id="node-crp" data-x="820" y="80">
-      <rect class="node-bg" x="780" y="70" width="140" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2.5"/>
-      <text x="850" y="95" text-anchor="middle" class="node-icon">⚡</text>
-      <text x="850" y="115" text-anchor="middle" class="node-title">CRP/APS</text>
-      <text x="850" y="130" text-anchor="middle" class="node-sublabel">產能/瓶頸</text>
+    <g class="topo-node" id="node-mrp">
+      <rect class="node-bg" x="570" y="70" width="120" height="70" rx="12" fill="#fff" stroke="#6366f1" stroke-width="2.5"/>
+      <text x="630" y="92" text-anchor="middle" font-size="20">🧮</text>
+      <text x="630" y="111" text-anchor="middle" class="node-title">MRP</text>
+      <text x="630" y="127" text-anchor="middle" class="node-kpi" id="kpi-mrp">—</text>
+      <circle cx="680" cy="78" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Layer 2: Execution (middle) -->
+    <g class="topo-node" id="node-crp">
+      <rect class="node-bg" x="730" y="70" width="120" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2.5"/>
+      <text x="790" y="92" text-anchor="middle" font-size="20">⚡</text>
+      <text x="790" y="111" text-anchor="middle" class="node-title">CRP/APS</text>
+      <text x="790" y="127" text-anchor="middle" class="node-kpi" id="kpi-crp">—</text>
+      <circle cx="840" cy="78" r="6" class="health-dot healthy"/>
+    </g>
 
-    <!-- Node: SFC / Shop Floor (Dispatch) -->
-    <g class="topo-node" id="node-dispatch" data-x="1020" y="210">
+    <!-- Row 2: Execution (middle) -->
+
+    <g class="topo-node" id="node-dispatch">
       <rect class="node-bg" x="960" y="200" width="160" height="80" rx="12" fill="#fff" stroke="#ef4444" stroke-width="2"/>
       <text x="1000" y="235" font-size="22">⚙️</text>
       <text x="1030" y="235" fill="#1e293b" font-size="15" font-weight="700">派工</text>
-      <text x="1040" y="255" text-anchor="middle" fill="#64748b" font-size="10">WO <tspan id="count-orders" fill="#ef4444" font-weight="600">—</tspan></text>
+      <text x="1040" y="255" text-anchor="middle" class="node-kpi" id="kpi-dispatch" fill="#ef4444">—</text>
+      <text x="1040" y="270" text-anchor="middle" class="node-sublabel" id="sublabel-dispatch"></text>
+      <circle cx="1110" cy="208" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Layer 3: Supply Chain (bottom-left) -->
-    <!-- Node: Suppliers -->
-    <g class="topo-node" id="node-suppliers" data-x="180" y="280">
-      <rect class="node-bg" x="120" y="270" width="140" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
-      <text x="155" y="305" font-size="22">🏭</text>
-      <text x="185" y="305" fill="#1e293b" font-size="15" font-weight="700">供應商</text>
-      <text x="190" y="325" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-suppliers" fill="#f59e0b" font-weight="600">—</tspan> 家</text>
+    <!-- Row 3: Supply Chain (bottom) -->
+
+    <g class="topo-node" id="node-suppliers">
+      <rect class="node-bg" x="110" y="350" width="140" height="70" rx="12" fill="#fff" stroke="#f59e0b" stroke-width="2"/>
+      <text x="145" y="385" font-size="22">🏭</text>
+      <text x="175" y="385" fill="#1e293b" font-size="15" font-weight="700">供應商</text>
+      <text x="180" y="405" text-anchor="middle" class="node-kpi" id="kpi-suppliers" fill="#f59e0b">—</text>
+      <circle cx="240" cy="358" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: WMS / Inventory -->
-    <g class="topo-node" id="node-inventory" data-x="460" y="280">
-      <rect class="node-bg" x="400" y="270" width="160" height="80" rx="12" fill="#fff" stroke="#10b981" stroke-width="2"/>
-      <text x="440" y="305" font-size="22">📦</text>
-      <text x="470" y="305" fill="#1e293b" font-size="15" font-weight="700">倉儲</text>
-      <text x="480" y="325" text-anchor="middle" fill="#64748b" font-size="10"><tspan id="count-stock" fill="#10b981" font-weight="600">—</tspan> 項</text>
+    <g class="topo-node" id="node-inventory">
+      <rect class="node-bg" x="360" y="350" width="160" height="80" rx="12" fill="#fff" stroke="#10b981" stroke-width="2"/>
+      <text x="400" y="385" font-size="22">📦</text>
+      <text x="430" y="385" fill="#1e293b" font-size="15" font-weight="700">倉儲</text>
+      <text x="440" y="405" text-anchor="middle" class="node-kpi" id="kpi-inventory" fill="#10b981">—</text>
+      <text x="440" y="420" text-anchor="middle" class="node-sublabel" id="sublabel-inventory"></text>
+      <circle cx="510" cy="358" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: Quality -->
-    <g class="topo-node" id="node-quality" data-x="780" y="280">
-      <rect class="node-bg" x="720" y="270" width="160" height="80" rx="12" fill="#fff" stroke="#f43f5e" stroke-width="2"/>
-      <text x="760" y="305" font-size="22">✅</text>
-      <text x="790" y="305" fill="#1e293b" font-size="15" font-weight="700">品管</text>
-      <text x="800" y="325" text-anchor="middle" fill="#64748b" font-size="10">NC <tspan id="count-ncs" fill="#f43f5e" font-weight="600">—</tspan></text>
+    <g class="topo-node" id="node-quality">
+      <rect class="node-bg" x="620" y="350" width="160" height="80" rx="12" fill="#fff" stroke="#f43f5e" stroke-width="2"/>
+      <text x="660" y="385" font-size="22">✅</text>
+      <text x="690" y="385" fill="#1e293b" font-size="15" font-weight="700">品管</text>
+      <text x="700" y="405" text-anchor="middle" class="node-kpi" id="kpi-quality" fill="#f43f5e">—</text>
+      <text x="700" y="420" text-anchor="middle" class="node-sublabel" id="sublabel-quality"></text>
+      <circle cx="770" cy="358" r="6" class="health-dot healthy"/>
     </g>
 
-    <!-- Node: Finance / AR -->
-    <g class="topo-node" id="node-accounting" data-x="1020" y="280">
-      <rect class="node-bg" x="960" y="290" width="160" height="70" rx="12" fill="#fff" stroke="#fbbf24" stroke-width="2"/>
-      <text x="1000" y="325" font-size="22">💰</text>
-      <text x="1030" y="325" fill="#1e293b" font-size="15" font-weight="700">財務</text>
-      <text x="1040" y="345" text-anchor="middle" fill="#64748b" font-size="10">AR <tspan id="count-ar" fill="#fbbf24" font-weight="600">—</tspan></text>
+    <g class="topo-node" id="node-accounting">
+      <rect class="node-bg" x="900" y="350" width="160" height="70" rx="12" fill="#fff" stroke="#fbbf24" stroke-width="2"/>
+      <text x="940" y="383" font-size="22">💰</text>
+      <text x="970" y="383" fill="#1e293b" font-size="15" font-weight="700">財務</text>
+      <text x="980" y="403" text-anchor="middle" class="node-kpi" id="kpi-accounting" fill="#fbbf24">—</text>
+      <circle cx="1050" cy="358" r="6" class="health-dot healthy"/>
     </g>
 
     <!-- Zone labels -->
-    <text x="195" y="55" text-anchor="middle" fill="#8b5cf6" font-size="9" font-weight="600" opacity="0.5">需求端</text>
-    <text x="460" y="55" text-anchor="middle" fill="#0d9488" font-size="9" font-weight="600" opacity="0.5">規劃層</text>
-    <text x="850" y="55" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600" opacity="0.5">排程層</text>
+    <text x="160" y="55" text-anchor="middle" fill="#6366f1" font-size="9" font-weight="600" opacity="0.5">組織</text>
+    <text x="310" y="55" text-anchor="middle" fill="#8b5cf6" font-size="9" font-weight="600" opacity="0.5">需求端</text>
+    <text x="470" y="55" text-anchor="middle" fill="#0d9488" font-size="9" font-weight="600" opacity="0.5">規劃層</text>
+    <text x="790" y="55" text-anchor="middle" fill="#f59e0b" font-size="9" font-weight="600" opacity="0.5">排程層</text>
     <text x="1080" y="185" text-anchor="middle" fill="#ef4444" font-size="9" font-weight="600" opacity="0.5">執行層</text>
-    <text x="250" y="260" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600" opacity="0.5">供應鏈</text>
-    <text x="800" y="260" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600" opacity="0.5">品保</text>
-    <text x="1080" y="280" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600" opacity="0.5">財務</text>
+    <text x="220" y="340" text-anchor="middle" fill="#94a3b8" font-size="9" font-weight="600" opacity="0.5">供應鏈</text>
+    <text x="700" y="340" text-anchor="middle" fill="#f43f5e" font-size="9" font-weight="600" opacity="0.5">品保</text>
+    <text x="980" y="340" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600" opacity="0.5">財務</text>
 
     <!-- Animated edge particles -->
     <circle r="3" class="edge-dot material-dot">
@@ -296,6 +299,9 @@ svg { width: 100%; height: 100%; }
   <span class="legend-item"><span class="legend-line" style="background:#3b82f6"></span> 資訊流</span>
   <span class="legend-item"><span class="legend-line" style="background:#fbbf24"></span> 金流</span>
   <span class="legend-item"><span class="legend-line" style="background:#f43f5e"></span> 品質流</span>
+  <span class="legend-item"><span class="health-dot healthy" style="width:8px;height:8px"></span> 正常</span>
+  <span class="legend-item"><span class="health-dot warning" style="width:8px;height:8px"></span> 警告</span>
+  <span class="legend-item"><span class="health-dot critical" style="width:8px;height:8px"></span> 異常</span>
 </div>
 
 <div class="event-stream">
@@ -315,16 +321,48 @@ svg { width: 100%; height: 100%; }
 <script>
 // ─── Topology Node Coordinates ───
 const NODE_COORDS = {
-  'node-crm':        { cx:195, cy:105 },
-  'node-mps':        { cx:420, cy:105 },
-  'node-mrp':        { cx:630, cy:105 },
-  'node-crp':        { cx:850, cy:105 },
-  'node-dispatch':   { cx:1040, cy:240 },
-  'node-suppliers':  { cx:190, cy:305 },
-  'node-inventory':  { cx:480, cy:310 },
-  'node-quality':    { cx:800, cy:310 },
-  'node-accounting': { cx:1040, cy:325 },
+  'node-organization': { cx:160, cy:105 },
+  'node-crm':         { cx:310, cy:105 },
+  'node-mps':         { cx:470, cy:105 },
+  'node-mrp':         { cx:630, cy:105 },
+  'node-crp':         { cx:790, cy:105 },
+  'node-dispatch':    { cx:1040, cy:240 },
+  'node-suppliers':   { cx:180, cy:385 },
+  'node-inventory':   { cx:440, cy:390 },
+  'node-quality':     { cx:700, cy:390 },
+  'node-accounting':  { cx:980, cy:385 },
 };
+
+// ─── Status color mapping ───
+const STATUS_DOT_CLASS = { 'healthy':'healthy', 'warning':'warning', 'critical':'critical' };
+
+// ─── Update nodes from unified summary API ───
+async function fetchSummary() {
+  try {
+    const res = await fetch('/api/war-room/summary');
+    if (!res.ok) return;
+    const data = await res.json();
+    const nodes = data.nodes;
+    if (!nodes) return;
+
+    Object.entries(nodes).forEach(([key, nd]) => {
+      const id = 'node-' + key;
+      const kpiEl = document.getElementById('kpi-' + key);
+      if (kpiEl) kpiEl.textContent = nd.kpi;
+
+      const subEl = document.getElementById('sublabel-' + key);
+      if (subEl && nd.detail) subEl.textContent = nd.detail;
+
+      const dot = document.querySelector('#' + id + ' .health-dot');
+      if (dot) {
+        dot.setAttribute('class', 'health-dot ' + (STATUS_DOT_CLASS[nd.status] || 'healthy'));
+      }
+    });
+
+    document.getElementById('last-refresh').textContent = '更新 ' + new Date().toLocaleTimeString('zh-TW');
+  } catch(e) { console.error('Summary fetch error:', e); }
+  document.getElementById('loading').classList.add('hide');
+}
 
 // ─── Event → Edge mapping ───
 const EVENT_EDGE_MAP = {
@@ -368,7 +406,6 @@ function animateEventFlow(ev) {
 
   const label = ev.summary || `${edge.icon} ${ev.event_type.split('.').pop()}`;
 
-  // Create floating card
   const card = document.createElement('div');
   card.className = `event-card ${edge.cls}`;
   card.textContent = label.length > 36 ? label.slice(0, 36) + '…' : label;
@@ -382,13 +419,11 @@ function animateEventFlow(ev) {
     card.style.opacity = '1';
   });
 
-  // Highlight source and target nodes
   const srcEl = document.getElementById(edge.from);
   const tgtEl = document.getElementById(edge.to);
   if (srcEl) srcEl.classList.add('highlight');
   if (tgtEl) tgtEl.classList.add('highlight');
 
-  // Delay proportional to distance
   const dist = Math.sqrt((ex - sx) ** 2 + (ey - sy) ** 2);
   const duration = Math.min(3000, Math.max(1500, dist * 0.4));
 
@@ -472,64 +507,6 @@ async function refreshEvents() {
   } catch(e) { console.error('Events fetch error:', e); }
 }
 
-// ─── Fetch dashboard data ───
-async function fetchData() {
-  try {
-    const [health, stockRes, poRes, woRes, ncRes, arRes, supRes] = await Promise.allSettled([
-      fetch('/health').then(r => r.json()),
-      fetch('/api/inventory/stock').then(r => r.json()),
-      fetch('/api/purchase/orders').then(r => r.json()),
-      fetch('/api/dispatch/orders').then(r => r.json()),
-      fetch('/api/quality/ncs').then(r => r.json()),
-      fetch('/api/accounting/ar').then(r => r.json()),
-      fetch('/api/purchase/suppliers').then(r => r.json()),
-    ]);
-
-    if (stockRes.status === 'fulfilled') {
-      const d = stockRes.value;
-      const count = d?.total ?? (Array.isArray(d) ? d.length : 0);
-      document.getElementById('count-stock').textContent = count;
-      document.getElementById('live-stock').textContent = count;
-    }
-    if (poRes.status === 'fulfilled') {
-      const el = document.getElementById('count-pos');
-      if (el) el.textContent = poRes.value?.total ?? 0;
-    }
-    if (woRes.status === 'fulfilled') {
-      const d = woRes.value;
-      const active = Array.isArray(d) ? d.filter(o => ['released','dispatched'].includes(o.status)).length : 0;
-      document.getElementById('count-orders').textContent = active;
-      document.getElementById('live-orders').textContent = active;
-    }
-    if (ncRes.status === 'fulfilled') {
-      const d = ncRes.value;
-      const count = d?.ncs?.filter(n => n.status !== 'closed').length ?? d?.total ?? 0;
-      document.getElementById('count-ncs').textContent = count;
-    }
-    if (arRes.status === 'fulfilled') {
-      const d = arRes.value;
-      document.getElementById('count-ar').textContent = d?.items?.length ?? d?.total ?? 0;
-      document.getElementById('live-ar').textContent = `NT$${Intl.NumberFormat('zh-TW').format(d?.items?.[0]?.amount || 0)}`;
-    }
-    if (supRes.status === 'fulfilled') {
-      document.getElementById('count-suppliers').textContent = supRes.value?.total ?? 0;
-    }
-    if (health.status === 'fulfilled' && health.value?.status === 'ok') {
-      document.querySelector('.dot-live').style.background = '#22d3ee';
-    }
-    document.getElementById('last-refresh').textContent = `更新 ${new Date().toLocaleTimeString('zh-TW')}`;
-  } catch(e) { console.error('Fetch error:', e); }
-  document.getElementById('loading').classList.add('hide');
-}
-
-// ─── Clock ───
-function updateClock() {
-  document.getElementById('live-clock').textContent = new Date().toLocaleString('zh-TW', {
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit'
-  });
-}
-
 // ─── Node interaction: dim others on click ───
 document.querySelectorAll('.topo-node').forEach(node => {
   node.addEventListener('click', () => {
@@ -544,11 +521,20 @@ document.querySelectorAll('.topo-node').forEach(node => {
   });
 });
 
+// ─── Clock ───
+function updateClock() {
+  document.getElementById('live-clock').textContent = new Date().toLocaleString('zh-TW', {
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
+}
+
 // ─── Init ───
-fetchData();
+fetchSummary();
 updateClock();
 setInterval(updateClock, 1000);
 refreshEvents();
+setInterval(fetchSummary, 5000);
 setInterval(refreshEvents, 5000);
 </script>
 </body>
