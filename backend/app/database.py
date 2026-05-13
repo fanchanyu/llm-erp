@@ -47,7 +47,9 @@ async def init_db():
     from app.models.decision_log import Base as DecisionLogBase
     from app.models.after_action_review import Base as AARBase
     from app.models.organization import Base as OrgBase
+    from app.models.mps import Base as MpsBase
+    from app.models.mrp import Base as MrpBase
 
     async with engine.begin() as conn:
-        for base in [Base, PurchaseBase, BomBase, AuditBase, DispatchBase, AccountingBase, QualityBase, ConversationBase, CrmEventBase, ContractBase, DecisionLogBase, AARBase, OrgBase]:
+        for base in [Base, PurchaseBase, BomBase, AuditBase, DispatchBase, AccountingBase, QualityBase, ConversationBase, CrmEventBase, ContractBase, DecisionLogBase, AARBase, OrgBase, MpsBase, MrpBase]:
             await conn.run_sync(base.metadata.create_all)

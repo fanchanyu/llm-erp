@@ -17,6 +17,7 @@ class Part(Base):
     spec = Column(Text, nullable=True)
     unit = Column(String(10), nullable=False)  # pcs, kg, m, etc.
     category = Column(String(100), nullable=True)
+    lead_time_days = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

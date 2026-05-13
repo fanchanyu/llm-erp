@@ -1,0 +1,342 @@
+{
+  "study": "Ablation Study Condition B",
+  "date": "2026-05-11T09:36:52.579311",
+  "condition_b": {
+    "label": "Role-Conditioned",
+    "passed": 29,
+    "total": 30,
+    "accuracy": 96.7
+  },
+  "results_b": [
+    {
+      "id": "inv-stock-01",
+      "category": "Inventory",
+      "query": "M6x20螺絲還有多少庫存？",
+      "role": "warehouse",
+      "passed": true,
+      "time_s": 8.1,
+      "has_error": false,
+      "reply_len": 281,
+      "reply_excerpt": "查到了！以下是 **M6x20 螺絲** 的庫存資訊：\n\n| 項目 | 內容 |\n|------|------|\n| **料號** | M6x20 |\n| **品名** | 不鏽鋼螺絲 M6x20 |\n| **規格** | SUS304 M"
+    },
+    {
+      "id": "inv-stock-02",
+      "category": "Inventory",
+      "query": "我想查一下軸承BRG-001的庫存量",
+      "role": "warehouse",
+      "passed": true,
+      "time_s": 5.4,
+      "has_error": false,
+      "reply_len": 257,
+      "reply_excerpt": "以下是 **BRG-001 軸承 6205** 的庫存資訊：\n\n| 項目 | 內容 |\n|------|------|\n| **料號** | BRG-001 |\n| **品名** | 軸承 6205 |\n| **規格** | 深溝滾珠軸承 "
+    },
+    {
+      "id": "inv-stock-03",
+      "category": "Inventory",
+      "query": "幫我看一下全部庫存列表",
+      "role": "warehouse",
+      "passed": true,
+      "time_s": 9.3,
+      "has_error": false,
+      "reply_len": 1033,
+      "reply_excerpt": "以下是目前倉庫的 **全部庫存列表**：\n\n| 料號 | 品名 | 規格 | 分類 | 儲位 | 庫存量 |\n|:---:|:---:|:---:|:---:|:---:|:---:|\n| M6x20 | 不鏽鋼螺絲 M6x20 | SUS"
+    },
+    {
+      "id": "inv-stock-04",
+      "category": "Inventory",
+      "query": "傳動件有哪些零件？庫存夠嗎？",
+      "role": "warehouse",
+      "passed": true,
+      "time_s": 10.1,
+      "has_error": false,
+      "reply_len": 588,
+      "reply_excerpt": "以下是目前 **傳動件** 分類下的所有零件庫存狀況：\n\n| 料號 | 品名 | 規格 | 庫存量 | 儲位 |\n|:---:|:---|:---|---:|:---:|\n| 🔩 **BLK-001** | 滑塊 HGH20 | 直線滑塊 "
+    },
+    {
+      "id": "inv-stock-05",
+      "category": "Inventory",
+      "query": "查一下馬達類零件的庫存狀況",
+      "role": "warehouse",
+      "passed": true,
+      "time_s": 10.8,
+      "has_error": false,
+      "reply_len": 296,
+      "reply_excerpt": "以下是目前庫存中與 **馬達** 相關的零件狀況：\n\n| 料號 | 品名 | 規格 | 分類 | 儲位 | 庫存量 | 更新時間 |\n|:---:|:---:|:---:|:---:|:---:|:---:|:---:|\n| MTR-001"
+    },
+    {
+      "id": "pur-create-po-01",
+      "category": "Purchase",
+      "query": "幫我開一張採購單，向大明螺絲買 M6x20螺絲 200顆，單價0.5元",
+      "role": "purchasing",
+      "passed": true,
+      "time_s": 12.3,
+      "has_error": false,
+      "reply_len": 331,
+      "reply_excerpt": "採購單已成功建立！以下是訂單明細：\n\n---\n\n### 📋 採購單資訊\n\n| 項目 | 內容 |\n|------|------|\n| **採購單號** | **PO-20260511-001** |\n| **供應商** | 大明螺絲（聯絡人"
+    },
+    {
+      "id": "pur-list-po-02",
+      "category": "Purchase",
+      "query": "目前有哪些採購單？列出所有PO",
+      "role": "purchasing",
+      "passed": true,
+      "time_s": 12.7,
+      "has_error": false,
+      "reply_len": 1121,
+      "reply_excerpt": "以下是目前系統中所有的採購單列表：\n\n---\n\n### 📋 採購單一覽表\n\n| 採購單號 | 供應商 | 狀態 | 建立日期 | 備註 |\n|---------|--------|:----:|:--------:|:----:|\n| **"
+    },
+    {
+      "id": "pur-supplier-03",
+      "category": "Purchase",
+      "query": "查一下供應商大明螺絲的資料",
+      "role": "purchasing",
+      "passed": true,
+      "time_s": 5.8,
+      "has_error": false,
+      "reply_len": 231,
+      "reply_excerpt": "以下是 **大明螺絲** 的供應商資料：\n\n| 項目 | 內容 |\n|------|------|\n| 🏢 **供應商名稱** | 大明螺絲 |\n| 👤 **聯絡人** | 王大明 |\n| 📞 **電話** | 02-1234-5678 |"
+    },
+    {
+      "id": "pur-status-04",
+      "category": "Purchase",
+      "query": "PO-20260505-001這張採購單的狀態是什麼？",
+      "role": "purchasing",
+      "passed": true,
+      "time_s": 6.8,
+      "has_error": false,
+      "reply_len": 372,
+      "reply_excerpt": "查詢結果如下：\n\n📄 **採購單 PO-20260505-001**\n\n| 項目 | 內容 |\n|------|------|\n| **供應商** | 大明螺絲 |\n| **狀態** | 🟡 **草稿 (Draft)** |\n| **建立者"
+    },
+    {
+      "id": "pur-receipt-05",
+      "category": "Purchase",
+      "query": "幫我收貨，PO-20260505-001 的 M6x20入庫200顆",
+      "role": "purchasing",
+      "passed": true,
+      "time_s": 9.7,
+      "has_error": false,
+      "reply_len": 331,
+      "reply_excerpt": "✅ **入庫完成！** 以下是入庫明細：\n\n| 項目 | 內容 |\n|------|------|\n| **採購單號** | PO-20260505-001 |\n| **料號** | M6x20 |\n| **入庫數量** | **200 顆"
+    },
+    {
+      "id": "bom-query-01",
+      "category": "BOM",
+      "query": "ASM-001自動鎖螺絲機基座用了哪些零件？",
+      "role": "production",
+      "passed": true,
+      "time_s": 9.9,
+      "has_error": false,
+      "reply_len": 631,
+      "reply_excerpt": "以下是 **ASM-001 自動鎖螺絲機基座** 的 BOM 結構：\n\n---\n\n### 📋 物料清單\n\n| 階層 | 序號 | 料號 | 品名 | 數量 | 單位 |\n|:---:|:---:|:------|------|:---:|:"
+    },
+    {
+      "id": "bom-explode-02",
+      "category": "BOM",
+      "query": "ASM-001要做5台，需要多少料？幫我展開BOM",
+      "role": "production",
+      "passed": true,
+      "time_s": 12.2,
+      "has_error": false,
+      "reply_len": 792,
+      "reply_excerpt": "好的！以下是 **ASM-001（自動鎖螺絲機基座）** 的 BOM 結構，以及 **生產 5 台** 所需的物料數量：\n\n---\n\n### 📋 ASM-001 BOM 結構（單台用量）\n\n| 階層 | 料號 | 品名 | 單台用量 | 單"
+    },
+    {
+      "id": "bom-multi-03",
+      "category": "BOM",
+      "query": "CNC-001小型CNC銑床的BOM結構是怎樣的？多階展開給我看",
+      "role": "production",
+      "passed": true,
+      "time_s": 21.1,
+      "has_error": false,
+      "reply_len": 1347,
+      "reply_excerpt": "沒關係，我已經從 BOM 查詢中獲得了完整的結構資料。以下是 **CNC-001 小型CNC銑床** 的多階 BOM 結構：\n\n---\n\n## 📋 CNC-001 小型CNC銑床 — BOM 多階展開\n\n### 🏗️ 第 0 層（成品）\n|"
+    },
+    {
+      "id": "bom-shortage-04",
+      "category": "BOM",
+      "query": "CNC-001要做5台，料夠不夠？幫我檢查缺料",
+      "role": "production",
+      "passed": true,
+      "time_s": 12.3,
+      "has_error": false,
+      "reply_len": 482,
+      "reply_excerpt": "看起來系統自動帶入了 CNC-001 和數量 5 的參數。以下是檢查結果：\n\n---\n\n## 🔍 CNC-001 缺料檢查結果（需求 5 台）\n\n| 項目 | 內容 |\n|------|------|\n| BOM 總零件數 | **11 項"
+    },
+    {
+      "id": "disp-list-01",
+      "category": "Dispatch",
+      "query": "目前有哪些工單？列出所有生產工單",
+      "role": "production",
+      "passed": true,
+      "time_s": 7.2,
+      "has_error": false,
+      "reply_len": 436,
+      "reply_excerpt": "以下是目前系統中所有的生產工單：\n\n| 工單編號 | 產品料號 | 數量 | 交期 | 優先級 | 狀態 |\n|----------|----------|:----:|:----:|:------:|:----:|\n| WO-202605"
+    },
+    {
+      "id": "disp-release-02",
+      "category": "Dispatch",
+      "query": "幫我釋出工單 WO-20260506-001",
+      "role": "production",
+      "passed": true,
+      "time_s": 4.5,
+      "has_error": false,
+      "reply_len": 114,
+      "reply_excerpt": "工單 **WO-20260506-001** 已成功釋出！✅\n\n目前狀態已變更為 **「已釋出 (Released)」**，接下來可以進行 **派工 (Dispatch)** 作業，將工單安排到工作站生產。請問需要我幫您派工嗎？"
+    },
+    {
+      "id": "disp-status-03",
+      "category": "Dispatch",
+      "query": "查一下WO-20260506-001這張工單的狀態",
+      "role": "production",
+      "passed": true,
+      "time_s": 4.9,
+      "has_error": false,
+      "reply_len": 243,
+      "reply_excerpt": "以下是 **WO-20260506-001** 工單的詳細資訊：\n\n| 項目 | 內容 |\n|------|------|\n| **工單號** | WO-20260506-001 |\n| **產品料號** | ASM-001 |\n| **數"
+    },
+    {
+      "id": "disp-dispatch-04",
+      "category": "Dispatch",
+      "query": "WO-20260506-001已經釋出了，幫我派工排程",
+      "role": "production",
+      "passed": true,
+      "time_s": 8.4,
+      "has_error": false,
+      "reply_len": 280,
+      "reply_excerpt": "看起來系統中目前只有 **WO-20260506-002** 和 **WO-20260506-003** 這兩張已釋出的工單，沒有找到 **WO-20260506-001** 這張工單的資料。\n\n不過，我看到有兩張已釋出的工單可以派工，請問"
+    },
+    {
+      "id": "disp-resched-05",
+      "category": "Dispatch",
+      "query": "CNC-01機台故障了，需要維修，幫我把後面的工序往後推30分鐘",
+      "role": "production",
+      "passed": true,
+      "time_s": 7.2,
+      "has_error": false,
+      "reply_len": 290,
+      "reply_excerpt": "✅ **Right-Shift 重排程已完成！**\n\n以下是處理摘要：\n\n| 項目 | 內容 |\n|------|------|\n| **機台** | CNC-01 |\n| **處理方式** | Right-Shift（往後推移） |\n| "
+    },
+    {
+      "id": "qual-list-insp-01",
+      "category": "Quality",
+      "query": "列出所有品檢單，我要看目前的檢驗記錄",
+      "role": "quality",
+      "passed": true,
+      "time_s": 7.2,
+      "has_error": false,
+      "reply_len": 414,
+      "reply_excerpt": "以下是目前的品檢記錄：\n\n| 品檢單號 | 料號 | 數量 | 狀態 | 批號 | 檢驗人員 | 檢驗日期 |\n|---------|------|:----:|:----:|:----:|:--------:|:--------:|\n| "
+    },
+    {
+      "id": "qual-create-insp-02",
+      "category": "Quality",
+      "query": "新增一張品檢單，檢驗M6x20螺絲，數量500顆，批號LOT-B001",
+      "role": "quality",
+      "passed": true,
+      "time_s": 9.6,
+      "has_error": false,
+      "reply_len": 271,
+      "reply_excerpt": "品檢單已成功建立！以下是詳細資訊：\n\n---\n\n### ✅ 品檢單建立完成\n\n| 項目 | 內容 |\n|------|------|\n| **品檢單號** | **IQC-20260511-001** |\n| **料號** | M6x20（"
+    },
+    {
+      "id": "qual-list-nc-03",
+      "category": "Quality",
+      "query": "有哪些不良品記錄(非符合項)？列出所有NC",
+      "role": "quality",
+      "passed": true,
+      "time_s": 5.8,
+      "has_error": false,
+      "reply_len": 312,
+      "reply_excerpt": "以下是目前所有的不良品記錄（NC/非符合項）：\n\n| NC編號 | 料號 | 缺陷代碼 | 嚴重程度 | 描述 | 狀態 | 建立時間 |\n|--------|------|---------|---------|------|------"
+    },
+    {
+      "id": "qual-capa-04",
+      "category": "Quality",
+      "query": "NC-20260505-001的改善對策是什麼？幫我建立CAPA",
+      "role": "quality",
+      "passed": true,
+      "time_s": 10.4,
+      "has_error": false,
+      "reply_len": 538,
+      "reply_excerpt": "好的，我找到了這筆不良品記錄的資訊：\n\n**NC-20260505-001 不良品記錄**\n| 項目 | 內容 |\n|------|------|\n| 料號 | M8x30 |\n| 缺陷代碼 | DIM-OUT（尺寸超差） |\n| 嚴重程度"
+    },
+    {
+      "id": "acct-list-ar-01",
+      "category": "Accounting",
+      "query": "目前有哪些應收帳款？列出所有AR",
+      "role": "accounting",
+      "passed": true,
+      "time_s": 7.5,
+      "has_error": false,
+      "reply_len": 431,
+      "reply_excerpt": "以下是目前所有的 **應收帳款 (AR)** 列表：\n\n| 序 | 客戶名稱 | 發票號碼 | 應收金額 | 已收金額 | 到期日 | 狀態 |\n|---|---------|---------|---------|---------|--"
+    },
+    {
+      "id": "acct-list-accounts-02",
+      "category": "Accounting",
+      "query": "查詢會計科目表，列出所有會計科目",
+      "role": "accounting",
+      "passed": true,
+      "time_s": 9.6,
+      "has_error": false,
+      "reply_len": 837,
+      "reply_excerpt": "以下是完整的會計科目表，共 **12 個科目**：\n\n---\n\n### 🏦 資產類 (Asset) — 正常餘額：借方\n\n| 科目編號 | 科目名稱 | 說明 |\n|---------|---------|------|\n| 1101 | "
+    },
+    {
+      "id": "acct-create-entry-03",
+      "category": "Accounting",
+      "query": "幫我建立一筆傳票：原料庫存增加550元，應付帳款增加550元",
+      "role": "accounting",
+      "passed": true,
+      "time_s": 9.7,
+      "has_error": false,
+      "reply_len": 283,
+      "reply_excerpt": "傳票已成功建立！以下是傳票明細：\n\n---\n\n📋 **傳票編號：JE-20260511-001**\n📅 **日期：2026-05-11**\n📝 **摘要：原料入庫，應付帳款增加**\n\n| 科目編號 | 科目名稱 | 借方金額 | 貸方金額 "
+    },
+    {
+      "id": "acct-overdue-04",
+      "category": "Accounting",
+      "query": "有哪些超過繳款期限的應收帳款？",
+      "role": "accounting",
+      "passed": true,
+      "time_s": 4.7,
+      "has_error": false,
+      "reply_len": 212,
+      "reply_excerpt": "以下是逾期應收帳款的查詢結果：\n\n📋 **逾期應收帳款查詢（逾期 ≥ 30 天）**\n\n| 項目 | 數值 |\n|------|------|\n| 逾期筆數 | **0 筆** |\n| 逾期總金額 | **NT$ 0** |\n| 逾期門檻 "
+    },
+    {
+      "id": "acct-list-gl-05",
+      "category": "Accounting",
+      "query": "查詢2026年5月的總帳分錄記錄",
+      "role": "accounting",
+      "passed": false,
+      "time_s": 90,
+      "has_error": true,
+      "reply_len": 0,
+      "reply_excerpt": "TIMEOUT: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=9"
+    },
+    {
+      "id": "cross-multi-01",
+      "category": "Cross-module",
+      "query": "我要生產5台CNC-001，先幫我檢查料夠不夠，如果不夠就開採購單補料",
+      "role": "director",
+      "passed": true,
+      "time_s": 44.0,
+      "has_error": false,
+      "reply_len": 82,
+      "reply_excerpt": "目前系統中沒有查到供應商資料。請問您要跟哪一家供應商採購 **DRV-001（驅動器 400W）** 呢？另外，這顆的**單價**是多少？這樣我才能幫您建立採購單。"
+    },
+    {
+      "id": "cross-multi-02",
+      "category": "Cross-module",
+      "query": "我想了解ASM-001的BOM結構，順便檢查庫存量夠不夠做3台",
+      "role": "director",
+      "passed": true,
+      "time_s": 9.2,
+      "has_error": false,
+      "reply_len": 756,
+      "reply_excerpt": "好的，以下是查詢結果：\n\n---\n\n## 📋 ASM-001「自動鎖螺絲機基座」BOM 結構\n\n| 階層 | 料號 | 品名 | 單台用量 | 單位 |\n|:---:|:---:|:---|:---:|:---:|\n| 1 | **PLT-"
+    }
+  ]
+}

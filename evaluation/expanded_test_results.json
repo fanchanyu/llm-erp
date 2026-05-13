@@ -1,0 +1,144 @@
+{
+  "study": "Expanded Test Set",
+  "date": "2026-05-11T09:41:47.526687",
+  "total": 15,
+  "passed": 13,
+  "accuracy": 86.7,
+  "cases": [
+    {
+      "id": "crm-cust-01",
+      "category": "CRM",
+      "query": "查詢客戶大明機械的資料",
+      "expected_intent": "query_customers",
+      "passed": true,
+      "time_s": 9.7,
+      "reply_excerpt": "目前系統中查無「大明機械」的客戶資料，可能的原因如下：\n\n1. **客戶尚未建檔** — 大明機械可能還不是系統中的正式客戶。\n2. **名稱不完全相符** — 或許客戶名稱略有不同（例如「大明機械有限公司」）。\n\n建議您可以：\n- 提供更"
+    },
+    {
+      "id": "crm-cust-02",
+      "category": "CRM",
+      "query": "列出所有客戶",
+      "expected_intent": "query_customers",
+      "passed": true,
+      "time_s": 3.7,
+      "reply_excerpt": "目前系統中**沒有客戶資料**，查無任何客戶記錄。可能的原因如下：\n\n1. **尚未建立客戶資料** — 系統中還沒有新增任何客戶。\n2. **權限或資料庫問題** — 可能需要確認系統設定。\n\n請問您是否需要：\n- **新增客戶資料**？"
+    },
+    {
+      "id": "crm-cust-03",
+      "category": "CRM",
+      "query": "查詢客戶台灣工具機的聯絡人是誰",
+      "expected_intent": "query_customers",
+      "passed": true,
+      "time_s": 12.7,
+      "reply_excerpt": "已處理您的請求（達到最大對話輪數）。請查看上方結果。"
+    },
+    {
+      "id": "crm-so-01",
+      "category": "CRM",
+      "query": "查詢銷售訂單SO-20260501的狀態",
+      "expected_intent": "query_sales_orders",
+      "passed": true,
+      "time_s": 9.9,
+      "reply_excerpt": "目前系統中查不到任何銷售訂單的資料，也查不到 **SO-20260501** 這筆訂單的資訊。\n\n可能的原因：\n1. **訂單編號格式有誤** — 請確認完整的訂單號碼是否正確（例如是否為 SO-20260501-xxx 之類的格式）\n2."
+    },
+    {
+      "id": "crm-so-02",
+      "category": "CRM",
+      "query": "列出所有銷售訂單",
+      "expected_intent": "query_sales_orders",
+      "passed": true,
+      "time_s": 4.5,
+      "reply_excerpt": "目前系統中**沒有任何銷售訂單記錄**。\n\n查詢結果為空，可能的原因：\n1. 目前還沒有建立任何銷售訂單\n2. 所有訂單可能已經結案歸檔\n\n如果您需要建立新的銷售訂單，或者想查詢特定狀態的訂單（如已確認、生產中、已出貨等），請告訴我，我可以"
+    },
+    {
+      "id": "crm-event-01",
+      "category": "CRM",
+      "query": "記錄一筆客戶互動：大明機械來電詢問交期",
+      "expected_intent": "create_customer_event",
+      "passed": true,
+      "time_s": 5.1,
+      "reply_excerpt": "目前系統中查無「大明機械」的客戶資料。請問您知道大明機械的客戶編號嗎？或者我可以用其他名稱關鍵字幫您再查查看？\n\n另外，請您提供以下資訊以便記錄：\n1. **客戶編號**（如 C001、C002 等）\n2. **來電內容摘要**（例如詢問哪"
+    },
+    {
+      "id": "crm-decision-01",
+      "category": "CRM",
+      "query": "查詢過去的決策記錄",
+      "expected_intent": "query_decisions",
+      "passed": true,
+      "time_s": 5.6,
+      "reply_excerpt": "目前系統中**沒有任何決策記錄**。可能的原因如下：\n\n1. **尚未建立任何決策紀錄** — 系統中還沒有被記錄下來的決策事項。\n2. **沒有指定部門** — 如果您想查詢特定部門的決策，可以告訴我部門名稱，我再幫您過濾查詢。\n\n請問您"
+    },
+    {
+      "id": "crm-cross-01",
+      "category": "CRM",
+      "query": "客戶大明機械想要追加一台CNC-001，查一下庫存夠不夠",
+      "expected_intent": "query_sales_orders",
+      "passed": true,
+      "time_s": 24.4,
+      "reply_excerpt": "好的！以下是完整的庫存分析結果：\n\n---\n\n## 📋 CNC-001（小型CNC銑床）— 庫存檢查報告\n\n**客戶：大明機械** | **需求：1 台 CNC-001**\n\n### ✅ 庫存充足，不缺料！\n\n| 料號 | 品名 | 單台需"
+    },
+    {
+      "id": "edge-stock-01",
+      "category": "Edge",
+      "query": "零件CTL-001庫存剩下5顆，安全庫存2顆，夠不夠生產？",
+      "expected_intent": "query_inventory",
+      "passed": true,
+      "time_s": 12.8,
+      "reply_excerpt": "已處理您的請求（達到最大對話輪數）。請查看上方結果。"
+    },
+    {
+      "id": "edge-price-01",
+      "category": "Edge",
+      "query": "大明螺絲的M6x20螺絲一顆多少錢？",
+      "expected_intent": "query_suppliers",
+      "passed": true,
+      "time_s": 8.3,
+      "reply_excerpt": "好的，以下是查詢結果：\n\n---\n\n### 🔩 大明螺絲 — 供應商資訊\n\n| 項目 | 內容 |\n|------|------|\n| **供應商名稱** | 大明螺絲 |\n| **聯絡人** | 王大明 |\n| **電話** | 02-1"
+    },
+    {
+      "id": "edge-wc-01",
+      "category": "Edge",
+      "query": "CNC-01機台現在的狀態是什麼？",
+      "expected_intent": "query_work_orders",
+      "passed": true,
+      "time_s": 8.1,
+      "reply_excerpt": "看起來我沒有直接查詢機台狀態的工具，但可以透過設定機台狀態的方式來確認。讓我先幫您查詢一下目前 CNC-01 的相關工單資訊。\n\n不過系統目前沒有提供直接查詢單一機台狀態的 API。我可以幫您做以下幾件事：\n\n1️⃣ **查詢工單** — "
+    },
+    {
+      "id": "edge-cash-01",
+      "category": "Edge",
+      "query": "目前的現金水位是多少？",
+      "expected_intent": "check_cash_position",
+      "passed": true,
+      "time_s": 4.8,
+      "reply_excerpt": "以下是公司目前的現金水位狀況：\n\n---\n\n### 💰 現金水位報告\n\n| 項目 | 金額 |\n|------|:----:|\n| **目前現金餘額** | **NT$ 0** |\n| **未來 30 天預估流入** | NT$ 0 |\n|"
+    },
+    {
+      "id": "edge-bal-01",
+      "category": "Edge",
+      "query": "原料庫存科目目前的餘額是多少？",
+      "expected_intent": "query_accounts",
+      "passed": true,
+      "time_s": 6.5,
+      "reply_excerpt": "查到了！原料庫存的會計科目是 **1301 - 庫存原料**，屬於資產類科目（借方餘額）。\n\n不過，目前系統中的科目表僅顯示科目架構，並未直接提供各科目的即時餘額。如果您需要查詢 **1301 庫存原料** 的具體餘額，我可以：\n\n1. *"
+    },
+    {
+      "id": "edge-ar-aging-01",
+      "category": "Edge",
+      "query": "應收帳款的分齡分析",
+      "expected_intent": "query_ar",
+      "passed": false,
+      "time_s": 60,
+      "reply_excerpt": "TIMEOUT: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=6"
+    },
+    {
+      "id": "edge-lead-01",
+      "category": "Edge",
+      "query": "目前有哪些潛在客戶？",
+      "expected_intent": "query_customers",
+      "passed": false,
+      "time_s": 60,
+      "reply_excerpt": "TIMEOUT: HTTPConnectionPool(host='localhost', port=8000): Read timed out. (read timeout=6"
+    }
+  ]
+}
