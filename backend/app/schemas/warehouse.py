@@ -96,12 +96,22 @@ class PriceResponse(BaseModel):
 class ReorderRuleCreate(BaseModel):
     part_no: str; safety_stock: float = Field(..., ge=0)
     reorder_qty: float = Field(..., gt=0)
+    reorder_point: Optional[float] = None
     preferred_supplier_name: Optional[str] = None
     lead_time_days: Optional[int] = 7; auto_approve: Optional[bool] = False
 
+class ReorderRuleUpdate(BaseModel):
+    safety_stock: Optional[float] = None
+    reorder_qty: Optional[float] = None
+    reorder_point: Optional[float] = None
+    preferred_supplier_name: Optional[str] = None
+    lead_time_days: Optional[int] = None
+    auto_approve: Optional[bool] = None
+    is_active: Optional[bool] = None
+
 class ReorderRuleResponse(BaseModel):
     id: str; part_no: Optional[str] = None
-    safety_stock: float; reorder_qty: float
+    safety_stock: float; reorder_qty: float; reorder_point: Optional[float] = None
     preferred_supplier: Optional[str] = None; lead_time_days: int
     auto_approve: bool; is_active: bool; last_triggered_at: Optional[datetime] = None
 
@@ -110,3 +120,30 @@ class ReorderCheckResult(BaseModel):
     current_stock: float; safety_stock: float; shortage: float
     suggested_order_qty: float; preferred_supplier: Optional[str] = None
     action: str  # none, alert, auto_order
+
+# ─── Replenish Suggestion ────────────────────────────────────────
+class ReplenishSuggestionCreate(BaseModel):
+    rule_id: str; part_no: str
+    part_name: Optional[str] = None
+    warehouse_name: Optional[str] = None
+    current_qty: float; suggested_qty: float; reorder_point: float
+    suggested_supplier: Optional[str] = None
+    notes: Optional[str] = None; created_by: Optional[str] = None
+
+class ReplenishSuggestionUpdate(BaseModel):
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    suggested_supplier: Optional[str] = None
+
+class ReplenishSuggestionResponse(BaseModel):
+    id: str; rule_id: str; part_no: str; part_name: Optional[str] = None
+    warehouse_name: Optional[str] = None
+    current_qty: float; suggested_qty: float; reorder_point: float
+    status: str; suggested_supplier: Optional[str] = None
+    notes: Optional[str] = None; created_by: Optional[str] = None
+    created_at: Optional[datetime] = None; updated_at: Optional[datetime] = None
+
+class ReplenishRunResponse(BaseModel):
+    suggestions_created: int
+    auto_approved: int
+    suggestions: list[ReplenishSuggestionResponse]

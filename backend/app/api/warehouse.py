@@ -9,7 +9,7 @@ from app.database import get_db
 from app.services import warehouse_service as svc
 from app.services import purchase_service as purchase_svc
 from app.schemas.warehouse import *
-from app.models.warehouse import ReorderRule
+from app.models.warehouse import ReorderRule, ReplenishSuggestion
 from app.models.purchase import Supplier
 from app.models.inventory import Part
 from sqlalchemy import select
@@ -215,6 +215,8 @@ async def set_reorder_rule(data: ReorderRuleCreate, db: AsyncSession = Depends(g
     part = await get_part_by_no(db, data.part_no)
     if not part: raise HTTPException(404, f"Part {data.part_no} not found")
     kw = {"lead_time_days": data.lead_time_days, "auto_approve": data.auto_approve}
+    if data.reorder_point is not None:
+        kw["reorder_point"] = data.reorder_point
     if data.preferred_supplier_name:
         from app.services.purchase_service import list_suppliers
         s, _ = await list_suppliers(db, data.preferred_supplier_name)
@@ -225,8 +227,7 @@ async def set_reorder_rule(data: ReorderRuleCreate, db: AsyncSession = Depends(g
 
 @router.get("/reorder-rules", response_model=dict)
 async def list_reorder_rules(db: AsyncSession = Depends(get_db)):
-    r = await db.execute(select(ReorderRule))
-    rules = list(r.scalars().all())
+    rules = await svc.list_reorder_rules(db)
     items = []
     for rule in rules:
         part_r = await db.execute(select(Part).where(Part.id == rule.part_id))
@@ -236,11 +237,52 @@ async def list_reorder_rules(db: AsyncSession = Depends(get_db)):
             s = await db.get(Supplier, rule.preferred_supplier_id)
             supplier_name = s.name if s else ""
         items.append({"id": str(rule.id), "part_no": part.part_no if part else "",
+                       "part_name": part.name if part else "",
                        "safety_stock": rule.safety_stock, "reorder_qty": rule.reorder_qty,
+                       "reorder_point": rule.reorder_point,
                        "preferred_supplier": supplier_name,
                        "lead_time_days": rule.lead_time_days, "auto_approve": rule.auto_approve,
-                       "is_active": rule.is_active})
+                       "is_active": rule.is_active,
+                       "last_triggered_at": rule.last_triggered_at.isoformat() if rule.last_triggered_at else None})
     return {"reorder_rules": items, "total": len(items)}
+
+@router.get("/reorder-rules/{rule_id}", response_model=dict)
+async def get_reorder_rule(rule_id: str, db: AsyncSession = Depends(get_db)):
+    rule = await svc.get_reorder_rule(db, uuid.UUID(rule_id))
+    if not rule: raise HTTPException(404, "Reorder rule not found")
+    part_r = await db.execute(select(Part).where(Part.id == rule.part_id))
+    part = part_r.scalar_one_or_none()
+    supplier_name = ""
+    if rule.preferred_supplier_id:
+        s = await db.get(Supplier, rule.preferred_supplier_id)
+        supplier_name = s.name if s else ""
+    return {"id": str(rule.id), "part_no": part.part_no if part else "",
+            "part_name": part.name if part else "",
+            "safety_stock": rule.safety_stock, "reorder_qty": rule.reorder_qty,
+            "reorder_point": rule.reorder_point,
+            "preferred_supplier": supplier_name,
+            "lead_time_days": rule.lead_time_days, "auto_approve": rule.auto_approve,
+            "is_active": rule.is_active,
+            "last_triggered_at": rule.last_triggered_at.isoformat() if rule.last_triggered_at else None}
+
+@router.patch("/reorder-rules/{rule_id}", response_model=dict)
+async def update_reorder_rule(rule_id: str, data: ReorderRuleUpdate,
+                               db: AsyncSession = Depends(get_db)):
+    rule = await svc.get_reorder_rule(db, uuid.UUID(rule_id))
+    if not rule: raise HTTPException(404, "Reorder rule not found")
+    kw = data.model_dump(exclude_none=True)
+    if "preferred_supplier_name" in kw:
+        from app.services.purchase_service import list_suppliers
+        s, _ = await list_suppliers(db, kw.pop("preferred_supplier_name"))
+        if s: kw["preferred_supplier_id"] = s[0].id
+    rule = await svc.update_reorder_rule(db, uuid.UUID(rule_id), **kw)
+    return {"id": str(rule.id), "message": "Reorder rule updated"}
+
+@router.delete("/reorder-rules/{rule_id}", response_model=dict)
+async def delete_reorder_rule(rule_id: str, db: AsyncSession = Depends(get_db)):
+    ok = await svc.delete_reorder_rule(db, uuid.UUID(rule_id))
+    if not ok: raise HTTPException(404, "Reorder rule not found")
+    return {"message": "Reorder rule deleted"}
 
 @router.post("/reorder/check", response_model=dict)
 async def check_reorder(db: AsyncSession = Depends(get_db)):
@@ -248,3 +290,84 @@ async def check_reorder(db: AsyncSession = Depends(get_db)):
     results = await svc.check_reorder_all(db)
     return {"items_needing_reorder": results, "total": len(results),
             "needs_action": len([r for r in results if r["action"] in ("alert", "auto_order")])}
+
+# -- REPLENISH SUGGESTIONS --
+
+@router.post("/replenish/run", response_model=dict)
+async def run_auto_replenish(created_by: str = Query("system"),
+                              db: AsyncSession = Depends(get_db)):
+    """Run auto-replenishment engine: check all rules & create suggestions."""
+    suggestions = await svc.run_auto_replenish(db, created_by)
+    auto_approved = len([s for s in suggestions if s.status == "approved"])
+    items = [ReplenishSuggestionResponse(
+        id=str(s.id), rule_id=str(s.rule_id),
+        part_no=s.part_no, part_name=s.part_name,
+        warehouse_name=s.warehouse_name,
+        current_qty=s.current_qty, suggested_qty=s.suggested_qty,
+        reorder_point=s.reorder_point,
+        status=s.status, suggested_supplier=s.suggested_supplier,
+        notes=s.notes, created_by=s.created_by,
+        created_at=s.created_at, updated_at=s.updated_at,
+    ) for s in suggestions]
+    return {"suggestions_created": len(items), "auto_approved": auto_approved,
+            "suggestions": items}
+
+@router.get("/replenish/pending", response_model=dict)
+async def get_pending_replenish(db: AsyncSession = Depends(get_db)):
+    """Get all pending (unprocessed) replenishment suggestions."""
+    suggestions = await svc.get_pending_replenish(db)
+    items = [ReplenishSuggestionResponse(
+        id=str(s.id), rule_id=str(s.rule_id),
+        part_no=s.part_no, part_name=s.part_name,
+        warehouse_name=s.warehouse_name,
+        current_qty=s.current_qty, suggested_qty=s.suggested_qty,
+        reorder_point=s.reorder_point,
+        status=s.status, suggested_supplier=s.suggested_supplier,
+        notes=s.notes, created_by=s.created_by,
+        created_at=s.created_at, updated_at=s.updated_at,
+    ) for s in suggestions]
+    return {"suggestions": items, "total": len(items)}
+
+@router.get("/replenish", response_model=dict)
+async def list_replenish_suggestions(status: str = Query(""),
+                                      db: AsyncSession = Depends(get_db)):
+    """List all replenishment suggestions, optionally filtered by status."""
+    suggestions = await svc.list_replenish_suggestions(db, status)
+    items = [ReplenishSuggestionResponse(
+        id=str(s.id), rule_id=str(s.rule_id),
+        part_no=s.part_no, part_name=s.part_name,
+        warehouse_name=s.warehouse_name,
+        current_qty=s.current_qty, suggested_qty=s.suggested_qty,
+        reorder_point=s.reorder_point,
+        status=s.status, suggested_supplier=s.suggested_supplier,
+        notes=s.notes, created_by=s.created_by,
+        created_at=s.created_at, updated_at=s.updated_at,
+    ) for s in suggestions]
+    return {"suggestions": items, "total": len(items)}
+
+@router.post("/replenish/{suggestion_id}/approve", response_model=dict)
+async def approve_replenish(suggestion_id: str, notes: str = Query(""),
+                             db: AsyncSession = Depends(get_db)):
+    """Approve a pending replenishment suggestion."""
+    try:
+        s = await svc.approve_replenish_suggestion(db, uuid.UUID(suggestion_id), notes)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    if not s: raise HTTPException(404, "Replenish suggestion not found")
+    return {"id": str(s.id), "status": s.status, "message": "Suggestion approved"}
+
+@router.post("/replenish/{suggestion_id}/reject", response_model=dict)
+async def reject_replenish(suggestion_id: str, reason: str = Query(""),
+                            db: AsyncSession = Depends(get_db)):
+    """Reject a pending replenishment suggestion."""
+    s = await svc.reject_replenish_suggestion(db, uuid.UUID(suggestion_id), reason)
+    if not s: raise HTTPException(404, "Replenish suggestion not found")
+    return {"id": str(s.id), "status": s.status, "message": "Suggestion rejected"}
+
+@router.post("/replenish/{suggestion_id}/ordered", response_model=dict)
+async def set_replenish_ordered(suggestion_id: str, notes: str = Query(""),
+                                 db: AsyncSession = Depends(get_db)):
+    """Mark a replenishment suggestion as ordered (PO created)."""
+    s = await svc.set_ordered_replenish_suggestion(db, uuid.UUID(suggestion_id), notes)
+    if not s: raise HTTPException(404, "Replenish suggestion not found")
+    return {"id": str(s.id), "status": s.status, "message": "Suggestion marked as ordered"}

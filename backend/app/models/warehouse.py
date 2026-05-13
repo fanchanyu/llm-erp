@@ -158,17 +158,42 @@ class SupplierPrice(Base):
 # ─── Reorder Rule (自動補貨規則) ─────────────────────────────────
 
 class ReorderRule(Base):
-    """Auto-replenishment rules triggered when stock falls below safety stock."""
+    """Auto-replenishment rules triggered when stock falls below reorder point."""
     __tablename__ = "reorder_rules"
 
     id = Column(Uuid, primary_key=True, default=uuid.uuid4)
     part_id = Column(Uuid, ForeignKey("parts.id"), nullable=False, unique=True)
     preferred_supplier_id = Column(Uuid, ForeignKey("suppliers.id"), nullable=True)
-    safety_stock = Column(Float, nullable=False)      # trigger level
+    safety_stock = Column(Float, nullable=False)      # minimum safety level
     reorder_qty = Column(Float, nullable=False)        # how much to order
+    reorder_point = Column(Float, nullable=True)       # trigger level (falls back to safety_stock)
     lead_time_days = Column(Integer, default=7)
     auto_approve = Column(Boolean, default=False)      # auto-create PO or require approval
     is_active = Column(Boolean, default=True)
     last_triggered_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ─── Replenish Suggestion (補貨建議) ─────────────────────────────
+
+class ReplenishSuggestion(Base):
+    """Auto-generated replenishment suggestion from reorder rule checks."""
+    __tablename__ = "replenish_suggestions"
+
+    id = Column(Uuid, primary_key=True, default=uuid.uuid4)
+    rule_id = Column(Uuid, ForeignKey("reorder_rules.id"), nullable=False)
+    part_no = Column(String(50), nullable=False, index=True)
+    part_name = Column(String(200), nullable=True)
+    warehouse_name = Column(String(200), nullable=True)
+    current_qty = Column(Float, nullable=False)
+    suggested_qty = Column(Float, nullable=False)
+    reorder_point = Column(Float, nullable=False)
+    status = Column(String(20), default="pending")  # pending, approved, rejected, ordered
+    suggested_supplier = Column(String(200), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_by = Column(String(100), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    rule = relationship("ReorderRule", foreign_keys=[rule_id])

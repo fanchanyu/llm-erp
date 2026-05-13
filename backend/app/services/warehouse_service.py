@@ -12,6 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.models.warehouse import (
     WarehouseZone, BinLocation, InventoryTransfer, PickTask,
     CycleCount, SupplierEvaluation, SupplierPrice, ReorderRule,
+    ReplenishSuggestion,
 )
 from app.models.purchase import Supplier, PurchaseOrder, PurchaseOrderItem
 from app.models.inventory import Part, Inventory
@@ -255,6 +256,31 @@ async def set_reorder_rule(db: AsyncSession, part_id: uuid.UUID,
         db.add(rule)
     await db.flush(); return rule
 
+async def list_reorder_rules(db: AsyncSession) -> list[ReorderRule]:
+    """List all reorder rules with part & supplier info."""
+    r = await db.execute(select(ReorderRule).order_by(ReorderRule.created_at.desc()))
+    return list(r.scalars().all())
+
+async def get_reorder_rule(db: AsyncSession, rule_id: uuid.UUID) -> Optional[ReorderRule]:
+    r = await db.execute(select(ReorderRule).where(ReorderRule.id == rule_id))
+    return r.scalar_one_or_none()
+
+async def update_reorder_rule(db: AsyncSession, rule_id: uuid.UUID,
+                               **kw) -> Optional[ReorderRule]:
+    rule = await db.get(ReorderRule, rule_id)
+    if not rule: return None
+    for k, v in kw.items():
+        if v is not None: setattr(rule, k, v)
+    await db.flush()
+    return rule
+
+async def delete_reorder_rule(db: AsyncSession, rule_id: uuid.UUID) -> bool:
+    rule = await db.get(ReorderRule, rule_id)
+    if not rule: return False
+    await db.delete(rule)
+    await db.flush()
+    return True
+
 async def check_reorder_all(db: AsyncSession) -> list[dict]:
     """Check all active reorder rules against current stock levels."""
     r = await db.execute(select(ReorderRule).where(ReorderRule.is_active == True))
@@ -269,9 +295,10 @@ async def check_reorder_all(db: AsyncSession) -> list[dict]:
         stock = float(inv_r.scalar())
         part_r = await db.execute(select(Part).where(Part.id == rule.part_id))
         part = part_r.scalar_one_or_none()
+        trigger_point = rule.reorder_point if rule.reorder_point is not None else rule.safety_stock
 
-        if stock < rule.safety_stock:
-            shortage = rule.safety_stock - stock
+        if stock < trigger_point:
+            shortage = trigger_point - stock
             order_qty = max(rule.reorder_qty, shortage)
             supplier_name = ""
             if rule.preferred_supplier_id:
@@ -294,3 +321,133 @@ async def check_reorder_all(db: AsyncSession) -> list[dict]:
 
     await db.flush()
     return results
+
+# ═══════════════════════════════════════════════════════════════════
+# ─── REPLENISH SUGGESTION ENGINE ─────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════
+
+async def run_auto_replenish(db: AsyncSession,
+                              created_by: str = "system") -> list[ReplenishSuggestion]:
+    """
+    Auto-replenishment engine:
+    - Reads all active reorder rules
+    - For each rule, queries current Inventory qty
+    - If current_qty < reorder_point → creates ReplenishSuggestion
+    - If auto_approve=True → sets status to 'approved'
+    """
+    r = await db.execute(select(ReorderRule).where(ReorderRule.is_active == True))
+    rules = list(r.scalars().all())
+    suggestions: list[ReplenishSuggestion] = []
+
+    for rule in rules:
+        # Get current stock
+        inv_r = await db.execute(
+            select(func.coalesce(func.sum(Inventory.quantity), 0)).where(
+                Inventory.part_id == rule.part_id)
+        )
+        current_qty = float(inv_r.scalar())
+        trigger_point = rule.reorder_point if rule.reorder_point is not None else rule.safety_stock
+
+        if current_qty >= trigger_point:
+            continue  # stock is sufficient
+
+        # Get part details
+        part_r = await db.execute(select(Part).where(Part.id == rule.part_id))
+        part = part_r.scalar_one_or_none()
+        if not part:
+            continue
+
+        # Get supplier name
+        supplier_name = ""
+        if rule.preferred_supplier_id:
+            s = await db.get(Supplier, rule.preferred_supplier_id)
+            supplier_name = s.name if s else ""
+
+        # Calculate suggested qty
+        shortage = trigger_point - current_qty
+        suggested_qty = max(rule.reorder_qty, shortage)
+
+        # Determine initial status
+        status = "approved" if rule.auto_approve else "pending"
+
+        suggestion = ReplenishSuggestion(
+            rule_id=rule.id,
+            part_no=part.part_no,
+            part_name=part.name,
+            warehouse_name="",  # could join warehouse info if needed
+            current_qty=current_qty,
+            suggested_qty=suggested_qty,
+            reorder_point=trigger_point,
+            status=status,
+            suggested_supplier=supplier_name,
+            created_by=created_by,
+        )
+        db.add(suggestion)
+        suggestions.append(suggestion)
+
+        # Update last triggered
+        rule.last_triggered_at = datetime.utcnow()
+
+    await db.flush()
+    return suggestions
+
+
+async def get_pending_replenish(db: AsyncSession) -> list[ReplenishSuggestion]:
+    """Get all pending (unprocessed) replenishment suggestions."""
+    r = await db.execute(
+        select(ReplenishSuggestion)
+        .where(ReplenishSuggestion.status == "pending")
+        .order_by(ReplenishSuggestion.created_at.desc())
+    )
+    return list(r.scalars().all())
+
+
+async def list_replenish_suggestions(db: AsyncSession,
+                                      status: str = "",
+                                      limit: int = 100) -> list[ReplenishSuggestion]:
+    q = select(ReplenishSuggestion)
+    if status:
+        q = q.where(ReplenishSuggestion.status == status)
+    r = await db.execute(q.order_by(ReplenishSuggestion.created_at.desc()).limit(limit))
+    return list(r.scalars().all())
+
+
+async def approve_replenish_suggestion(db: AsyncSession,
+                                        suggestion_id: uuid.UUID,
+                                        notes: str = "") -> Optional[ReplenishSuggestion]:
+    """Approve a replenishment suggestion."""
+    s = await db.get(ReplenishSuggestion, suggestion_id)
+    if not s: return None
+    if s.status != "pending":
+        raise ValueError(f"Suggestion already {s.status}")
+    s.status = "approved"
+    if notes:
+        s.notes = (s.notes or "") + f" | Approved: {notes}"
+    await db.flush()
+    return s
+
+
+async def reject_replenish_suggestion(db: AsyncSession,
+                                       suggestion_id: uuid.UUID,
+                                       reason: str = "") -> Optional[ReplenishSuggestion]:
+    """Reject a replenishment suggestion."""
+    s = await db.get(ReplenishSuggestion, suggestion_id)
+    if not s: return None
+    s.status = "rejected"
+    if reason:
+        s.notes = (s.notes or "") + f" | Rejected: {reason}"
+    await db.flush()
+    return s
+
+
+async def set_ordered_replenish_suggestion(db: AsyncSession,
+                                            suggestion_id: uuid.UUID,
+                                            notes: str = "") -> Optional[ReplenishSuggestion]:
+    """Mark a suggestion as ordered (PO created)."""
+    s = await db.get(ReplenishSuggestion, suggestion_id)
+    if not s: return None
+    s.status = "ordered"
+    if notes:
+        s.notes = (s.notes or "") + f" | Ordered: {notes}"
+    await db.flush()
+    return s
