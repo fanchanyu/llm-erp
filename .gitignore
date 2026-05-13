@@ -60,3 +60,5 @@ Thumbs.db
 paper/
 backend/reports/
 backend/app/data_import.py
+sales/*.pdf
+sales/cjk-print.css
